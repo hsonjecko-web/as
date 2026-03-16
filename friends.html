@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الأصدقاء</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #6366f1; --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-secondary: #64748b; --border-color: #e2e8f0; --input-bg: #f1f5f9; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --nav-height: 70px; --success-color: #10b981; --danger-color: #ef4444; }
+        body.dark-mode { --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9; --text-secondary: #94a3b8; --border-color: #334155; --input-bg: #334155; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: calc(var(--nav-height) + 20px); transition: background-color 0.3s ease; }
+        header { position: sticky; top: 0; z-index: 100; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); padding: 15px 20px; box-shadow: var(--shadow); border-bottom: 1px solid var(--border-color); }
+        body.dark-mode header { background: rgba(30, 41, 59, 0.9); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .page-title { font-size: 1.5rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .search-bar { position: relative; margin-bottom: 15px; }
+        .search-input { width: 100%; padding: 12px 45px 12px 15px; background-color: var(--input-bg); border: 2px solid transparent; border-radius: 16px; font-size: 0.95rem; color: var(--text-main); outline: none; transition: all 0.3s; }
+        .search-input:focus { border-color: var(--primary-color); background-color: var(--card-bg); }
+        .search-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+        .section-header { padding: 0 20px; margin: 25px 0 15px; display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: var(--primary-color); }
+        .see-all { font-size: 0.85rem; color: var(--primary-color); text-decoration: none; font-weight: 600; }
+        .requests-scroll { display: flex; overflow-x: auto; padding: 0 20px 10px; gap: 15px; scrollbar-width: none; }
+        .requests-scroll::-webkit-scrollbar { display: none; }
+        .request-card { min-width: 280px; background: var(--card-bg); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); position: relative; }
+        .request-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 5px; background: var(--primary-gradient); }
+        .req-avatar { width: 60px; height: 60px; border-radius: 16px; object-fit: cover; }
+        .req-info { flex: 1; }
+        .req-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+        .req-mutual { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; }
+        .req-actions { display: flex; gap: 8px; }
+        .btn-req { padding: 8px 16px; border-radius: 10px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .btn-accept { background: var(--primary-gradient); color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
+        .btn-decline { background: var(--input-bg); color: var(--text-secondary); }
+        .suggestions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+        .suggestion-card { background: var(--card-bg); border-radius: 20px; padding: 20px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: transform 0.3s; }
+        .suggestion-card:hover { transform: translateY(-5px); }
+        .sugg-avatar-wrapper { position: relative; display: inline-block; margin-bottom: 10px; }
+        .sugg-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); padding: 3px; background: var(--card-bg); }
+        .sugg-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 5px; }
+        .sugg-job { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 15px; }
+        .btn-add { width: 100%; padding: 10px; background: rgba(99, 102, 241, 0.1); color: var(--primary-color); border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-add:hover { background: var(--primary-gradient); color: white; }
+        .friends-list { padding: 0 20px; }
+        .friend-item { background: var(--card-bg); padding: 15px; border-radius: 18px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s; }
+        .friend-item:hover { transform: translateX(-5px); }
+        .friend-left { display: flex; align-items: center; gap: 15px; }
+        .friend-avatar-wrapper { position: relative; }
+        .friend-avatar { width: 50px; height: 50px; border-radius: 14px; object-fit: cover; }
+        .status-dot { position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: var(--success-color); border: 2px solid var(--card-bg); border-radius: 50%; }
+        .status-dot.offline { background: var(--text-secondary); }
+        .friend-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+        .friend-info p { font-size: 0.75rem; color: var(--text-secondary); }
+        .friend-actions button { background: var(--input-bg); border: none; width: 35px; height: 35px; border-radius: 10px; color: var(--text-secondary); cursor: pointer; transition: all 0.3s; }
+        .friend-actions button:hover { background: var(--primary-color); color: white; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 1000; }
+        body.dark-mode .bottom-nav { background: rgba(30, 41, 59, 0.95); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-secondary); font-size: 0.7rem; gap: 6px; transition: all 0.3s; }
+        .nav-item i { font-size: 1.3rem; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item.active i { transform: translateY(-3px); }
+        .profile-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: flex-end; }
+        .profile-modal-overlay.show { display: flex; }
+        .profile-modal { background: var(--card-bg); width: 100%; max-width: 500px; height: 85vh; border-radius: 30px 30px 0 0; padding: 25px; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .close-modal { position: absolute; top: 20px; left: 20px; width: 35px; height: 35px; border-radius: 50%; background: var(--input-bg); border: none; color: var(--text-main); cursor: pointer; z-index: 10; }
+        .profile-header { text-align: center; margin-bottom: 25px; }
+        .profile-avatar-lg { width: 100px; height: 100px; border-radius: 25px; object-fit: cover; border: 4px solid var(--primary-color); margin-bottom: 15px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); }
+        .profile-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 5px; }
+        .profile-bio { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
+        .profile-stats { display: flex; justify-content: center; gap: 30px; margin-bottom: 25px; padding: 15px; background: var(--input-bg); border-radius: 16px; }
+        .stat-box b { display: block; font-size: 1.2rem; color: var(--text-main); }
+        .stat-box span { font-size: 0.8rem; color: var(--text-secondary); }
+        .profile-actions { display: flex; gap: 10px; }
+        .btn-profile { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
+        .btn-primary { background: var(--primary-gradient); color: white; }
+        .btn-secondary { background: var(--input-bg); color: var(--text-main); }
+        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-top">
+            <h1 class="page-title">الأصدقاء</h1>
+            <button style="background:none; border:none; font-size:1.2rem; color:var(--text-main);"><i class="fas fa-cog"></i></button>
+        </div>
+        <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" placeholder="بحث عن صديق..." id="search-input" onkeyup="filterFriends()">
+        </div>
+    </header>
+
+    <!-- طلبات الصداقة -->
+    <section>
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-user-plus"></i><span>طلبات الصداقة</span></div>
+            <a href="#" class="see-all">عرض الكل</a>
+        </div>
+        <div class="requests-scroll" id="requests-container">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+        </div>
+    </section>
+
+    <!-- اقتراحات الأصدقاء -->
+    <section>
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-lightbulb"></i><span>اقتراحات لك</span></div>
+            <a href="#" class="see-all">تحديث</a>
+        </div>
+        <div class="suggestions-grid" id="suggestions-container">
+            <div class="loading">جاري تحميل الاقتراحات...</div>
+        </div>
+    </section>
+
+    <!-- قائمة الأصدقاء -->
+    <section>
+        <div class="section-header">
+            <div class="section-title"><i class="fas fa-users"></i><span>أصدقائي</span></div>
+            <span style="font-size:0.8rem; color:var(--text-secondary);" id="friends-count">0 صديق</span>
+        </div>
+        <div class="friends-list" id="friends-list-container">
+            <div class="loading">جاري تحميل الأصدقاء...</div>
+        </div>
+    </section>
+
+    <!-- الفوتر -->
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+        <a href="feed.html" class="nav-item"><i class="fas fa-newspaper"></i><span>المنشورات</span></a>
+        <a href="chat.html" class="nav-item"><i class="fas fa-comment-dots"></i><span>الدردشة</span></a>
+        <a href="friends.html" class="nav-item active"><i class="fas fa-user-friends"></i><span>الأصدقاء</span></a>
+        <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>حسابي</span></a>
+    </nav>
+
+    <!-- نافذة البروفايل -->
+    <div class="profile-modal-overlay" id="profileModal">
+        <div class="profile-modal">
+            <button class="close-modal" onclick="closeProfile()"><i class="fas fa-times"></i></button>
+            <div class="profile-header">
+                <img src="" alt="Profile" class="profile-avatar-lg" id="modal-img">
+                <h2 class="profile-name" id="modal-name">اسم المستخدم</h2>
+                <p class="profile-bio" id="modal-bio">نبذة عن المستخدم</p>
+                <div class="profile-stats">
+                    <div class="stat-box"><b id="modal-posts">0</b><span>منشور</span></div>
+                    <div class="stat-box"><b id="modal-followers">0</b><span>متابع</span></div>
+                    <div class="stat-box"><b id="modal-following">0</b><span>يتابع</span></div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn-profile btn-primary" onclick="startChat()">مراسلة</button>
+                    <button class="btn-profile btn-secondary">ملف شخصي</button>
+                </div>
+            </div>
+            <h3 style="font-size:1.1rem; margin-bottom:15px; border-right:4px solid var(--primary-color); padding-right:10px;">آخر النشاطات</h3>
+            <div style="color:var(--text-secondary); font-size:0.9rem; line-height:1.8;" id="modal-activities">
+                جاري تحميل النشاطات...
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth, collection, query, where, onSnapshot, doc, getDoc, updateDoc, addDoc, arrayUnion, serverTimestamp } from './firebase-config.js';
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.isLoggedIn) { window.location.href = 'index.html'; }
+
+        let allFriends = [];
+        let allRequests = [];
+        let allUsers = [];
+
+        // === تحميل البيانات ===
+        function startListeners() {
+            // تحميل الأصدقاء
+            onSnapshot(doc(db, "users", currentUser.uid), (userSnap) => {
+                const userData = userSnap.data();
+                const friendsIds = userData.friends || [];
+                document.getElementById('friends-count').textContent = `${friendsIds.length} صديق`;
+                
+                if (friendsIds.length > 0) {
+                    const friendsQuery = query(collection(db, "users"), where("uid", "in", friendsIds.slice(0, 10)));
+                    onSnapshot(friendsQuery, (snapshot) => {
+                        allFriends = [];
+                        snapshot.forEach(doc => { allFriends.push({ id: doc.id, ...doc.data() }); });
+                        renderFriends(allFriends);
+                    });
+                }
+            });
+
+            // تحميل طلبات الصداقة
+            const requestsQuery = query(collection(db, "requests"), where("toUserId", "==", currentUser.uid), where("status", "==", "pending"));
+            onSnapshot(requestsQuery, (snapshot) => {
+                allRequests = [];
+                snapshot.forEach(doc => { allRequests.push({ id: doc.id, ...doc.data() }); });
+                renderRequests();
+            });
+
+            // تحميل المستخدمين للاقتراحات
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                allUsers = [];
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    if (doc.id !== currentUser.uid && !user.banned) {
+                        allUsers.push({ id: doc.id, ...user });
+                    }
+                });
+                renderSuggestions();
+            });
+        }
+
+        // === عرض الطلبات ===
+        function renderRequests() {
+            const container = document.getElementById('requests-container');
+            if (allRequests.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-secondary); font-size:0.9rem; padding:10px;">لا توجد طلبات جديدة</div>';
+                return;
+            }
+            container.innerHTML = allRequests.map(req => `
+                <div class="request-card">
+                    <img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="req-avatar">
+                    <div class="req-info">
+                        <div class="req-name">${req.fromUserName}</div>
+                        <div class="req-mutual">يريد إضافتك كصديق</div>
+                        <div class="req-actions">
+                            <button class="btn-req btn-accept" onclick="handleFriendRequest('${req.id}', 'accept')">قبول</button>
+                            <button class="btn-req btn-decline" onclick="handleFriendRequest('${req.id}', 'reject')">رفض</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.handleFriendRequest = async function(requestId, action) {
+            const reqRef = doc(db, "requests", requestId);
+            const request = allRequests.find(r => r.id === requestId);
+            
+            if (action === 'accept') {
+                await updateDoc(reqRef, { status: 'accepted' });
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    friends: arrayUnion(request.fromUserId),
+                    'stats.friendsCount': increment(1)
+                });
+                await updateDoc(doc(db, "users", request.fromUserId), {
+                    friends: arrayUnion(currentUser.uid),
+                    'stats.friendsCount': increment(1)
+                });
+                alert('تم قبول طلب الصداقة');
+            } else {
+                await updateDoc(reqRef, { status: 'rejected' });
+                alert('تم رفض الطلب');
+            }
+        }
+
+        // === عرض الاقتراحات ===
+        function renderSuggestions() {
+            const container = document.getElementById('suggestions-container');
+            const suggestions = allUsers.filter(u => !u.friends?.includes(currentUser.uid)).slice(0, 4);
+            
+            if (suggestions.length === 0) {
+                container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد اقتراحات حالياً</div>';
+                return;
+            }
+            
+            container.innerHTML = suggestions.map(user => `
+                <div class="suggestion-card">
+                    <div class="sugg-avatar-wrapper">
+                        <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" class="sugg-avatar">
+                    </div>
+                    <div class="sugg-name">${user.fullName}</div>
+                    <div class="sugg-job">${user.country || 'مستخدم جديد'}</div>
+                    <button class="btn-add" onclick="sendFriendRequest('${user.id}', '${user.fullName}')">إضافة صديق</button>
+                </div>
+            `).join('');
+        }
+
+        window.sendFriendRequest = async function(userId, userName) {
+            await addDoc(collection(db, "requests"), {
+                type: 'friend',
+                fromUserId: currentUser.uid,
+                fromUserName: currentUser.fullName,
+                toUserId: userId,
+                status: 'pending',
+                timestamp: serverTimestamp()
+            });
+            alert(`تم إرسال طلب صداقة إلى ${userName}`);
+            renderSuggestions();
+        }
+
+        // === عرض الأصدقاء ===
+        function renderFriends(list) {
+            const container = document.getElementById('friends-list-container');
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">لا توجد أصدقاء بعد.<br>ابدأ بإضافة أصدقاء جدد!</div>';
+                return;
+            }
+            container.innerHTML = list.map(friend => `
+                <div class="friend-item" onclick="openProfile('${friend.id}')">
+                    <div class="friend-left">
+                        <div class="friend-avatar-wrapper">
+                            <img src="${friend.profileImage || 'https://i.pravatar.cc/150?u=' + friend.username}" class="friend-avatar">
+                            <span class="status-dot"></span>
+                        </div>
+                        <div class="friend-info">
+                            <h4>${friend.fullName}</h4>
+                            <p>متصل الآن</p>
+                        </div>
+                    </div>
+                    <div class="friend-actions">
+                        <button onclick="event.stopPropagation(); startChatWith('${friend.id}')"><i class="fas fa-comment"></i></button>
+                        <button><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // === البحث ===
+        window.filterFriends = function() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allFriends.filter(f => f.fullName?.toLowerCase().includes(query));
+            renderFriends(filtered);
+        }
+
+        // === البروفايل ===
+        const modal = document.getElementById('profileModal');
+
+        window.openProfile = async function(userId) {
+            const userRef = doc(db, "users", userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const user = userSnap.data();
+                document.getElementById('modal-name').textContent = user.fullName;
+                document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
+                document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
+                document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
+                document.getElementById('modal-followers').textContent = user.stats?.followersCount || 0;
+                document.getElementById('modal-following').textContent = user.stats?.friendsCount || 0;
+                
+                // تحميل النشاطات
+                document.getElementById('modal-activities').innerHTML = `
+                    <p>• آخر دخول: منذ قليل</p>
+                    <p>• نشر منشوراً جديداً</p>
+                    <p>• أضاف صديقاً جديداً</p>
+                `;
+                
+                modal.classList.add('show');
+            }
+        }
+
+        window.closeProfile = function() {
+            modal.classList.remove('show');
+        }
+
+        window.startChat = function() {
+            window.location.href = 'chat.html';
+        }
+
+        window.startChatWith = function(userId) {
+            // هنا يتم إنشاء محادثة جديدة أو فتح موجودة
+            window.location.href = 'chat.html';
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeProfile();
+        });
+
+        // === تهيئة ===
+        document.addEventListener('DOMContentLoaded', startListeners);
+    </script>
+</body>
+</html>

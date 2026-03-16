@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الرئيسية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --nav-height: 70px;
+            --success-color: #10b981;
+        }
+
+        body.dark-mode {
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: calc(var(--nav-height) + 20px);
+            transition: background-color 0.3s ease;
+        }
+
+        /* === الهيدر === */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-mode header {
+            background-color: rgba(31, 41, 55, 0.9);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-color);
+        }
+
+        .username {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            min-width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            border-radius: 10px;
+            font-size: 0.65rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border: 2px solid var(--card-bg);
+        }
+
+        /* === السلايدر === */
+        .slider-container {
+            width: calc(100% - 40px);
+            margin: 20px auto;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+        }
+
+        .slide-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: white;
+            width: 20px;
+        }
+
+        /* === شريط الأخبار === */
+        .news-ticker {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 12px 0;
+            margin: 20px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .ticker-content {
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+            white-space: nowrap;
+            padding-right: 100%;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* === العناوين === */
+        .section-title {
+            padding: 0 20px;
+            margin: 25px 0 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            position: relative;
+            padding-right: 15px;
+        }
+
+        .section-title h2::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .see-all {
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .see-all:hover {
+            gap: 8px;
+        }
+
+        /* === المستخدمون === */
+        .users-scroll {
+            display: flex;
+            overflow-x: auto;
+            padding: 0 20px 10px 20px;
+            gap: 16px;
+            scrollbar-width: none;
+        }
+
+        .users-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .user-card {
+            min-width: 110px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .user-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .user-card-img-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .user-card img {
+            width: 65px;
+            height: 65px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s;
+        }
+
+        .user-card:hover img {
+            border-color: var(--primary-color);
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 12px;
+            height: 12px;
+            background: var(--success-color);
+            border-radius: 50%;
+            border: 2px solid var(--card-bg);
+        }
+
+        .user-card-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .add-friend-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        /* === غرف الدردشة === */
+        .chat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 0 20px;
+        }
+
+        .chat-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .chat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .chat-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .chat-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .chat-card-icon.general {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .chat-card-icon.quran {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .chat-card-icon.hadith {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+
+        .chat-card-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .chat-card-members {
+            font-size: 0.75rem;
+            color: var(--success-color);
+            font-weight: 500;
+        }
+
+        .chat-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-card-last-msg {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            max-width: 60%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .join-btn {
+            padding: 6px 14px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .join-btn:hover {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        /* === المكتبة === */
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 0 20px;
+        }
+
+        .book-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 15px 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .book-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .book-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin: 0 auto 10px;
+        }
+
+        .book-icon.quran {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .book-icon.book {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .book-icon.prayer {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+
+        .book-card h5 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .book-card p {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        /* === الفيديوهات === */
+        .videos-scroll {
+            display: flex;
+            overflow-x: auto;
+            padding: 0 20px 10px;
+            gap: 15px;
+            scrollbar-width: none;
+        }
+
+        .videos-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .video-card {
+            min-width: 260px;
+            background: var(--card-bg);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 150px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+
+        .video-info {
+            padding: 12px;
+        }
+
+        .video-info h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .video-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* === الفوتر === */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            z-index: 1000;
+        }
+
+        body.dark-mode .bottom-nav {
+            background: rgba(31, 41, 55, 0.95);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 1.3rem;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item.active i {
+            transform: translateY(-3px);
+        }
+
+        /* === مودال البروفايل === */
+        .profile-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .profile-modal-overlay.show {
+            display: flex;
+        }
+
+        .profile-modal {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            height: 85vh;
+            border-radius: 30px 30px 0 0;
+            padding: 25px;
+            overflow-y: auto;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--input-bg);
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 20px;
+        }
+
+        .profile-avatar-lg {
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            object-fit: cover;
+            border: 4px solid var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .profile-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .profile-bio {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 16px;
+        }
+
+        .stat-box b {
+            display: block;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .stat-box span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-profile {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg-color);
+            color: var(--text-main);
+        }
+
+        /* === لوحة الإشعارات === */
+        .notification-panel {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            right: 20px;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .notification-panel.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notification-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .clear-all-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .notification-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .notification-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.message {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .notification-icon.friend {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .notification-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .notification-time {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <header>
+        <div class="user-info">
+            <img src="" alt="User" class="user-avatar-small" id="header-avatar">
+            <span class="username" id="header-username">جاري التحميل...</span>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="icon-btn" id="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notif-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- لوحة الإشعارات -->
+    <div class="notification-panel" id="notification-panel">
+        <div class="notification-header">
+            <h3><i class="fas fa-bell"></i> الإشعارات</h3>
+            <button class="clear-all-btn" onclick="clearAllNotifications()">
+                <i class="fas fa-trash-alt"></i> مسح الكل
+            </button>
+        </div>
+        <div class="notification-list" id="notification-list">
+            <div class="loading">جاري تحميل الإشعارات...</div>
+        </div>
+    </div>
+
+    <main>
+        <!-- السلايدر -->
+        <section class="slider-container">
+            <div class="slider" id="slider">
+                <div class="slide">
+                    <img src="https://picsum.photos/800/400?random=1" alt="Slide 1">
+                    <div class="slide-overlay">
+                        <div class="slide-title">🎉 مرحباً بكم في التطبيق الجديد</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="https://picsum.photos/800/400?random=2" alt="Slide 2">
+                    <div class="slide-overlay">
+                        <div class="slide-title">📚 مكتبة شاملة من الكتب الإسلامية</div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="https://picsum.photos/800/400?random=3" alt="Slide 3">
+                    <div class="slide-overlay">
+                        <div class="slide-title">💬 انضم لغرف النقاش النشطة</div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-dots" id="slider-dots"></div>
+        </section>
+
+        <!-- شريط الأخبار -->
+        <div class="news-ticker">
+            <div class="ticker-content" id="news-content">
+                📢 مرحباً بكم في التطبيق | 🔥 تحديثات جديدة قادمة | 📚 لا تنسوا قراءة الكتب | 💬 انضم للغرف النشطة
+            </div>
+        </div>
+
+        <!-- المستخدمون -->
+        <section>
+            <div class="section-title">
+                <h2>المستخدمون</h2>
+                <a href="friends.html" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
+            </div>
+            <div class="users-scroll" id="users-container">
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+            </div>
+        </section>
+
+        <!-- غرف الدردشة -->
+        <section>
+            <div class="section-title">
+                <h2>غرف الدردشة</h2>
+                <a href="chat.html" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
+            </div>
+            <div class="chat-grid" id="chat-container">
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+            </div>
+        </section>
+
+        <!-- المكتبة -->
+        <section>
+            <div class="section-title">
+                <h2>المكتبة والمحتوى</h2>
+                <a href="#" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
+            </div>
+            <div class="library-grid">
+                <div class="book-card">
+                    <div class="book-icon quran"><i class="fas fa-quran"></i></div>
+                    <h5>أحاديث نبوية</h5>
+                    <p>مختارات من السنة</p>
+                </div>
+                <div class="book-card">
+                    <div class="book-icon book"><i class="fas fa-book-open"></i></div>
+                    <h5>أهم الكتب</h5>
+                    <p>مكتبة شاملة</p>
+                </div>
+                <div class="book-card">
+                    <div class="book-icon prayer"><i class="fas fa-hands-praying"></i></div>
+                    <h5>أهم اللزمات</h5>
+                    <p>واجبات دينية</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- الفيديوهات -->
+        <section>
+            <div class="section-title">
+                <h2>فيديوهات مختارة</h2>
+                <a href="#" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
+            </div>
+            <div class="videos-scroll">
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <img src="https://picsum.photos/400/250?random=4" alt="Video">
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                        <span class="video-duration">12:30</span>
+                    </div>
+                    <div class="video-info">
+                        <h5>شرح حديث اليوم</h5>
+                        <p>منذ ساعتين • 1.2K مشاهدة</p>
+                    </div>
+                </div>
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <img src="https://picsum.photos/400/250?random=5" alt="Video">
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                        <span class="video-duration">08:45</span>
+                    </div>
+                    <div class="video-info">
+                        <h5>تلاوة خاشعة</h5>
+                        <p>أمس • 3.5K مشاهدة</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- الفوتر -->
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item active">
+            <i class="fas fa-home"></i>
+            <span>الرئيسية</span>
+        </a>
+        <a href="feed.html" class="nav-item">
+            <i class="fas fa-newspaper"></i>
+            <span>المنشورات</span>
+        </a>
+        <a href="chat.html" class="nav-item">
+            <i class="fas fa-comment-dots"></i>
+            <span>الدردشة</span>
+        </a>
+        <a href="friends.html" class="nav-item">
+            <i class="fas fa-user-friends"></i>
+            <span>الأصدقاء</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>حسابي</span>
+        </a>
+    </nav>
+
+    <!-- نافذة البروفايل -->
+    <div class="profile-modal-overlay" id="profileModal">
+        <div class="profile-modal">
+            <button class="close-modal" onclick="closeProfile()"><i class="fas fa-times"></i></button>
+            <div class="profile-header">
+                <img src="" alt="Profile" class="profile-avatar-lg" id="modal-img">
+                <h2 class="profile-name" id="modal-name">اسم المستخدم</h2>
+                <p class="profile-bio" id="modal-bio">نبذة المستخدم</p>
+                <div class="profile-stats">
+                    <div class="stat-box"><b id="modal-posts">0</b><span>منشور</span></div>
+                    <div class="stat-box"><b id="modal-followers">0</b><span>متابع</span></div>
+                    <div class="stat-box"><b id="modal-following">0</b><span>يتابع</span></div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn-profile btn-primary">متابعة</button>
+                    <button class="btn-profile btn-secondary">مراسلة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, collection, query, limit, getDocs, onSnapshot, doc, getDoc } from './firebase-config.js';
+
+        // === التحقق من الجلسة ===
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.isLoggedIn) {
+            window.location.href = 'index.html';
+        }
+
+        // === تحميل بيانات المستخدم في الهيدر ===
+        async function loadUserData() {
+            try {
+                const userRef = doc(db, "users", currentUser.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    document.getElementById('header-username').textContent = userData.fullName || currentUser.username;
+                    document.getElementById('header-avatar').src = userData.profileImage || 'https://i.pravatar.cc/150';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                document.getElementById('header-username').textContent = currentUser.username;
+                document.getElementById('header-avatar').src = 'https://i.pravatar.cc/150';
+            }
+        }
+
+        // === السلايدر ===
+        function initSlider() {
+            const slider = document.getElementById('slider');
+            const slides = document.querySelectorAll('.slide');
+            const dotsContainer = document.getElementById('slider-dots');
+            let currentIndex = 0;
+
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = `dot ${index === 0 ? 'active' : ''}`;
+                dot.onclick = () => goToSlide(index);
+                dotsContainer.appendChild(dot);
+            });
+
+            function goToSlide(index) {
+                currentIndex = index;
+                slider.style.transform = `translateX(${currentIndex * 100}%)`;
+                document.querySelectorAll('.dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+            }
+
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                goToSlide(currentIndex);
+            }, 4000);
+        }
+
+        // === تحميل شريط الأخبار من Firebase ===
+        async function loadNewsTicker() {
+            try {
+                const configRef = doc(db, "app_config", "config");
+                const configSnap = await getDoc(configRef);
+                if (configSnap.exists() && configSnap.data().newsActive) {
+                    document.getElementById('news-content').textContent = configSnap.data().newsTicker;
+                }
+            } catch (error) {
+                console.error('Error loading news:', error);
+            }
+        }
+
+        // === تحميل المستخدمين ===
+        async function loadUsers() {
+            try {
+                const usersQuery = query(collection(db, "users"), limit(10));
+                const snapshot = await getDocs(usersQuery);
+                const users = [];
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    if (doc.id !== currentUser.uid) {
+                        users.push({ id: doc.id, ...user });
+                    }
+                });
+
+                const container = document.getElementById('users-container');
+                if (users.length === 0) {
+                    container.innerHTML = '<div style="color:var(--text-secondary); padding:20px; text-align:center;">لا يوجد مستخدمين آخرين</div>';
+                    return;
+                }
+
+                container.innerHTML = users.map(user => `
+                    <div class="user-card" onclick="openProfile('${user.id}')">
+                        <div class="user-card-img-wrapper">
+                            <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" alt="${user.fullName}">
+                            <span class="online-indicator"></span>
+                        </div>
+                        <div class="user-card-name">${user.fullName || user.username}</div>
+                        <button class="add-friend-btn" onclick="event.stopPropagation(); addFriend('${user.id}')">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('users-container').innerHTML = '<div class="loading">خطأ في التحميل</div>';
+            }
+        }
+
+        // === تحميل غرف الدردشة ===
+        async function loadGroups() {
+            try {
+                const groupsQuery = query(collection(db, "groups"), limit(6));
+                const snapshot = await getDocs(groupsQuery);
+                const groups = [];
+                snapshot.forEach(doc => {
+                    const group = doc.data();
+                    if (group.isActive) {
+                        groups.push({ id: doc.id, ...group });
+                    }
+                });
+
+                const container = document.getElementById('chat-container');
+                if (groups.length === 0) {
+                    container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد غرف نشطة</div>';
+                    return;
+                }
+
+                const icons = ['general', 'quran', 'hadith'];
+                const iconsClass = ['fa-comments', 'fa-book-quran', 'fa-star-and-crescent'];
+
+                container.innerHTML = groups.map((group, index) => `
+                    <div class="chat-card" onclick="window.location.href='chat.html'">
+                        <div class="chat-card-header">
+                            <div class="chat-card-icon ${icons[index % icons.length]}">
+                                <i class="fas ${iconsClass[index % iconsClass.length]}"></i>
+                            </div>
+                            <div>
+                                <div class="chat-card-title">${group.name}</div>
+                                <div class="chat-card-members">
+                                    <i class="fas fa-circle"></i> ${group.memberCount || group.members?.length || 0} عضو
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-card-footer">
+                            <div class="chat-card-last-msg">${group.description || 'انضم الآن'}</div>
+                            <button class="join-btn">انضمام</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading groups:', error);
+                document.getElementById('chat-container').innerHTML = '<div class="loading">خطأ في التحميل</div>';
+            }
+        }
+
+        // === البروفايل ===
+        const modal = document.getElementById('profileModal');
+
+        window.openProfile = async function(userId) {
+            try {
+                const userRef = doc(db, "users", userId);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const user = userSnap.data();
+                    document.getElementById('modal-name').textContent = user.fullName;
+                    document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
+                    document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
+                    document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
+                    document.getElementById('modal-followers').textContent = user.stats?.followersCount || 0;
+                    document.getElementById('modal-following').textContent = user.stats?.friendsCount || 0;
+                    modal.classList.add('show');
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        window.closeProfile = function() {
+            modal.classList.remove('show');
+        }
+
+        window.addFriend = async function(userId) {
+            try {
+                await import('./firebase-config.js').then(async ({ addDoc, collection, serverTimestamp }) => {
+                    await addDoc(collection(db, "requests"), {
+                        type: 'friend',
+                        fromUserId: currentUser.uid,
+                        fromUserName: currentUser.fullName,
+                        toUserId: userId,
+                        status: 'pending',
+                        timestamp: serverTimestamp()
+                    });
+                    alert('تم إرسال طلب الصداقة');
+                });
+            } catch (error) {
+                console.error('Error adding friend:', error);
+                alert('حدث خطأ أثناء إرسال الطلب');
+            }
+        }
+
+        // === الإشعارات ===
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationPanel = document.getElementById('notification-panel');
+
+        notificationBtn.addEventListener('click', () => {
+            notificationPanel.classList.toggle('show');
+            loadNotifications();
+        });
+
+        async function loadNotifications() {
+            try {
+                const { query, where, orderBy, limit } = await import('./firebase-config.js');
+                const notifQuery = query(
+                    collection(db, "notifications"),
+                    where("targetUserId", "in", [currentUser.uid, "global"]),
+                    orderBy("timestamp", "desc"),
+                    limit(10)
+                );
+                const snapshot = await getDocs(notifQuery);
+                const container = document.getElementById('notification-list');
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا توجد إشعارات</div>';
+                    document.getElementById('notif-count').style.display = 'none';
+                    return;
+                }
+
+                const unreadCount = snapshot.docs.filter(d => !d.data().isRead).length;
+                document.getElementById('notif-count').textContent = unreadCount;
+                document.getElementById('notif-count').style.display = unreadCount > 0 ? 'flex' : 'none';
+
+                container.innerHTML = snapshot.docs.map(doc => {
+                    const n = doc.data();
+                    return `
+                        <div class="notification-item">
+                            <div class="notification-icon ${n.type === 'message' ? 'message' : 'friend'}">
+                                <i class="fas ${n.type === 'message' ? 'fa-comment' : 'fa-user-plus'}"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">${n.title}</div>
+                                <div class="notification-text">${n.body}</div>
+                                <div class="notification-time">${n.timestamp?.toDate?.().toLocaleDateString('ar-SA') || ''}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        window.clearAllNotifications = async function() {
+            document.getElementById('notification-list').innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا توجد إشعارات</div>';
+            document.getElementById('notif-count').style.display = 'none';
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
+                notificationPanel.classList.remove('show');
+            }
+        });
+
+        // === الوضع الليلي ===
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('#theme-toggle i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        });
+
+        // === التهيئة ===
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+            initSlider();
+            loadNewsTicker();
+            loadUsers();
+            loadGroups();
+        });
+
+        // إغلاق المودال عند النقر خارجه
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeProfile();
+        });
+    </script>
+</body>
+</html>
