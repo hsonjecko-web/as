@@ -97,7 +97,8 @@
                 <div class="nav-item" onclick="showSection('messages')"><i class="fas fa-comments"></i> المراقبة الحية</div>
                 <div class="nav-item" onclick="showSection('wallet')"><i class="fas fa-wallet"></i> المحفظة</div>
                 <div class="nav-item" onclick="showSection('groups')"><i class="fas fa-users"></i> المجموعات</div>
-                <div class="nav-item" onclick="showSection('content')"><i class="fas fa-newspaper"></i> المحتوى</div>
+<div class="nav-item" onclick="showSection('support')"><i class="fas fa-headset"></i> رسائل المستخدمين</div>
+<div class="nav-item" onclick="showSection('content')"><i class="fas fa-newspaper"></i> المحتوى</div>
                 <div class="nav-item" onclick="logout()" style="color: var(--danger-color); margin-top: 50px;"><i class="fas fa-sign-out-alt"></i> خروج آمن</div>
             </nav>
         </aside>
@@ -183,6 +184,19 @@
                         <thead><tr><th>المجموعة</th><th>المنشئ</th><th>الأعضاء</th><th>الحالة</th><th>التحكم</th></tr></thead>
                         <tbody id="groups-tbody"><tr><td colspan="5" class="loading">جاري التحميل...</td></tr></tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- Support Tickets -->
+            <section id="support" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-headset" style="color: var(--warning-color);"></i> رسائل الدعم الفني (<span id="support-count">0</span> جديدة)</h3>
+                        <input type="text" class="form-control" placeholder="بحث في الرسائل..." style="width: 250px; margin-bottom: 0;" onkeyup="filterSupportTickets(this.value)">
+                    </div>
+                    <div id="support-tickets-list" style="max-height: 600px; overflow-y: auto;">
+                        <div class="loading">جاري التحميل...</div>
+                    </div>
                 </div>
             </section>
 
@@ -287,7 +301,7 @@
     }, 500);
 }
 
-        // Check session
+// Check session
         window.addEventListener('load', () => {
             const session = JSON.parse(localStorage.getItem('superAdmin'));
             if (session && session.isLoggedIn) {
@@ -296,6 +310,141 @@
                 startRealtimeListeners();
             }
         });
+
+        // Support tickets listener
+        let supportTickets = [];
+        function startSupportListener() {
+            db.collection('support_tickets').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                supportTickets = [];
+                snapshot.forEach(doc => {
+                    supportTickets.push({ id: doc.id, ...doc.data() });
+                });
+                renderSupportTickets();
+                updateSupportCount();
+            });
+        }
+
+        function renderSupportTickets() {
+            const container = document.getElementById('support-tickets-list');
+            if (supportTickets.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">لا توجد رسائل دعم</div>';
+                return;
+            }
+            
+            container.innerHTML = supportTickets.map(ticket => {
+                const isNew = !ticket.replied;
+                return `
+                    <div class="card mb-3 p-3" style="border-right: 5px solid ${isNew ? 'var(--warning-color)' : 'var(--success-color)'};">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h5 style="margin:0; color:${isNew ? 'var(--warning-color)' : 'var(--success-color)'}">${ticket.subject}</h5>
+                            <span style="font-size:0.8rem; padding:4px 8px; border-radius:20px; background:${isNew ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'}; color:${isNew ? 'var(--warning-color)' : 'var(--success-color)'};">
+                                ${isNew ? 'جديدة' : 'مُعالجة'}
+                            </span>
+                        </div>
+                        <p style="margin-bottom:10px; color:var(--text-secondary);">${ticket.message}</p>
+                        <div style="font-size:0.85rem;">
+                            <strong>${ticket.userName}</strong> • ${formatTime(ticket.timestamp)}
+                        </div>
+                        <div style="margin-top:15px;">
+                            <button class="btn btn-primary btn-sm" onclick="replyToSupport('${ticket.id}', '${ticket.userId}', '${ticket.userName}')">
+                                <i class="fas fa-reply"></i> الرد برسالة
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="replySupportNotification('${ticket.id}', '${ticket.userId}', '${ticket.userName}')">
+                                <i class="fas fa-bell"></i> الرد بإشعار
+                            </button>
+                            ${!ticket.replied ? `<button class="btn btn-warning btn-sm" onclick="markSupportReplied('${ticket.id}')">
+                                ✅ تم التعامل
+                            </button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSupportCount() {
+            const count = supportTickets.filter(t => !t.replied).length;
+            document.getElementById('support-count').textContent = count;
+        }
+
+        window.replyToSupport = function(ticketId, userId, userName) {
+            const reply = prompt(`الرد على ${userName}:\n(الرد سيُرسل كإشعار خاص)`, 'تم حل مشكلتك، شكراً لتواصلك معنا');
+            if (reply) {
+                sendSupportReply(ticketId, userId, reply, userName, 'message');
+            }
+        };
+
+        window.replySupportNotification = function(ticketId, userId, userName) {
+            const reply = prompt(`الرد على ${userName} بإشعار:\n(العنوان والنص)`, 'الموضوع هنا\n\nالرد هنا...');
+            if (reply) {
+                const [title, ...bodyParts] = reply.split('\n\n');
+                sendSupportReply(ticketId, userId, bodyParts.join('\n\n'), userName, 'notification', title.trim());
+            }
+        };
+
+        async function sendSupportReply(ticketId, userId, replyText, userName, replyType = 'message', title = '') {
+            try {
+                // Mark as replied
+                await db.collection('support_tickets').doc(ticketId).update({
+                    replied: true,
+                    replyText: replyText,
+                    replyType: replyType,
+                    repliedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Send reply to user
+                if (replyType === 'message') {
+                    await db.collection('notifications').add({
+                        type: 'support_reply',
+                        targetUserId: userId,
+                        title: '📞 رد من الدعم الفني',
+                        body: replyText,
+                        senderName: 'فريق الدعم الفني',
+                        senderId: 'super_admin',
+                        isRead: false,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    await db.collection('notifications').add({
+                        type: 'support_reply',
+                        targetUserId: userId,
+                        title: title,
+                        body: replyText,
+                        senderName: 'فريق الدعم الفني',
+                        senderId: 'super_admin',
+                        isRead: false,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                alert('✅ تم إرسال الرد بنجاح!');
+            } catch (error) {
+                console.error('خطأ في الرد:', error);
+                alert('❌ خطأ: ' + error.message);
+            }
+        }
+
+        window.markSupportReplied = async function(ticketId) {
+            await db.collection('support_tickets').doc(ticketId).update({ replied: true });
+        };
+
+        window.filterSupportTickets = function(query) {
+            const cards = document.querySelectorAll('#support-tickets-list .card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query.toLowerCase()) ? 'block' : 'none';
+            });
+        };
+
+        function formatTime(timestamp) {
+            if (!timestamp) return 'غير معروف';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleString('ar-SA');
+        }
+
+        // Add support listener to main realtime
+        function startSupportListener() {
+            // Already added above
+        }
 
         // Real-time listeners
         function startRealtimeListeners() {

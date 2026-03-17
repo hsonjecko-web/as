@@ -16,14 +16,12 @@
 ### 3. friends.html ✅ مكتمل
 - [x] في handleFriendRequest('accept'): إرسال notification type="friend" للمرسل (fromUserId)
 
-### 4. chat.html ⏳ جاري
-- [ ] إضافة notifications عند انضمام للمجموعات (createGroup / join requests)
+### 4. chat.html ✅ مكتمل
+- [x] إضافة notifications عند إنشاء مجموعة (createGroup → إشعار للمالك)
+- [x] إضافة notifications عند قبول طلب انضمام (handleRequest accept → إشعار للمرسل)
 
-### 4. chat.html
-- [ ] إضافة notifications عند انضمام للمجموعات (createGroup / join requests)
-
-### 5. admin.html
-- [ ] إصلاح sendNotification() بـ Firebase compat + senderName="المشرف"
+### 5. admin.html ✅ مكتمل
+- [x] إصلاح sendNotification(): استخدام addDoc + collection + serverTimestamp
 
 ### 6. الاختبار النهائي
 - [ ] اختبار جميع الـ triggers

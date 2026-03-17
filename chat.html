@@ -331,7 +331,34 @@
                     friends: arrayUnion(currentUser.uid),
                     'stats.friendsCount': increment(1)
                 });
+            } else if (request.type === 'group_join') {
+                // إضافة المستخدم للمجموعة
+                await updateDoc(doc(db, 'groups', request.groupId), {
+                    members: arrayUnion({
+                        userId: currentUser.uid,
+                        userName: currentUser.fullName,
+                        userAvatar: currentUser.profileImage || '',
+                        role: 'member',
+                        joinedAt: serverTimestamp(),
+                        isMuted: false,
+                        isBanned: false
+                    }),
+                    memberCount: increment(1)
+                });
             }
+            
+            // إرسال إشعار لصاحب الطلب
+            await addDoc(collection(db, 'notifications'), {
+                type: request.type === 'friend' ? 'friend_request_accept' : 'group_join_accept',
+                targetUserId: request.fromUserId,
+                title: request.type === 'friend' ? '✅ تم قبول طلب الصداقة' : '✅ تم قبول طلب الانضمام للمجموعة',
+                body: request.type === 'friend' ? `${currentUser.fullName} قبل طلب الصداقة` : `تم قبول طلبك للانضمام إلى مجموعة ${request.groupName}`,
+                senderName: currentUser.fullName,
+                senderId: currentUser.uid,
+                isRead: false,
+                timestamp: serverTimestamp()
+            });
+            
             alert('✅ تم قبول الطلب');
         } else {
             await updateDoc(reqRef, { status: 'rejected' });
@@ -545,6 +572,18 @@
             
             console.log('📄 Group data:', groupData);
             await setDoc(groupRef, groupData);
+            
+            // إرسال إشعار للمالك عن إنشاء مجموعة جديدة
+            await addDoc(collection(db, 'notifications'), {
+                type: 'group_create',
+                targetUserId: 'super_admin',
+                title: '📢 مجموعة جديدة تم إنشاؤها',
+                body: `تم إنشاء مجموعة جديدة: "${name}" بواسطة ${currentUser.fullName}`,
+                senderName: currentUser.fullName,
+                senderId: currentUser.uid,
+                isRead: false,
+                timestamp: serverTimestamp()
+            });
             
             console.log('✅ Group created:', groupRef.id);
             

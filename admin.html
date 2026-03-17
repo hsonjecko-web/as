@@ -266,7 +266,7 @@
             }
             
             try {
-                await db.collection('notifications').add({
+                await addDoc(collection(db, 'notifications'), {
                     type: type,
                     targetUserId: type === 'specific' ? targetUserId : '',
                     title: title,
@@ -274,7 +274,7 @@
                     senderName: 'المشرف',
                     senderId: 'admin',
                     isRead: false,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: serverTimestamp()
                 });
                 
                 document.getElementById('notif-title').value = '';

@@ -1068,7 +1068,7 @@
     </div>
 
     <script type="module">
-        import { db, collection, query, limit, getDocs, onSnapshot, doc, getDoc } from './firebase-config.js';
+import { db, collection, query, limit, getDocs, onSnapshot, doc, getDoc, deleteDoc } from './firebase-config.js';
 
         // === التحقق من الجلسة ===
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -1469,7 +1469,7 @@ window.clearAllNotifications = async function() {
             const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
             const isForUser = targetUid === currentUid;
             
-            if (isGlobal || isForUser) {
+            if ((isGlobal || isForUser)) {
                 deletePromises.push(deleteDoc(doc.ref));
             }
         });

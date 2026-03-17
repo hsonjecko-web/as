@@ -109,13 +109,14 @@
     </section>
 
     <!-- المحفظة -->
-    <div class="wallet-card" onclick="openModal('wallet-modal')">
+    <!-- المحفظة - محدثة مع realtime -->
+    <div class="wallet-card" id="wallet-card" onclick="openWalletModal()">
         <div class="wallet-info">
             <h3>رصيد المحفظة</h3>
-            <div class="wallet-balance" id="wallet-points">0 نقطة</div>
-            <div class="wallet-usd" id="wallet-usd">($0.00 دولار)</div>
+            <div class="wallet-balance" id="wallet-points">0 <i class="fas fa-coins"></i></div>
+            <div class="wallet-usd" id="wallet-change" style="font-size: 0.9rem;">جاري التحميل...</div>
         </div>
-        <div class="wallet-icon"><i class="fas fa-wallet"></i></div>
+        <div class="wallet-icon" style="font-size: 1.8rem;"><i class="fas fa-wallet"></i></div>
     </div>
 
     <!-- الإعدادات -->
@@ -140,11 +141,12 @@
             </div>
         </div>
 
-        <div class="settings-group">
-            <div class="setting-item" onclick="openSupportTicket()">
+    <div class="settings-group">
+            <div class="setting-item" onclick="openSupportModal()">
                 <div class="setting-left">
                     <div class="setting-icon icon-green"><i class="fas fa-headset"></i></div>
                     <span class="setting-text">مراسلة الدعم الفني</span>
+                    <span id="support-status" style="font-size:0.8rem; color:var(--success-color); display:none;">✅ رسالة مرسلة</span>
                 </div>
                 <i class="fas fa-chevron-left setting-arrow"></i>
             </div>
@@ -241,6 +243,28 @@
             </div>
             <div id="wallet-content">
                 <div class="loading">جاري تحميل العمليات...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال الدعم الفني -->
+    <div class="modal-overlay" id="support-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-headset"></i> الدعم الفني</h3>
+                <button class="close-modal" onclick="closeModal('support-modal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">الموضوع</label>
+                <input type="text" class="form-input" id="support-subject" placeholder="مثال: مشكلة في المحفظة">
+            </div>
+            <div class="form-group">
+                <label class="form-label">الرسالة</label>
+                <textarea class="form-input" id="support-message" rows="5" placeholder="صف المشكلة بالتفصيل..."></textarea>
+            </div>
+            <button class="btn-primary" style="width:100%;" onclick="sendSupportTicket()">إرسال للدعم <i class="fas fa-paper-plane"></i></button>
+            <div style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--text-secondary);">
+                📱 سنرد عليك خلال 24 ساعة
             </div>
         </div>
     </div>
@@ -428,7 +452,110 @@
         }
     }
 
-    // === نظام الإشعارات المتكامل ===
+// Realtime wallet listener + support system
+let walletListener = null;
+let currentUserData = null;
+
+// Load user data + wallet realtime
+async function loadUserData() {
+    try {
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+            currentUserData = userSnap.data();
+            document.getElementById('display-name').textContent = currentUserData.fullName || currentUser.username;
+            document.getElementById('display-username').textContent = '@' + (currentUserData.username || 'user');
+            document.getElementById('display-bio').value = currentUserData.bio || '';
+            
+            // Stats
+            document.getElementById('stat-posts').textContent = currentUserData.stats?.postsCount || 0;
+            document.getElementById('stat-friends').textContent = currentUserData.stats?.friendsCount || 0;
+            document.getElementById('stat-followers').textContent = currentUserData.stats?.followersCount || 0;
+            
+            updateWalletDisplay(currentUserData.wallet?.points || 0);
+        }
+        
+        // Realtime wallet listener
+        walletListener = onSnapshot(userRef, (snap) => {
+            const data = snap.data();
+            if (data && data.wallet?.points !== undefined) {
+                updateWalletDisplay(data.wallet.points);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading user:', error);
+    }
+}
+
+function updateWalletDisplay(points) {
+    const walletEl = document.getElementById('wallet-points');
+    const changeEl = document.getElementById('wallet-usd');
+    walletEl.textContent = points.toLocaleString() + ' نقطة';
+    changeEl.textContent = `≈ $${(points * 0.01).toFixed(2)}`;
+    walletEl.parentElement.parentElement.style.background = `linear-gradient(135deg, hsl(${120 + (points % 60)}, 70%, 50%) 0%, hsl(${140 + (points % 60)}, 70%, 40%) 100%)`;
+}
+
+// Support ticket system
+window.openSupportModal = function() {
+    document.getElementById('support-modal').classList.add('show');
+    document.getElementById('support-status').style.display = 'none';
+};
+
+window.sendSupportTicket = async function() {
+    const subject = document.getElementById('support-subject').value.trim();
+    const message = document.getElementById('support-message').value.trim();
+    
+    if (!subject || !message) {
+        alert('يرجى إدخال الموضوع والرسالة');
+        return;
+    }
+    
+    try {
+        // Send to super admin support tickets collection
+        await db.collection('support_tickets').add({
+            userId: currentUser.uid,
+            userName: currentUserData?.fullName || currentUser.username,
+            subject: subject,
+            message: message,
+            status: 'open',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            replied: false
+        });
+        
+        // Send notification to super admin
+        await db.collection('notifications').add({
+            type: 'support_ticket',
+            targetUserId: '', // Global for super admin monitoring
+            title: '📞 تذكرة دعم جديدة',
+            body: `${currentUserData?.fullName || currentUser.username}: ${subject}`,
+            senderName: currentUserData?.fullName || currentUser.username,
+            senderId: currentUser.uid,
+            priority: 'high',
+            isRead: false,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Reset form
+        document.getElementById('support-subject').value = '';
+        document.getElementById('support-message').value = '';
+        document.getElementById('support-status').style.display = 'block';
+        
+        alert('✅ تم إرسال تذكرة الدعم!\nسيرد فريق الدعم قريباً 📱');
+        
+    } catch (error) {
+        console.error('Error sending support ticket:', error);
+        alert('❌ خطأ في الإرسال: ' + error.message);
+    }
+};
+
+// Cleanup listener on unload
+window.addEventListener('beforeunload', () => {
+    if (walletListener) walletListener();
+});
+
+// === نظام الإشعارات المتكامل ===
     const notificationBtn = document.getElementById('notification-btn');
     const notificationPanel = document.getElementById('notification-panel');
     const notifCount = document.getElementById('notif-count');
