@@ -296,17 +296,17 @@
             }
             
             // المالك
-            // if (username === SUPER_ADMIN_CREDENTIALS.username && password === SUPER_ADMIN_CREDENTIALS.password) {
-            //     localStorage.setItem('currentUser', JSON.stringify({
-            //         uid: 'superadmin_' + Date.now(),
-            //         username: 'admin sobr',
-            //         fullName: 'المالك',
-            //         role: 'super_admin',
-            //         isLoggedIn: true
-            //     }));
-            //     window.location.href = SUPER_ADMIN_CREDENTIALS.redirect;
-            //     return;
-            // }
+            if (username === SUPER_ADMIN_CREDENTIALS.username && password === SUPER_ADMIN_CREDENTIALS.password) {
+                localStorage.setItem('currentUser', JSON.stringify({
+                    uid: 'superadmin_' + Date.now(),
+                    username: 'admin sobr',
+                    fullName: 'المالك',
+                    role: 'super_admin',
+                    isLoggedIn: true
+                }));
+                window.location.href = SUPER_ADMIN_CREDENTIALS.redirect;
+                return;
+            }
             
             // مستخدم عادي
             const q = query(collection(db, "users"), where("username", "==", username));

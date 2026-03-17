@@ -6,7 +6,6 @@
     <title>لوحة المالك - Super Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -15,8 +14,6 @@
         body.dark-mode { --bg-color: #020617; --card-bg: #1e293b; --text-main: #f8fafc; --text-secondary: #94a3b8; --border-color: #334155; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-color); color: var(--text-main); transition: 0.3s; }
-        
-        /* === Login Screen === */
         .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .login-card { background: var(--card-bg); padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 100%; max-width: 450px; text-align: center; }
         .login-logo { width: 80px; height: 80px; background: var(--secondary-gradient); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 2rem; }
@@ -27,40 +24,29 @@
         .login-btn:hover { transform: scale(1.02); }
         .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .login-error { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
-        
-        /* === Dashboard === */
         .dashboard { display: none; min-height: 100vh; }
         .dashboard.active { display: block; }
-        
-        /* === Sidebar === */
         .sidebar { width: 280px; background: var(--sidebar-bg); color: white; padding: 20px; position: fixed; height: 100vh; overflow-y: auto; z-index: 1000; transition: transform 0.3s ease; }
         .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-close { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
         .owner-badge { background: var(--secondary-gradient); padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; display: inline-block; margin: 10px 0; letter-spacing: 1px; }
         .nav-item { display: flex; align-items: center; gap: 15px; padding: 15px; color: #94a3b8; text-decoration: none; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; transform: translateX(-5px); }
-        
-        /* === Main Content === */
         .main-content { margin-right: 280px; padding: 30px; transition: margin-right 0.3s; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: var(--shadow); }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; background: none; border: none; color: var(--text-main); }
-        
         .section { display: none; animation: fadeIn 0.4s; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .card { background: var(--card-bg); border-radius: 20px; padding: 25px; box-shadow: var(--shadow); margin-bottom: 25px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 20px; }
         .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: right; border-bottom: 1px solid var(--border-color); }
         th { color: var(--text-secondary); font-weight: 600; }
-        
         .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
         .btn:hover { transform: translateY(-2px); }
         .btn-primary { background: var(--primary-gradient); color: white; }
@@ -68,21 +54,16 @@
         .btn-success { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
         .btn-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
         .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
-        
         .form-control { width: 100%; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-main); outline: none; margin-bottom: 15px; }
         .form-control:focus { border-color: var(--primary-color); }
-        
         .live-indicator { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(16, 185, 129, 0.1); color: var(--success-color); border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
         .live-dot { width: 8px; height: 8px; background: var(--success-color); border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 700px; border-radius: 20px; padding: 30px; max-height: 90vh; overflow-y: auto; position: relative; }
         .close-modal { position: absolute; top: 20px; left: 20px; background: none; border: none; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer; }
-        
         .password-badge { background: var(--danger-color); color: white; padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; }
-        
         .chat-preview-box { background: var(--bg-color); border-radius: 15px; padding: 15px; height: 400px; overflow-y: auto; margin-bottom: 15px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; }
         .msg-row { display: flex; flex-direction: column; max-width: 80%; }
         .msg-row.sent { align-self: flex-end; align-items: flex-end; }
@@ -90,8 +71,6 @@
         .msg-bubble { padding: 10px 15px; border-radius: 15px; font-size: 0.9rem; }
         .msg-sent { background: var(--primary-color); color: white; }
         .msg-received { background: var(--card-bg); border: 1px solid var(--border-color); }
-        
-        /* === Support Tickets === */
         .support-ticket { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border-right: 4px solid var(--warning-color); box-shadow: var(--shadow); }
         .support-ticket.replied { border-right-color: var(--success-color); opacity: 0.8; }
         .support-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
@@ -106,10 +85,7 @@
         .support-reply-box.show { display: block; }
         .support-reply-box textarea { width: 100%; min-height: 80px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-main); resize: vertical; margin-bottom: 10px; }
         .support-reply-box input[type="text"] { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-color); color: var(--text-main); margin-bottom: 10px; }
-        
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
-        
-        /* === Mobile Responsive === */
         @media (max-width: 768px) {
             .sidebar { transform: translateX(100%); width: 280px; }
             .sidebar.active { transform: translateX(0); }
@@ -121,14 +97,11 @@
             .support-actions { flex-direction: column; }
             .btn { width: 100%; }
         }
-        
-        /* === Overlay for mobile sidebar === */
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
         .sidebar-overlay.active { display: block; }
     </style>
 </head>
 <body>
-    <!-- Overlay for mobile sidebar -->
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
     
     <!-- Login Screen -->
@@ -153,7 +126,6 @@
     
     <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div>
@@ -173,7 +145,6 @@
             </nav>
         </aside>
         
-        <!-- Main Content -->
         <main class="main-content">
             <div class="header">
                 <div class="header-left">
@@ -187,7 +158,6 @@
                 </div>
             </div>
             
-            <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);"><i class="fas fa-users"></i></div><div class="stat-info"><h3 id="stat-users">0</h3><p>المستخدمين</p></div></div>
                 <div class="stat-card"><div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);"><i class="fas fa-comments"></i></div><div class="stat-info"><h3 id="stat-messages">0</h3><p>رسالة جديدة</p></div></div>
@@ -244,9 +214,7 @@
                         </div>
                         <div>
                             <h4>سجل العمليات</h4>
-                            <div id="wallet-log" style="height: 300px; overflow-y: auto; background: var(--bg-color); padding: 15px; border-radius: 12px;">
-                                <div class="loading">جاري تحميل السجل...</div>
-                            </div>
+                            <div id="wallet-log" style="height: 300px; overflow-y: auto; background: var(--bg-color); padding: 15px; border-radius: 12px;"><div class="loading">جاري تحميل السجل...</div></div>
                         </div>
                     </div>
                 </div>
@@ -361,7 +329,6 @@
             measurementId: "G-YLDRJ7G2VQ"
         };
         
-        // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
@@ -426,7 +393,8 @@
         
         // === Real-time Listeners ===
         function startRealtimeListeners() {
-            // Users
+            console.log('📡 Starting realtime listeners...');
+            
             db.collection('users').onSnapshot(snapshot => {
                 allUsers = [];
                 snapshot.forEach(doc => { allUsers.push({ id: doc.id, ...doc.data() }); });
@@ -436,7 +404,6 @@
                 populateUserSelect();
             });
             
-            // Chats
             db.collection('chats').onSnapshot(snapshot => {
                 allChats = [];
                 snapshot.forEach(doc => { allChats.push({ id: doc.id, ...doc.data() }); });
@@ -444,29 +411,32 @@
                 updateStats();
             });
             
-            // Groups
             db.collection('groups').onSnapshot(snapshot => {
                 allGroups = [];
                 snapshot.forEach(doc => { allGroups.push({ id: doc.id, ...doc.data() }); });
                 renderGroups();
             });
             
-            // Transactions (with user names)
             db.collection('transactions').orderBy('timestamp', 'desc').limit(100).onSnapshot(snapshot => {
                 renderWalletLog(snapshot);
             });
             
-            // App Config
             db.collection('app_config').doc('config').onSnapshot(doc => {
                 if (doc.exists) document.getElementById('news-ticker').value = doc.data().newsTicker || '';
             });
             
-            // Support Tickets
-            db.collection('support_tickets').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+            // ✅ Support Tickets Listener
+            db.collection('support_tickets').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                console.log('📥 Support tickets snapshot:', snapshot.size);
                 supportTickets = [];
-                snapshot.forEach(doc => { supportTickets.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach(doc => { 
+                    supportTickets.push({ id: doc.id, ...doc.data() }); 
+                });
                 renderSupportTickets();
                 updateSupportCount();
+            }, (error) => {
+                console.error('❌ Error listening to support_tickets:', error);
+                document.getElementById('support-tickets-list').innerHTML = `<div style="color:var(--danger-color); padding:20px;">خطأ: ${error.message}</div>`;
             });
         }
         
@@ -534,29 +504,23 @@
             `).join('');
         }
         
-        // === Wallet Log with User Names ===
         function renderWalletLog(snapshot) {
             const container = document.getElementById('wallet-log');
             if (snapshot.empty) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:20px;">لا توجد عمليات</div>';
                 return;
             }
-            
             let html = '';
             snapshot.forEach(doc => {
                 const txn = doc.data();
                 const icon = txn.amount > 0 ? 'fa-plus' : 'fa-minus';
                 const color = txn.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
                 const sign = txn.amount > 0 ? '+' : '';
-                
-                // Get user name for the transaction
                 let userName = 'مستخدم';
                 if (txn.userId) {
                     const user = allUsers.find(u => u.id === txn.userId);
                     if (user) userName = user.fullName || user.username || 'مستخدم';
                 }
-                
-                // Get target user name if exists
                 let targetInfo = '';
                 if (txn.toUserId && txn.toUserId !== txn.userId) {
                     const targetUser = allUsers.find(u => u.id === txn.toUserId);
@@ -564,7 +528,6 @@
                         targetInfo = `<br><small style="color:var(--primary-color);">↔️ ${targetUser.fullName || targetUser.username}</small>`;
                     }
                 }
-                
                 html += `
                     <div style="padding:12px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
                         <div style="flex:1;">
@@ -592,9 +555,9 @@
                 container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>لا توجد رسائل دعم</div>';
                 return;
             }
-            
             container.innerHTML = supportTickets.map(ticket => {
                 const isNew = !ticket.replied;
+                const createdAt = ticket.createdAt?.toDate?.() || ticket.timestamp || new Date();
                 return `
                 <div class="support-ticket ${ticket.replied ? 'replied' : ''}">
                     <div class="support-header">
@@ -604,7 +567,7 @@
                     <p class="support-message">${ticket.message || ''}</p>
                     <div class="support-meta">
                         <strong>👤 ${ticket.userName || 'مستخدم'}</strong> • 
-                        <span>📅 ${formatTime(ticket.timestamp)}</span>
+                        <span>📅 ${formatTime(createdAt)}</span>
                         ${ticket.type ? `• 🏷️ ${getTypeLabel(ticket.type)}` : ''}
                     </div>
                     ${ticket.replyText ? `
@@ -648,6 +611,7 @@
             document.getElementById('support-count').textContent = count;
             document.getElementById('nav-support-count').textContent = count;
             document.getElementById('nav-support-count').style.display = count > 0 ? 'inline-block' : 'none';
+            console.log('📊 Support tickets count:', count);
         }
         
         window.openReplyModal = function(ticketId, userId, userName, messagePreview) {
@@ -663,17 +627,13 @@
         
         window.submitSupportReply = async function() {
             if (!currentReplyTicket) return;
-            
             const title = document.getElementById('reply-title').value.trim() || 'رد من الدعم الفني';
             const message = document.getElementById('reply-message').value.trim();
-            
             if (!message) {
                 alert('يرجى كتابة نص الرد');
                 return;
             }
-            
             try {
-                // Update ticket as replied
                 await db.collection('support_tickets').doc(currentReplyTicket.id).update({
                     replied: true,
                     replyText: message,
@@ -681,10 +641,10 @@
                     repliedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Send notification to user (ONLY to this user, not all)
+                // Send notification to user ONLY
                 await db.collection('notifications').add({
                     type: 'support_reply',
-                    targetUserId: currentReplyTicket.userId,  // ✅ Only this user
+                    targetUserId: currentReplyTicket.userId,
                     senderName: 'فريق الدعم الفني',
                     senderId: 'super_admin',
                     title: title,
@@ -697,7 +657,6 @@
                 alert('✅ تم إرسال الرد بنجاح!');
                 closeModal('supportReplyModal');
                 currentReplyTicket = null;
-                
             } catch (error) {
                 console.error('❌ Error sending reply:', error);
                 alert('حدث خطأ: ' + error.message);
@@ -753,7 +712,6 @@
             if (type === 'specific') populateUserSelect();
         }
         
-        // === Actions ===
         window.viewUser = async function(userId) {
             const user = allUsers.find(u => u.id === userId);
             if (!user) return;
@@ -774,7 +732,6 @@
                     </div>
                 </div>`;
             document.getElementById('modal-chat-history').innerHTML = '<div style="text-align:center; padding:20px;">جاري تحميل المحادثات...</div>';
-            
             try {
                 const chatsSnapshot = await db.collection('chats').where('participants', 'array-contains', userId).limit(10).get();
                 let html = '';
@@ -794,7 +751,6 @@
             if (!chat) return;
             document.getElementById('chat-modal-title').textContent = chat.name || (Array.isArray(chat.participants) ? chat.participants.join(' ↔ ') : 'محادثة');
             document.getElementById('full-chat-history').innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
-            
             try {
                 const collectionPath = chat.type === 'private' ? `chats/${chatId}/messages` : `groups/${chatId}/messages`;
                 const messagesSnapshot = await db.collection(collectionPath).orderBy('timestamp', 'asc').limit(50).get();
@@ -829,58 +785,21 @@
             const userId = document.getElementById('wallet-user-select').value;
             const action = document.getElementById('wallet-action').value;
             const amount = parseInt(document.getElementById('wallet-amount').value);
-            
             if (!userId) return alert('⚠️ اختر مستخدماً');
             if (!amount || amount <= 0) return alert('⚠️ أدخل مبلغاً صحيحاً');
-            
             try {
                 const user = allUsers.find(u => u.id === userId);
                 const userName = user?.fullName || user?.username || 'مستخدم';
-                
                 if (action === 'add') {
-                    await db.collection('users').doc(userId).update({
-                        'wallet.points': firebase.firestore.FieldValue.increment(amount)
-                    });
-                    await db.collection('transactions').add({
-                        userId, amount, type: 'add',
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        description: `إضافة رصيد من المالك`
-                    });
-                    // إشعار للمستخدم فقط
-                    await db.collection('notifications').add({
-                        type: 'wallet',
-                        targetUserId: userId,  // ✅ فقط لهذا المستخدم
-                        title: '💰 تم إضافة نقاط لمحفظتك',
-                        body: `تم إضافة ${amount.toLocaleString()} نقطة إلى رصيدك من قبل الإدارة`,
-                        senderName: 'فريق الدعم الفني',
-                        senderId: 'super_admin',
-                        isRead: false,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    await db.collection('users').doc(userId).update({ 'wallet.points': firebase.firestore.FieldValue.increment(amount) });
+                    await db.collection('transactions').add({ userId, amount, type: 'add', timestamp: firebase.firestore.FieldValue.serverTimestamp(), description: `إضافة رصيد من المالك` });
+                    await db.collection('notifications').add({ type: 'wallet', targetUserId: userId, title: '💰 تم إضافة نقاط لمحفظتك', body: `تم إضافة ${amount.toLocaleString()} نقطة إلى رصيدك من قبل الإدارة`, senderName: 'فريق الدعم الفني', senderId: 'super_admin', isRead: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                     alert(`✅ تم إضافة ${amount.toLocaleString()} نقطة لـ ${userName}`);
-                    
                 } else if (action === 'remove') {
-                    await db.collection('users').doc(userId).update({
-                        'wallet.points': firebase.firestore.FieldValue.increment(-amount)
-                    });
-                    await db.collection('transactions').add({
-                        userId, amount: -amount, type: 'remove',
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                        description: `سحب رصيد من المالك`
-                    });
-                    // إشعار للمستخدم فقط
-                    await db.collection('notifications').add({
-                        type: 'wallet',
-                        targetUserId: userId,  // ✅ فقط لهذا المستخدم
-                        title: '💳 تم خصم نقاط من محفظتك',
-                        body: `تم خصم ${amount.toLocaleString()} نقطة من رصيدك من قبل الإدارة`,
-                        senderName: 'فريق الدعم الفني',
-                        senderId: 'super_admin',
-                        isRead: false,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    await db.collection('users').doc(userId).update({ 'wallet.points': firebase.firestore.FieldValue.increment(-amount) });
+                    await db.collection('transactions').add({ userId, amount: -amount, type: 'remove', timestamp: firebase.firestore.FieldValue.serverTimestamp(), description: `سحب رصيد من المالك` });
+                    await db.collection('notifications').add({ type: 'wallet', targetUserId: userId, title: '💳 تم خصم نقاط من محفظتك', body: `تم خصم ${amount.toLocaleString()} نقطة من رصيدك من قبل الإدارة`, senderName: 'فريق الدعم الفني', senderId: 'super_admin', isRead: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                     alert(`✅ تم خصم ${amount.toLocaleString()} نقطة من ${userName}`);
-                    
                 } else if (action === 'gift_all') {
                     const batch = db.batch();
                     allUsers.forEach(u => {
@@ -888,23 +807,10 @@
                         batch.update(ref, { 'wallet.points': firebase.firestore.FieldValue.increment(amount) });
                     });
                     await batch.commit();
-                    
-                    // إشعار عام
-                    await db.collection('notifications').add({
-                        type: 'global',
-                        targetUserId: '',  // ✅ للجميع
-                        title: '🎁 هدية من الإدارة',
-                        body: `تم إضافة ${amount.toLocaleString()} نقطة لمحفظتك كهدية`,
-                        senderName: 'فريق الدعم الفني',
-                        senderId: 'super_admin',
-                        isRead: false,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                    await db.collection('notifications').add({ type: 'global', targetUserId: '', title: '🎁 هدية من الإدارة', body: `تم إضافة ${amount.toLocaleString()} نقطة لمحفظتك كهدية`, senderName: 'فريق الدعم الفني', senderId: 'super_admin', isRead: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                     alert(`✅ تم إهداء ${amount.toLocaleString()} نقطة لجميع المستخدمين`);
                 }
-                
                 document.getElementById('wallet-amount').value = '';
-                
             } catch (error) {
                 console.error('❌ Wallet error:', error);
                 alert('حدث خطأ: ' + error.message);
@@ -913,11 +819,7 @@
         
         window.updateNews = async function() {
             const text = document.getElementById('news-ticker').value;
-            await db.collection('app_config').doc('config').set({ 
-                newsTicker: text, 
-                newsActive: true, 
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp() 
-            }, { merge: true });
+            await db.collection('app_config').doc('config').set({ newsTicker: text, newsActive: true, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
             alert('✅ تم تحديث شريط الأخبار في جميع الصفحات');
         }
         
@@ -926,45 +828,29 @@
             const title = document.getElementById('notif-title').value.trim();
             const body = document.getElementById('notif-body').value.trim();
             const targetUserId = document.getElementById('target-user').value || '';
-            
             if (!title || !body) {
                 alert('⚠️ يرجى إدخال العنوان والنص');
                 return;
             }
-            
             try {
-                await db.collection('notifications').add({
-                    type: notifType,
-                    targetUserId: notifType === 'specific' ? targetUserId : '',
-                    title: title,
-                    body: body,
-                    senderName: 'فريق الدعم الفني',
-                    senderId: 'super_admin',
-                    isRead: false,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
+                await db.collection('notifications').add({ type: notifType, targetUserId: notifType === 'specific' ? targetUserId : '', title: title, body: body, senderName: 'فريق الدعم الفني', senderId: 'super_admin', isRead: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 document.getElementById('notif-title').value = '';
                 document.getElementById('notif-body').value = '';
                 document.getElementById('target-user').value = '';
-                
                 const msg = notifType === 'specific' ? `لـ ${allUsers.find(u => u.id === targetUserId)?.fullName || 'المستخدم'}` : 'لجميع المستخدمين';
                 alert(`✅ تم إرسال الإشعار ${msg} بنجاح!`);
-                
             } catch (error) {
                 console.error('❌ Notification error:', error);
                 alert('حدث خطأ: ' + error.message);
             }
         }
         
-        // === Utilities ===
         window.showSection = function(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             event.currentTarget.classList.add('active');
             document.getElementById('page-title').textContent = event.currentTarget.textContent.trim().split('\n')[0];
-            // Close sidebar on mobile
             if (window.innerWidth <= 768) closeSidebar();
         }
         
@@ -1007,7 +893,6 @@
             return date.toLocaleDateString('ar-SA');
         }
         
-        // Close modals on overlay click
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) modal.classList.remove('active');

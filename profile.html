@@ -120,15 +120,15 @@
         <button class="edit-profile-btn" onclick="openModal('edit-profile-modal')"><i class="fas fa-pen"></i> تعديل المعلومات</button>
     </section>
 
-    <!-- المحفظة --> 
-      <div class="wallet-card" id="wallet-card" onclick="openWalletModal()">
+    <!-- المحفظة -->
+    <div class="wallet-card" id="wallet-card" onclick="openWalletModal()">
         <div class="wallet-info">
             <h3>رصيد المحفظة</h3>
             <div class="wallet-balance" id="wallet-points">0 <i class="fas fa-coins"></i></div>
             <div class="wallet-usd" id="wallet-usd">≈ $0.00</div>
         </div>
         <div class="wallet-icon"><i class="fas fa-wallet"></i></div>
-    </div> 
+    </div>
 
     <!-- الإعدادات -->
     <div class="settings-list">
@@ -240,7 +240,7 @@
     </div>
 
     <!-- مودال المحفظة -->
-     <div class="modal-overlay" id="wallet-modal">
+    <div class="modal-overlay" id="wallet-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">المحفظة والنقاط</h3>
@@ -255,7 +255,7 @@
                 <div class="loading">جاري تحميل العمليات...</div>
             </div>
         </div>
-    </div> 
+    </div>
 
     <!-- مودال الدعم الفني -->
     <div class="modal-overlay" id="support-modal">
@@ -311,8 +311,8 @@
     <script type="module">
         console.log('🚀 === PROFILE PAGE STARTING ===');
         
-        import { 
-            db, doc, getDoc, setDoc, updateDoc, addDoc, collection, 
+        import {
+            db, doc, getDoc, setDoc, updateDoc, addDoc, collection,
             serverTimestamp, onSnapshot, increment, arrayUnion, deleteDoc,
             query, where, orderBy, limit, getDocs
         } from './firebase-config.js';
@@ -340,6 +340,7 @@
                 const userSnap = await getDoc(userRef);
                 if (userSnap.exists()) {
                     currentUserData = userSnap.data();
+                    console.log('✅ User data loaded:', currentUserData);
                     renderProfile(currentUserData);
                 }
                 
@@ -403,19 +404,12 @@
         window.uploadImage = async function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
             try {
                 console.log('📷 Uploading image...');
-                // للتجربة: نستخدم رابط وهمي
                 const imageUrl = `https://i.pravatar.cc/150?u=${currentUser.uid}`;
-                
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    profileImage: imageUrl
-                });
-                
+                await updateDoc(doc(db, "users", currentUser.uid), { profileImage: imageUrl });
                 alert('✅ تم تحديث الصورة');
                 loadUserData();
-                
             } catch (error) {
                 console.error('❌ Error uploading image:', error);
                 alert('حدث خطأ: ' + error.message);
@@ -425,10 +419,8 @@
         // === حفظ تعديل البروفايل ===
         window.saveProfile = async function(e) {
             e.preventDefault();
-            
             try {
                 console.log('💾 Saving profile changes...');
-                
                 await updateDoc(doc(db, "users", currentUser.uid), {
                     fullName: document.getElementById('edit-name').value,
                     username: document.getElementById('edit-username').value,
@@ -437,11 +429,9 @@
                     bio: document.getElementById('edit-bio').value,
                     updatedAt: serverTimestamp()
                 });
-                
                 closeModal('edit-profile-modal');
                 alert('✅ تم حفظ التعديلات بنجاح');
                 loadUserData();
-                
             } catch (error) {
                 console.error('❌ Error saving profile:', error);
                 alert('حدث خطأ: ' + error.message);
@@ -457,9 +447,7 @@
         window.switchWalletTab = function(tab, element) {
             document.querySelectorAll('.w-tab').forEach(t => t.classList.remove('active'));
             element.classList.add('active');
-            
             const content = document.getElementById('wallet-content');
-            
             if (tab === 'history') {
                 loadWalletHistory();
             } else if (tab === 'send') {
@@ -495,86 +483,62 @@
             }
         }
 
-        // === تحميل سجل المعاملات (كامل) ===
         function loadWalletHistory() {
             const content = document.getElementById('wallet-content');
             content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجل...</div>';
-            
-            // تحميل جميع معاملات المستخدم
-            const txnQuery = query(
-                collection(db, "transactions"), 
-                where("userId", "==", currentUser.uid), 
-                orderBy("timestamp", "desc"), 
-                limit(100)
-            );
-            
+            const txnQuery = query(collection(db, "transactions"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(100));
             getDocs(txnQuery).then(snapshot => {
                 if (snapshot.empty) {
                     content.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا توجد عمليات سابقة</div>';
                     return;
                 }
-                
                 content.innerHTML = snapshot.docs.map(doc => {
                     const t = doc.data();
                     const icon = t.amount > 0 ? 'fa-plus' : 'fa-minus';
                     const color = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
                     const sign = t.amount > 0 ? '+' : '';
                     const iconBg = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
-                    
                     return `
                         <div class="transaction-item">
                             <div class="t-info">
-                                <div class="t-icon" style="background:${iconBg}; color:white;">
-                                    <i class="fas ${icon}"></i>
-                                </div>
+                                <div class="t-icon" style="background:${iconBg}; color:white;"><i class="fas ${icon}"></i></div>
                                 <div>
                                     <div style="font-weight:600;">${t.description || t.type}</div>
                                     <div style="font-size:0.75rem; color:var(--text-secondary);">${formatTime(t.timestamp)}</div>
                                     ${t.toUserId ? `<div style="font-size:0.7rem; color:var(--primary-color);">↔️ ${t.toUserId === currentUser.uid ? 'مستلم' : 'مرسل'}</div>` : ''}
                                 </div>
                             </div>
-                            <div class="t-amount ${t.amount > 0 ? 'plus' : 'minus'}">
-                                ${sign}${t.amount}
-                            </div>
+                            <div class="t-amount ${t.amount > 0 ? 'plus' : 'minus'}">${sign}${t.amount}</div>
                         </div>
                     `;
                 }).join('');
-                
                 console.log('✅ Loaded', snapshot.size, 'transactions');
-                
             }).catch(error => {
                 console.error('❌ Error loading transactions:', error);
                 content.innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ: ${error.message}<br><button onclick="loadWalletHistory()" style="margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button></div>`;
             });
         }
 
-        // === تحميل الأصدقاء لإرسال النقاط ===
         function loadFriendsForSend() {
             const select = document.getElementById('send-to-friend');
             if (!select) return;
-            
             select.innerHTML = '<option value="">-- جاري التحميل --</option>';
-            
             const userRef = doc(db, "users", currentUser.uid);
             getDoc(userRef).then(snap => {
                 if (snap.exists()) {
                     const friends = snap.data().friends || [];
-                    
                     if (friends.length === 0) {
                         select.innerHTML = '<option value="">لا يوجد أصدقاء</option>';
                         return;
                     }
-                    
                     select.innerHTML = '<option value="">-- اختر صديق --</option>';
-                    
                     friends.forEach(friendId => {
                         getDoc(doc(db, "users", friendId)).then(friendSnap => {
                             if (friendSnap.exists()) {
                                 const friend = friendSnap.data();
                                 const option = document.createElement('option');
                                 option.value = friendId;
-                                option.textContent = `${friend.fullName || friend.username} 
-                                (${friend.username || 'user'})`;
+                                option.textContent = `${friend.fullName || friend.username} (${friend.wallet?.points || 0} نقطة)`;
                                 select.appendChild(option);
                             }
                         });
@@ -583,138 +547,47 @@
             });
         }
 
-        // === إرسال نقاط لصديق (مصحح) ===
         window.sendPoints = async function() {
             const friendId = document.getElementById('send-to-friend')?.value;
             const amount = parseInt(document.getElementById('send-amount')?.value);
-            
             if (!friendId) return alert('⚠️ اختر صديقاً أولاً');
             if (!amount || amount <= 0) return alert('⚠️ أدخل عدد النقاط');
             if (amount > (currentUserData.wallet?.points || 0)) return alert('⚠️ رصيدك غير كافٍ');
-            
             try {
                 console.log('💸 Sending points:', amount, 'to', friendId);
-                
-                // 1. خصم من المرسل
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    'wallet.points': increment(-amount)
-                });
-                
-                // 2. إضافة للمستلم
-                await updateDoc(doc(db, "users", friendId), {
-                    'wallet.points': increment(amount)
-                });
-                
-                // 3. تسجيل العملية في السجل
-                await addDoc(collection(db, "transactions"), {
-                    userId: currentUser.uid,
-                    type: 'send',
-                    amount: -amount,
-                    toUserId: friendId,
-                    description: `إرسال نقاط إلى صديق`,
-                    timestamp: serverTimestamp()
-                });
-                
-                // 4. تسجيل العملية للمستلم
-                await addDoc(collection(db, "transactions"), {
-                    userId: friendId,
-                    type: 'receive',
-                    amount: amount,
-                    fromUserId: currentUser.uid,
-                    description: `استلام نقاط من ${currentUserData?.fullName || currentUser.username}`,
-                    timestamp: serverTimestamp()
-                });
-                
-                // 5. ✅ إشعار للمرسل (فقط له)
-                await addDoc(collection(db, "notifications"), {
-                    type: 'wallet',
-                    targetUserId: currentUser.uid,  // ✅ فقط للمرسل
-                    senderName: 'نظام المحفظة',
-                    senderId: 'system',
-                    title: '📤 تم إرسال النقاط',
-                    body: `أرسلت ${amount} نقطة لصديقك`,
-                    isRead: false,
-                    timestamp: serverTimestamp()
-                });
-                
-                // 6. ✅ إشعار للمستلم (فقط له)
-                await addDoc(collection(db, "notifications"), {
-                    type: 'wallet',
-                    targetUserId: friendId,  // ✅ فقط للمستلم
-                    senderName: currentUserData?.fullName || currentUser.username,
-                    senderId: currentUser.uid,
-                    title: '📥 وصلتكَ نقاط',
-                    body: `${currentUserData?.fullName || currentUser.username} أرسل لك ${amount} نقطة`,
-                    isRead: false,
-                    timestamp: serverTimestamp()
-                });
-                
-                // 7. ✅ عرض بطاقة النجاح
+                await updateDoc(doc(db, "users", currentUser.uid), { 'wallet.points': increment(-amount) });
+                await updateDoc(doc(db, "users", friendId), { 'wallet.points': increment(amount) });
+                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, type: 'send', amount: -amount, toUserId: friendId, description: `إرسال نقاط إلى صديق`, timestamp: serverTimestamp() });
+                await addDoc(collection(db, "transactions"), { userId: friendId, type: 'receive', amount: amount, fromUserId: currentUser.uid, description: `استلام نقاط من ${currentUserData?.fullName || currentUser.username}`, timestamp: serverTimestamp() });
+                await addDoc(collection(db, "notifications"), { type: 'wallet', targetUserId: currentUser.uid, senderName: 'نظام المحفظة', senderId: 'system', title: '📤 تم إرسال النقاط', body: `أرسلت ${amount} نقطة لصديقك`, isRead: false, timestamp: serverTimestamp() });
+                await addDoc(collection(db, "notifications"), { type: 'wallet', targetUserId: friendId, senderName: currentUserData?.fullName || currentUser.username, senderId: currentUser.uid, title: '📥 وصلتكَ نقاط', body: `${currentUserData?.fullName || currentUser.username} أرسل لك ${amount} نقطة`, isRead: false, timestamp: serverTimestamp() });
                 const content = document.getElementById('wallet-content');
-                content.innerHTML = `
-                    <div class="success-card">
-                        <i class="fas fa-check-circle"></i>
-                        <h4>✅ تم الإرسال بنجاح</h4>
-                        <p>تم إرسال <strong>${amount} نقطة</strong> لصديقك</p>
-                        <p style="margin-top:10px; font-size:0.85rem;">رصيدك المتبقي: ${(currentUserData.wallet?.points - amount).toLocaleString()} نقطة</p>
-                    </div>
-                    <button class="edit-profile-btn" onclick="switchWalletTab('history', document.querySelector('.w-tab'))">عرض السجل</button>
-                `;
-                
+                content.innerHTML = `<div class="success-card"><i class="fas fa-check-circle"></i><h4>✅ تم الإرسال بنجاح</h4><p>تم إرسال <strong>${amount} نقطة</strong> لصديقك</p><p style="margin-top:10px; font-size:0.85rem;">رصيدك المتبقي: ${(currentUserData.wallet?.points - amount).toLocaleString()} نقطة</p></div><button class="edit-profile-btn" onclick="switchWalletTab('history', document.querySelector('.w-tab'))">عرض السجل</button>`;
                 console.log('✅ Points sent successfully');
-                
-                // تحديث البيانات
                 loadUserData();
-                
             } catch (error) {
                 console.error('❌ Error sending points:', error);
                 alert('حدث خطأ: ' + error.message);
             }
         }
 
-        // === شحن الرصيد ===
         window.topupWallet = async function() {
             const amount = parseInt(document.getElementById('topup-amount')?.value);
             if (!amount || amount <= 0) return alert('أدخل مبلغ صحيح');
-            
-            const points = amount * 50; // $1 = 50 points
-            
+            const points = amount * 50;
             try {
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    'wallet.points': increment(points)
-                });
-                
-                await addDoc(collection(db, "transactions"), {
-                    userId: currentUser.uid,
-                    type: 'topup',
-                    amount: points,
-                    description: `شحن رصيد $${amount}`,
-                    timestamp: serverTimestamp()
-                });
-                
-                // إشعار للمستخدم فقط
-                await addDoc(collection(db, "notifications"), {
-                    type: 'wallet',
-                    targetUserId: currentUser.uid,  // ✅ فقط لهذا المستخدم
-                    senderName: 'نظام المحفظة',
-                    senderId: 'system',
-                    title: '💰 تم شحن الرصيد',
-                    body: `تم إضافة ${points} نقطة ($${amount}) لمحفظتك`,
-                    isRead: false,
-                    timestamp: serverTimestamp()
-                });
-                
+                await updateDoc(doc(db, "users", currentUser.uid), { 'wallet.points': increment(points) });
+                await addDoc(collection(db, "transactions"), { userId: currentUser.uid, type: 'topup', amount: points, description: `شحن رصيد $${amount}`, timestamp: serverTimestamp() });
+                await addDoc(collection(db, "notifications"), { type: 'wallet', targetUserId: currentUser.uid, senderName: 'نظام المحفظة', senderId: 'system', title: '💰 تم شحن الرصيد', body: `تم إضافة ${points} نقطة ($${amount}) لمحفظتك`, isRead: false, timestamp: serverTimestamp() });
                 alert(`✅ تم شحن $${amount} (${points} نقطة)`);
                 switchWalletTab('history', document.querySelector('.w-tab.active'));
                 loadUserData();
-                
             } catch (error) {
                 console.error('❌ Error topping up:', error);
                 alert('حدث خطأ: ' + error.message);
             }
         }
 
-        // === إعدادات ===
         window.togglePrivateProfile = async function() {
             const isPrivate = document.getElementById('private-profile-toggle').checked;
             try {
@@ -725,7 +598,7 @@
             }
         }
 
-        // === الدعم الفني (مصحح: إشعار للسوبر أدمن فقط) ===
+        // === الدعم الفني (مصحح) ===
         window.openSupportModal = function() {
             const modal = document.getElementById('support-modal');
             modal.classList.add('show');
@@ -741,6 +614,19 @@
             
             if (!message) return alert('يرجى توضيح المشكلة');
             
+            // ✅ التأكد من تحميل بيانات المستخدم أولاً
+            if (!currentUserData) {
+                try {
+                    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+                    if (userSnap.exists()) {
+                        currentUserData = userSnap.data();
+                        console.log('✅ User data loaded for support ticket');
+                    }
+                } catch (e) {
+                    console.error('Error loading user data:', e);
+                }
+            }
+            
             const typeLabels = {
                 'technical': '🔧 مشكلة تقنية',
                 'wallet': '💰 مشكلة في المحفظة',
@@ -749,40 +635,52 @@
                 'other': '❓ استفسار آخر'
             };
             
+            const userName = currentUserData?.fullName || currentUser.username || 'مستخدم';
+            
             try {
-                // 1. حفظ التذكرة
-                await addDoc(collection(db, "support_tickets"), {
+                console.log('📝 Sending support ticket...');
+                console.log('User:', userName);
+                console.log('Type:', type);
+                console.log('Message:', message);
+                
+                // 1. حفظ التذكرة في support_tickets
+                const ticketRef = await addDoc(collection(db, "support_tickets"), {
                     userId: currentUser.uid,
-                    userName: currentUserData?.fullName || currentUser.username,
+                    userName: userName,
                     userEmail: currentUserData?.email || '',
                     type: type,
                     subject: typeLabels[type],
                     message: message,
                     status: 'open',
+                    replied: false,
                     adminResponse: '',
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
                 
-                // 2. ✅ إشعار للسوبر أدمن فقط (ليس لكل المستخدمين)
-                // نستخدم targetUserId فارغ مع type='support' ليقرأها السوبر أدمن فقط
+                console.log('✅ Ticket saved:', ticketRef.id);
+                
+                // 2. ✅ إشعار للسوبر أدمن فقط
                 await addDoc(collection(db, "notifications"), {
-                    type: 'support_ticket',  // نوع خاص للمشرفين
-                    targetUserId: 'super_admin_only',  // ✅ هذا يضمن وصوله للمشرفين فقط
-                    senderName: currentUserData?.fullName || currentUser.username,
+                    type: 'support_ticket',
+                    targetUserId: '',  // فارغ = يقرأه المشرفون
+                    senderName: userName,
                     senderId: currentUser.uid,
                     title: '📞 تذكرة دعم جديدة',
                     body: `${typeLabels[type]}: ${message.substring(0, 100)}...`,
                     isRead: false,
                     timestamp: serverTimestamp(),
                     priority: 'high',
-                    ticketType: type
+                    ticketType: type,
+                    isSupportTicket: true
                 });
                 
-                // 3. إشعار تأكيد للمستخدم (فقط له)
+                console.log('✅ Notification sent to super admin');
+                
+                // 3. إشعار تأكيد للمستخدم
                 await addDoc(collection(db, "notifications"), {
                     type: 'support',
-                    targetUserId: currentUser.uid,  // ✅ فقط لهذا المستخدم
+                    targetUserId: currentUser.uid,
                     senderName: 'فريق الدعم الفني',
                     title: '✅ تم استلام طلبك',
                     body: 'تم استلام تذكرة الدعم وسيتم الرد عليك قريباً',
@@ -794,11 +692,11 @@
                 document.getElementById('support-form').style.display = 'none';
                 document.getElementById('support-success').classList.add('show');
                 
-                console.log('✅ Support ticket sent to super admin only');
+                alert('✅ تم إرسال طلب الدعم بنجاح!\nسيرد عليك فريق الدعم قريباً 📱');
                 
             } catch (error) {
                 console.error('❌ Error sending support ticket:', error);
-                alert('حدث خطأ: ' + error.message);
+                alert('حدث خطأ أثناء الإرسال: ' + error.message);
             }
         }
 
@@ -808,24 +706,19 @@
             try {
                 const userSnap = await getDoc(doc(db, "users", currentUser.uid));
                 const blocked = userSnap.data()?.blockedUsers || [];
-                
                 if (blocked.length === 0) {
                     container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا يوجد مستخدمين محظورين</div>';
                     return;
                 }
-                
                 container.innerHTML = blocked.map(uid => `
                     <div class="transaction-item">
                         <div class="t-info">
                             <img src="https://i.pravatar.cc/150?u=${uid}" style="width:40px; height:40px; border-radius:50%;">
                             <span>مستخدم محظور</span>
                         </div>
-                        <button onclick="unblockUser('${uid}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">
-                            إلغاء الحظر
-                        </button>
+                        <button onclick="unblockUser('${uid}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">إلغاء الحظر</button>
                     </div>
                 `).join('');
-                
             } catch (error) {
                 console.error('❌ Error loading blocked users:', error);
                 container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ في التحميل</div>';
@@ -834,11 +727,8 @@
 
         window.unblockUser = async function(userId) {
             if (!confirm('هل تريد إلغاء حظر هذا المستخدم؟')) return;
-            
             try {
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    blockedUsers: arrayRemove(userId)
-                });
+                await updateDoc(doc(db, "users", currentUser.uid), { blockedUsers: arrayRemove(userId) });
                 alert('✅ تم إلغاء الحظر');
                 loadBlockedUsers();
             } catch (error) {
@@ -856,16 +746,12 @@
             document.getElementById(modalId).classList.remove('show');
         }
 
-        // إغلاق المودال عند النقر خارجه
         document.querySelectorAll('.modal-overlay').forEach(modal => {
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('show');
-                }
+                if (e.target === modal) modal.classList.remove('show');
             });
         });
 
-        // === وظائف أخرى ===
         window.logout = function() {
             if (confirm('هل تريد تسجيل الخروج؟')) {
                 if (walletUnsubscribe) walletUnsubscribe();
@@ -877,19 +763,12 @@
         window.deleteAccount = async function() {
             if (!confirm('⚠️ هل أنت متأكد من حذف الحساب نهائياً؟ لا يمكن التراجع!')) return;
             if (!confirm('⚠️ تأكيد نهائي: سيتم حذف جميع بياناتك!')) return;
-            
             try {
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    banned: true,
-                    isDeleted: true,
-                    deletedAt: serverTimestamp()
-                });
-                
+                await updateDoc(doc(db, "users", currentUser.uid), { banned: true, isDeleted: true, deletedAt: serverTimestamp() });
                 if (walletUnsubscribe) walletUnsubscribe();
                 localStorage.removeItem('currentUser');
                 alert('✅ تم حذف الحساب');
                 window.location.href = 'index.html';
-                
             } catch (error) {
                 console.error('❌ Error deleting account:', error);
                 alert('حدث خطأ: ' + error.message);
@@ -907,7 +786,6 @@
             return date.toLocaleDateString('ar-SA');
         }
 
-        // === الوضع الليلي ===
         document.getElementById('theme-toggle').addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const icon = document.querySelector('#theme-toggle i');
@@ -915,7 +793,6 @@
             icon.classList.toggle('fa-sun');
         });
 
-        // === التهيئة ===
         console.log('🔧 Initializing profile page...');
         loadUserData();
         console.log('🚀 === PROFILE PAGE READY ===');
