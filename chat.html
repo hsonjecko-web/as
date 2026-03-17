@@ -249,8 +249,8 @@
   <script type="module">
     console.log('🚀 === CHAT PAGE STARTING ===');
     
-    import { db, auth, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, increment } from './firebase-config.js';
-
+    import { db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, updateDoc, addDoc, arrayUnion, arrayRemove, serverTimestamp } from './firebase-config.js';
+    
     console.log('✅ Firebase imported');
 
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -261,416 +261,369 @@
         window.location.href = 'index.html';
     }
 
-        let currentChatId = null;
-        let currentChatType = null;
-        let replyToId = null;
-        let allChats = [];
-        let allGroups = [];
-        let allRequests = [];
+    let currentChatId = null;
+    let currentChatType = null;
+    let replyToId = null;
+    let allChats = [];
+    let allGroups = [];
+    let allRequests = [];
 
-        // === تحميل البيانات في الوقت الفعلي ===
-        function startListeners() {
-            // تحميل الدردشات
-            const chatsQuery = query(collection(db, "chats"), where("participants", "array-contains", currentUser.uid));
-            onSnapshot(chatsQuery, (snapshot) => {
-                allChats = [];
-                snapshot.forEach(doc => { allChats.push({ id: doc.id, ...doc.data() }); });
-                renderChats();
-            });
+    function startListeners() {
+        console.log('📡 Starting listeners...');
+        
+        const chatsQuery = query(collection(db, "chats"), where("participants", "array-contains", currentUser.uid));
+        onSnapshot(chatsQuery, (snapshot) => {
+            allChats = [];
+            snapshot.forEach(doc => { allChats.push({ id: doc.id, ...doc.data() }); });
+            renderChats();
+        });
 
-            // تحميل المجموعات
-            const groupsQuery = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
-            onSnapshot(groupsQuery, (snapshot) => {
-                allGroups = [];
-                snapshot.forEach(doc => { allGroups.push({ id: doc.id, ...doc.data() }); });
-                renderGroups();
-            });
+        const groupsQuery = query(collection(db, "groups"), where("members", "array-contains", currentUser.uid));
+        onSnapshot(groupsQuery, (snapshot) => {
+            allGroups = [];
+            snapshot.forEach(doc => { allGroups.push({ id: doc.id, ...doc.data() }); });
+            renderGroups();
+        });
 
-            // تحميل الطلبات
-            const requestsQuery = query(collection(db, "requests"), where("toUserId", "==", currentUser.uid), where("status", "==", "pending"));
-            onSnapshot(requestsQuery, (snapshot) => {
-                allRequests = [];
-                snapshot.forEach(doc => { allRequests.push({ id: doc.id, ...doc.data() }); });
-                renderRequests();
-            });
+        const requestsQuery = query(collection(db, "requests"), where("toUserId", "==", currentUser.uid), where("status", "==", "pending"));
+        onSnapshot(requestsQuery, (snapshot) => {
+            allRequests = [];
+            snapshot.forEach(doc => { allRequests.push({ id: doc.id, ...doc.data() }); });
+            renderRequests();
+        });
+    }
+
+    function renderRequests() {
+        const container = document.getElementById('requests-scroll');
+        if (allRequests.length === 0) {
+            container.innerHTML = '<div style="color:var(--text-secondary); font-size:0.9rem; padding:10px;">لا توجد طلبات معلقة</div>';
+            return;
         }
-
-        // === عرض الطلبات ===
-        function renderRequests() {
-            const container = document.getElementById('requests-scroll');
-            if (allRequests.length === 0) {
-                container.innerHTML = '<div style="color:var(--text-secondary); font-size:0.9rem; padding:10px;">لا توجد طلبات معلقة</div>';
-                return;
-            }
-            container.innerHTML = allRequests.map(req => {
-                const isFriend = req.type === 'friend';
-                return `
-                <div class="request-card ${isFriend ? 'friend-req' : 'group-req'}">
-                    <img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="request-avatar">
-                    <div class="request-info">
-                        <div class="request-title">${req.fromUserName}</div>
-                        <div class="request-desc">${isFriend ? 'أرسل لك طلب صداقة' : 'طلب انضمام للمجموعة'}</div>
-                        <div class="request-actions">
-                            <button class="btn-req btn-accept" onclick="handleRequest('${req.id}', 'accept')">قبول</button>
-                            <button class="btn-req btn-decline" onclick="handleRequest('${req.id}', 'reject')">رفض</button>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        window.handleRequest = async function(requestId, action) {
-            const reqRef = doc(db, "requests", requestId);
-            const request = allRequests.find(r => r.id === requestId);
-            
-            if (action === 'accept') {
-                await updateDoc(reqRef, { status: 'accepted' });
-                if (request.type === 'friend') {
-                    // إضافة للأصدقاء
-                    await updateDoc(doc(db, "users", currentUser.uid), {
-                        friends: arrayUnion(request.fromUserId),
-                        'stats.friendsCount': increment(1)
-                    });
-                    await updateDoc(doc(db, "users", request.fromUserId), {
-                        friends: arrayUnion(currentUser.uid),
-                        'stats.friendsCount': increment(1)
-                    });
-                }
-                alert('تم قبول الطلب');
-            } else {
-                await updateDoc(reqRef, { status: 'rejected' });
-                alert('تم رفض الطلب');
-            }
-        }
-
-        // === عرض الدردشات ===
-        function renderChats() {
-            const container = document.getElementById('friends-list');
-            if (allChats.filter(c => c.type === 'private').length === 0) {
-                container.innerHTML = '<div class="loading">لا توجد محادثات</div>';
-                return;
-            }
-            container.innerHTML = allChats.filter(c => c.type === 'private').map(chat => {
-                const otherUser = chat.participants.find(p => p !== currentUser.uid);
-                return `
-                <div class="chat-item" onclick="openChat('${chat.id}', 'private')">
-                    <div class="chat-avatar-wrapper">
-                        <img src="https://i.pravatar.cc/150?u=${otherUser}" class="chat-avatar">
-                        <span class="online-dot"></span>
-                    </div>
-                    <div class="chat-info">
-                        <div class="chat-header">
-                            <span class="chat-name">${chat.name || 'مستخدم'}</span>
-                            <span class="chat-time">${formatTime(chat.lastMessage?.timestamp)}</span>
-                        </div>
-                        <div class="chat-preview">
-                            <span class="chat-last-msg">${chat.lastMessage?.text || 'ابدأ المحادثة'}</span>
-                            ${chat.unreadCount?.[currentUser.uid] > 0 ? `<span class="unread-badge">${chat.unreadCount[currentUser.uid]}</span>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function renderGroups() {
-            const container = document.getElementById('groups-list');
-            if (allGroups.length === 0) {
-                container.innerHTML = '<div class="loading">لا توجد مجموعات</div>';
-                return;
-            }
-            container.innerHTML = allGroups.map(group => `
-                <div class="chat-item" onclick="openChat('${group.id}', 'group')">
-                    <div class="chat-avatar-wrapper">
-                        <img src="${group.groupImage || 'https://picsum.photos/150?random=' + group.id}" class="chat-avatar">
-                    </div>
-                    <div class="chat-info">
-                        <div class="chat-header">
-                            <span class="chat-name">${group.name}</span>
-                            <span class="chat-time">${formatTime(group.lastMessage?.timestamp)}</span>
-                        </div>
-                        <div class="chat-preview">
-                            <span class="chat-last-msg">${group.lastMessage?.text || 'لا توجد رسائل'}</span>
-                            ${group.unreadCount?.[currentUser.uid] > 0 ? `<span class="unread-badge">${group.unreadCount[currentUser.uid]}</span>` : ''}
-                        </div>
+        container.innerHTML = allRequests.map(req => {
+            const isFriend = req.type === 'friend';
+            return `
+            <div class="request-card ${isFriend ? 'friend-req' : 'group-req'}">
+                <img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="request-avatar">
+                <div class="request-info">
+                    <div class="request-title">${req.fromUserName}</div>
+                    <div class="request-desc">${isFriend ? 'أرسل لك طلب صداقة' : 'طلب انضمام للمجموعة'}</div>
+                    <div class="request-actions">
+                        <button class="btn-req btn-accept" onclick="handleRequest('${req.id}', 'accept')">قبول</button>
+                        <button class="btn-req btn-decline" onclick="handleRequest('${req.id}', 'reject')">رفض</button>
                     </div>
                 </div>
-            `).join('');
-        }
+            </div>`;
+        }).join('');
+    }
 
-        // === فتح الدردشة ===
-        window.openChat = async function(chatId, type) {
-            currentChatId = chatId;
-            currentChatType = type;
-            document.getElementById('chat-screen').classList.add('active');
-            
-            if (type === 'private') {
-                const chat = allChats.find(c => c.id === chatId);
-                const otherUser = chat.participants.find(p => p !== currentUser.uid);
-                const userSnap = await getDoc(doc(db, "users", otherUser));
-                const userData = userSnap.data();
-                document.getElementById('cs-name').textContent = userData.fullName;
-                document.getElementById('cs-avatar').src = userData.profileImage || 'https://i.pravatar.cc/150';
-                document.getElementById('cs-status').textContent = 'متصل الآن';
-            } else {
-                const group = allGroups.find(g => g.id === chatId);
-                document.getElementById('cs-name').textContent = group.name;
-                document.getElementById('cs-avatar').src = group.groupImage || 'https://picsum.photos/150';
-                document.getElementById('cs-status').textContent = `${group.members?.length || 0} عضو`;
-            }
-            
-            loadMessages();
-        }
-
-        function loadMessages() {
-            const collectionPath = currentChatType === 'private' ? `chats/${currentChatId}/messages` : `groups/${currentChatId}/messages`;
-            const messagesQuery = query(collection(db, collectionPath), orderBy("timestamp", "asc"), limit(100));
-            
-            onSnapshot(messagesQuery, (snapshot) => {
-                const area = document.getElementById('messages-area');
-                area.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const msg = doc.data();
-                    const isSent = msg.senderId === currentUser.uid;
-                    area.innerHTML += `
-                        <div class="message-row ${isSent ? 'sent' : 'received'}">
-                            ${msg.replyTo ? `<div class="reply-preview">رد على: ${msg.replyTo} <i class="fas fa-times" onclick="cancelReply()"></i></div>` : ''}
-                            <div class="message-bubble">${msg.text}</div>
-                            ${msg.isPinned ? '<div class="pinned-indicator"><i class="fas fa-thumbtack"></i> مثبت</div>' : ''}
-                            <div class="message-actions">
-                                <span class="action-icon ${msg.reactions?.like?.includes(currentUser.uid) ? 'liked' : ''}" onclick="reactToMessage('${doc.id}', 'like')">
-                                    <i class="${msg.reactions?.like?.includes(currentUser.uid) ? 'fas' : 'far'} fa-heart"></i>
-                                </span>
-                                <span class="action-icon" onclick="replyToMessage('${msg.text}')"><i class="fas fa-reply"></i></span>
-                                ${currentChatType === 'group' ? `<span class="action-icon" onclick="pinMessage('${doc.id}')"><i class="far fa-thumbtack"></i></span>` : ''}
-                            </div>
-                            <small style="font-size:0.7rem; color:var(--text-secondary); margin-top:4px;">${formatTime(msg.timestamp)}</small>
-                        </div>`;
+    window.handleRequest = async function(requestId, action) {
+        const reqRef = doc(db, "requests", requestId);
+        const request = allRequests.find(r => r.id === requestId);
+        
+        if (action === 'accept') {
+            await updateDoc(reqRef, { status: 'accepted' });
+            if (request.type === 'friend') {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    friends: arrayUnion(request.fromUserId),
+                    'stats.friendsCount': increment(1)
                 });
-                area.scrollTop = area.scrollHeight;
-            });
+                await updateDoc(doc(db, "users", request.fromUserId), {
+                    friends: arrayUnion(currentUser.uid),
+                    'stats.friendsCount': increment(1)
+                });
+            }
+            alert('✅ تم قبول الطلب');
+        } else {
+            await updateDoc(reqRef, { status: 'rejected' });
+            alert('تم رفض الطلب');
         }
+    }
 
-        // === إرسال رسالة ===
-        window.sendMessage = async function() {
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
-            if (!text || !currentChatId) return;
+    function renderChats() {
+        const container = document.getElementById('friends-list');
+        if (allChats.filter(c => c.type === 'private').length === 0) {
+            container.innerHTML = '<div class="loading">لا توجد محادثات</div>';
+            return;
+        }
+        container.innerHTML = allChats.filter(c => c.type === 'private').map(chat => {
+            const otherUser = chat.participants.find(p => p !== currentUser.uid);
+            return `
+            <div class="chat-item" onclick="openChat('${chat.id}', 'private')">
+                <div class="chat-avatar-wrapper">
+                    <img src="https://i.pravatar.cc/150?u=${otherUser}" class="chat-avatar">
+                    <span class="online-dot"></span>
+                </div>
+                <div class="chat-info">
+                    <div class="chat-header">
+                        <span class="chat-name">${chat.name || 'مستخدم'}</span>
+                        <span class="chat-time">${formatTime(chat.lastMessage?.timestamp)}</span>
+                    </div>
+                    <div class="chat-preview">
+                        <span class="chat-last-msg">${chat.lastMessage?.text || 'ابدأ المحادثة'}</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
 
-            const collectionPath = currentChatType === 'private' ? `chats/${currentChatId}/messages` : `groups/${currentChatId}/messages`;
-            const parentRef = currentChatType === 'private' ? doc(db, "chats", currentChatId) : doc(db, "groups", currentChatId);
-            
-            await addDoc(collection(db, collectionPath), {
+    function renderGroups() {
+        const container = document.getElementById('groups-list');
+        if (allGroups.length === 0) {
+            container.innerHTML = '<div class="loading">لا توجد مجموعات</div>';
+            return;
+        }
+        container.innerHTML = allGroups.map(group => `
+            <div class="chat-item" onclick="openChat('${group.id}', 'group')">
+                <div class="chat-avatar-wrapper">
+                    <img src="${group.groupImage || 'https://picsum.photos/150?random=' + group.id}" class="chat-avatar">
+                </div>
+                <div class="chat-info">
+                    <div class="chat-header">
+                        <span class="chat-name">${group.name}</span>
+                        <span class="chat-time">${formatTime(group.lastMessage?.timestamp)}</span>
+                    </div>
+                    <div class="chat-preview">
+                        <span class="chat-last-msg">${group.lastMessage?.text || 'لا توجد رسائل'}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.openChat = async function(chatId, type) {
+        currentChatId = chatId;
+        currentChatType = type;
+        document.getElementById('chat-screen').classList.add('active');
+        
+        if (type === 'private') {
+            const chat = allChats.find(c => c.id === chatId);
+            const otherUser = chat.participants.find(p => p !== currentUser.uid);
+            const userSnap = await getDoc(doc(db, "users", otherUser));
+            const userData = userSnap.data();
+            document.getElementById('cs-name').textContent = userData.fullName;
+            document.getElementById('cs-avatar').src = userData.profileImage || 'https://i.pravatar.cc/150';
+            document.getElementById('cs-status').textContent = 'متصل الآن';
+        } else {
+            const group = allGroups.find(g => g.id === chatId);
+            document.getElementById('cs-name').textContent = group.name;
+            document.getElementById('cs-avatar').src = group.groupImage || 'https://picsum.photos/150';
+            document.getElementById('cs-status').textContent = `${group.members?.length || 0} عضو`;
+        }
+        
+        loadMessages();
+    }
+
+    function loadMessages() {
+        const collectionPath = currentChatType === 'private' ? `chats/${currentChatId}/messages` : `groups/${currentChatId}/messages`;
+        const messagesQuery = query(collection(db, collectionPath), orderBy("timestamp", "asc"), limit(100));
+        
+        onSnapshot(messagesQuery, (snapshot) => {
+            const area = document.getElementById('messages-area');
+            area.innerHTML = '';
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                const isSent = msg.senderId === currentUser.uid;
+                area.innerHTML += `
+                    <div class="message-row ${isSent ? 'sent' : 'received'}">
+                        <div class="message-bubble">${msg.text}</div>
+                        <small style="font-size:0.7rem; color:var(--text-secondary); margin-top:4px;">${formatTime(msg.timestamp)}</small>
+                    </div>`;
+            });
+            area.scrollTop = area.scrollHeight;
+        });
+    }
+
+    window.sendMessage = async function() {
+        const input = document.getElementById('message-input');
+        const text = input.value.trim();
+        if (!text || !currentChatId) return;
+
+        const collectionPath = currentChatType === 'private' ? `chats/${currentChatId}/messages` : `groups/${currentChatId}/messages`;
+        const parentRef = currentChatType === 'private' ? doc(db, "chats", currentChatId) : doc(db, "groups", currentChatId);
+        
+        await addDoc(collection(db, collectionPath), {
+            senderId: currentUser.uid,
+            senderName: currentUser.fullName,
+            text: text,
+            timestamp: serverTimestamp(),
+            isPinned: false,
+            replyTo: replyToId,
+            reactions: { like: [], love: [], laugh: [] }
+        });
+
+        await updateDoc(parentRef, {
+            lastMessage: {
+                text: text,
                 senderId: currentUser.uid,
                 senderName: currentUser.fullName,
-                text: text,
-                timestamp: serverTimestamp(),
-                isPinned: false,
-                replyTo: replyToId,
-                reactions: { like: [], love: [], laugh: [] }
-            });
-
-            // تحديث آخر رسالة
-            await updateDoc(parentRef, {
-                lastMessage: {
-                    text: text,
-                    senderId: currentUser.uid,
-                    senderName: currentUser.fullName,
-                    timestamp: serverTimestamp()
-                }
-            });
-
-            input.value = '';
-            cancelReply();
-        }
-
-        window.handleKeyPress = function(e) {
-            if (e.key === 'Enter') sendMessage();
-        }
-
-        // === التفاعلات ===
-        window.reactToMessage = async function(msgId, reaction) {
-            const collectionPath = currentChatType === 'private' ? `chats/${currentChatId}/messages` : `groups/${currentChatId}/messages`;
-            const msgRef = doc(db, collectionPath, msgId);
-            const msgSnap = await getDoc(msgRef);
-            const msg = msgSnap.data();
-            const hasReacted = msg.reactions?.[reaction]?.includes(currentUser.uid);
-            
-            if (hasReacted) {
-                await updateDoc(msgRef, { [`reactions.${reaction}`]: arrayRemove(currentUser.uid) });
-            } else {
-                await updateDoc(msgRef, { [`reactions.${reaction}`]: arrayUnion(currentUser.uid) });
+                timestamp: serverTimestamp()
             }
+        });
+
+        input.value = '';
+        cancelReply();
+    }
+
+    window.handleKeyPress = function(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    window.replyToMessage = function(text) {
+        replyToId = text.substring(0, 30) + '...';
+        document.getElementById('reply-text').textContent = 'رد على: ' + replyToId;
+        document.getElementById('reply-preview-box').style.display = 'flex';
+    }
+
+    window.cancelReply = function() {
+        replyToId = null;
+        document.getElementById('reply-preview-box').style.display = 'none';
+    }
+
+    function initEmojiPicker() {
+        const emojis = ['😀','😂','😍','🤔','👍','👎','🎉','❤️','🔥','🙏','😢','😡','👋','✅','❌','💯'];
+        const container = document.getElementById('emoji-picker');
+        container.innerHTML = emojis.map(e => `<div class="emoji-item" onclick="addEmoji('${e}')">${e}</div>`).join('');
+    }
+
+    window.toggleEmojiPicker = function() {
+        document.getElementById('emoji-picker').classList.toggle('show');
+    }
+
+    window.addEmoji = function(emoji) {
+        document.getElementById('message-input').value += emoji;
+        document.getElementById('message-input').focus();
+    }
+
+    // ✅ إنشاء مجموعة - الكود المصحح
+    window.openCreateGroupModal = function() {
+        document.getElementById('create-group-modal').classList.add('show');
+    }
+
+    window.createGroup = async function() {
+        const name = document.getElementById('group-name').value.trim();
+        const desc = document.getElementById('group-desc').value.trim();
+        
+        if (!name) {
+            alert('⚠️ أدخل اسم المجموعة');
+            return;
         }
 
-        window.replyToMessage = function(text) {
-            replyToId = text.substring(0, 30) + '...';
-            document.getElementById('reply-text').textContent = 'رد على: ' + replyToId;
-            document.getElementById('reply-preview-box').style.display = 'flex';
-            document.getElementById('emoji-picker').classList.remove('show');
-        }
-
-        window.cancelReply = function() {
-            replyToId = null;
-            document.getElementById('reply-preview-box').style.display = 'none';
-        }
-
-        window.pinMessage = async function(msgId) {
-            const collectionPath = `groups/${currentChatId}/messages`;
-            await updateDoc(doc(db, collectionPath, msgId), { isPinned: true });
-            await updateDoc(doc(db, "groups", currentChatId), { pinnedMessages: arrayUnion(msgId) });
-            alert('تم تثبيت الرسالة');
-        }
-
-        // === الإيموجي ===
-        function initEmojiPicker() {
-            const emojis = ['😀','😂','😍','🤔','👍','👎','🎉','❤️','🔥','🙏','😢','😡','👋','✅','❌','💯','🤝','🎊','✨','💪'];
-            const container = document.getElementById('emoji-picker');
-            container.innerHTML = emojis.map(e => `<div class="emoji-item" onclick="addEmoji('${e}')">${e}</div>`).join('');
-        }
-
-        window.toggleEmojiPicker = function() {
-            document.getElementById('emoji-picker').classList.toggle('show');
-        }
-
-        window.addEmoji = function(emoji) {
-            document.getElementById('message-input').value += emoji;
-            document.getElementById('message-input').focus();
-        }
-
-        // === إنشاء مجموعة ===
-        window.openCreateGroupModal = function() {
-            document.getElementById('create-group-modal').classList.add('show');
-        }
-
-        window.createGroup = async function() {
-            const name = document.getElementById('group-name').value;
-            const desc = document.getElementById('group-desc').value;
-            if (!name) return alert('أدخل اسم المجموعة');
-
+        try {
+            console.log('📝 Creating group:', name);
+            
             const groupRef = doc(collection(db, "groups"));
-            await setDoc(groupRef, {
+            const now = new Date(); // ✅ استخدام Date() بدلاً من serverTimestamp() في المصفوفة
+            
+            const groupData = {
                 name: name,
-                description: desc,
+                description: desc || 'لا يوجد وصف',
                 creatorId: currentUser.uid,
                 creatorName: currentUser.fullName,
                 groupImage: '',
-                members: [{ userId: currentUser.uid, userName: currentUser.fullName, role: 'admin', joinedAt: serverTimestamp() }],
+                members: [{ 
+                    userId: currentUser.uid, 
+                    userName: currentUser.fullName, 
+                    userAvatar: currentUser.profileImage || '',
+                    role: 'admin', 
+                    joinedAt: now, // ✅ Date() يعمل داخل المصفوفة
+                    isMuted: false,
+                    isBanned: false
+                }],
                 memberCount: 1,
                 isActive: true,
-                createdAt: serverTimestamp(),
+                createdAt: now,
+                updatedAt: now,
                 joinRequestPending: [],
-                pinnedMessages: []
-            });
-
+                pinnedMessages: [],
+                lastMessage: null,
+                settings: {
+                    allowMemberInvite: true,
+                    allowMemberMessage: true,
+                    requireApproval: false
+                }
+            };
+            
+            console.log('📄 Group data:', groupData);
+            await setDoc(groupRef, groupData);
+            
+            console.log('✅ Group created:', groupRef.id);
+            
             closeModal('create-group-modal');
-            alert('تم إنشاء المجموعة بنجاح');
+            alert('✅ تم إنشاء المجموعة بنجاح!\nالاسم: ' + name);
+            
             document.getElementById('group-name').value = '';
             document.getElementById('group-desc').value = '';
-        }
-
-        // === إدارة الأعضاء ===
-        window.toggleMembersModal = async function() {
-            if (currentChatType !== 'group') return;
-            const modal = document.getElementById('members-modal');
-            const group = allGroups.find(g => g.id === currentChatId);
-            if (!group) return;
-
-            const container = document.getElementById('members-list-container');
-            container.innerHTML = group.members.map(member => `
-                <div class="member-item">
-                    <div class="member-info">
-                        <img src="https://i.pravatar.cc/150?u=${member.userId}" class="member-avatar">
-                        <div>
-                            <div>${member.userName}</div>
-                            <span class="member-role">${member.role === 'admin' ? 'مشرف' : 'عضو'}</span>
-                        </div>
-                    </div>
-                    ${currentUser.uid === group.creatorId && member.userId !== currentUser.uid ? `
-                    <div class="member-actions">
-                        <button class="btn-promote" title="ترقية" onclick="promoteMember('${member.userId}')"><i class="fas fa-crown"></i></button>
-                        <button class="btn-mute" title="كتم" onclick="muteMember('${member.userId}')"><i class="fas fa-microphone-slash"></i></button>
-                        <button class="btn-ban" title="حظر" onclick="banMember('${member.userId}')"><i class="fas fa-ban"></i></button>
-                    </div>` : ''}
-                </div>
-            `).join('');
-            modal.classList.add('show');
-        }
-
-        window.promoteMember = async function(userId) {
-            await updateDoc(doc(db, "groups", currentChatId), {
-                members: arrayUnion({ userId, userName: '...', role: 'admin', joinedAt: serverTimestamp() })
-            });
-            alert('تم ترقية العضو');
-        }
-
-        window.muteMember = async function(userId) {
-            alert('تم كتم العضو');
-        }
-
-        window.banMember = async function(userId) {
-            await updateDoc(doc(db, "groups", currentChatId), {
-                members: arrayRemove({ userId })
-            });
-            alert('تم حظر العضو');
-        }
-
-        // === الرسائل المثبتة ===
-        window.togglePinnedModal = async function() {
-            if (currentChatType !== 'group') return;
-            const modal = document.getElementById('pinned-modal');
-            const container = document.getElementById('pinned-list-container');
             
-            const group = allGroups.find(g => g.id === currentChatId);
-            if (!group?.pinnedMessages?.length) {
-                container.innerHTML = 'لا توجد رسائل مثبتة';
-                modal.classList.add('show');
-                return;
-            }
-
-            container.innerHTML = '<div style="text-align:center; padding:20px;">جاري التحميل...</div>';
-            modal.classList.add('show');
+        } catch (error) {
+            console.error('❌ Error creating group:', error);
+            alert('❌ حدث خطأ أثناء إنشاء المجموعة:\n' + error.message);
         }
+    }
 
-        // === Utilities ===
-        window.switchChatTab = function(tab, element) {
-            document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.chat-list').forEach(l => l.classList.remove('active'));
-            element.classList.add('active');
-            document.getElementById(tab + '-list').classList.add('active');
+    window.toggleMembersModal = async function() {
+        if (currentChatType !== 'group') return;
+        const modal = document.getElementById('members-modal');
+        const group = allGroups.find(g => g.id === currentChatId);
+        if (!group) return;
+
+        const container = document.getElementById('members-list-container');
+        container.innerHTML = group.members.map(member => `
+            <div class="member-item">
+                <div class="member-info">
+                    <img src="https://i.pravatar.cc/150?u=${member.userId}" class="member-avatar">
+                    <div>
+                        <div>${member.userName}</div>
+                        <span class="member-role">${member.role === 'admin' ? 'مشرف' : 'عضو'}</span>
+                    </div>
+                </div>
+                ${currentUser.uid === group.creatorId && member.userId !== currentUser.uid ? `
+                <div class="member-actions">
+                    <button class="btn-promote" title="ترقية"><i class="fas fa-crown"></i></button>
+                    <button class="btn-mute" title="كتم"><i class="fas fa-microphone-slash"></i></button>
+                    <button class="btn-ban" title="حظر"><i class="fas fa-ban"></i></button>
+                </div>` : ''}
+            </div>
+        `).join('');
+        modal.classList.add('show');
+    }
+
+    window.closeChat = function() {
+        document.getElementById('chat-screen').classList.remove('active');
+        currentChatId = null;
+    }
+
+    window.closeModal = function(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    window.switchChatTab = function(tab, element) {
+        document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.chat-list').forEach(l => l.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById(tab + '-list').classList.add('active');
+    }
+
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        if (diff < 60000) return 'الآن';
+        if (diff < 3600000) return Math.floor(diff / 60000) + 'د';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + 'س';
+        return date.toLocaleDateString('ar-SA');
+    }
+
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('show');
         }
+    });
 
-        window.closeChat = function() {
-            document.getElementById('chat-screen').classList.remove('active');
-            currentChatId = null;
-        }
-
-        window.closeModal = function(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        function formatTime(timestamp) {
-            if (!timestamp) return '';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-            if (diff < 60000) return 'الآن';
-            if (diff < 3600000) return Math.floor(diff / 60000) + 'د';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + 'س';
-            return date.toLocaleDateString('ar-SA');
-        }
-
-        // === تهيئة ===
-        document.addEventListener('DOMContentLoaded', () => {
-            initEmojiPicker();
-            startListeners();
-        });
-
-        // إغلاق المودال عند النقر خارجه
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('show');
-            });
-        });
-    </script>
+    console.log('🔧 Initializing chat page...');
+    initEmojiPicker();
+    startListeners();
+    console.log('🚀 === CHAT PAGE READY ===');
+</script>
 </body>
 </html>

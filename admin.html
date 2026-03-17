@@ -256,17 +256,35 @@
 
         window.sendNotification = async function() {
             const type = document.getElementById('notif-type').value;
-            const title = document.getElementById('notif-title').value;
-            const body = document.getElementById('notif-body').value;
-            if (!title || !body) return alert('أكمل الحقول');
+            const title = document.getElementById('notif-title').value.trim();
+            const body = document.getElementById('notif-body').value.trim();
+            const targetUserId = document.getElementById('target-user').value || '';
             
-            await addDoc(collection(db, "notifications"), {
-                type, targetUserId: type === 'specific' ? document.getElementById('target-user').value : null,
-                title, body, isRead: false, createdAt: serverTimestamp()
-            });
-            alert('تم إرسال الإشعار');
-            document.getElementById('notif-title').value = '';
-            document.getElementById('notif-body').value = '';
+            if (!title || !body) {
+                alert('يرجى إدخال العنوان والنص');
+                return;
+            }
+            
+            try {
+                await db.collection('notifications').add({
+                    type: type,
+                    targetUserId: type === 'specific' ? targetUserId : '',
+                    title: title,
+                    body: body,
+                    senderName: 'المشرف',
+                    senderId: 'admin',
+                    isRead: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                document.getElementById('notif-title').value = '';
+                document.getElementById('notif-body').value = '';
+                document.getElementById('target-user').value = '';
+                alert('✅ تم إرسال الإشعار بنجاح!');
+            } catch (error) {
+                console.error('خطأ في إرسال الإشعار:', error);
+                alert('❌ حدث خطأ: ' + error.message);
+            }
         }
 
         window.updateNewsTicker = async function() {

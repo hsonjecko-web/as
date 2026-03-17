@@ -160,212 +160,222 @@
         </div>
     </div>
 
-    <script type="module">
-        import { db, auth, collection, query, where, onSnapshot, doc, getDoc, updateDoc, addDoc, arrayUnion, serverTimestamp } from './firebase-config.js';
+   <script type="module">
+    console.log('🚀 === FRIENDS PAGE STARTING ===');
+    
+    import { db, collection, query, where, onSnapshot, doc, getDoc, updateDoc, addDoc, arrayUnion, serverTimestamp, increment } from './firebase-config.js';
+    
+    console.log('✅ Firebase imported');
 
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser || !currentUser.isLoggedIn) { window.location.href = 'index.html'; }
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    console.log('👤 Current User:', currentUser);
+    
+    if (!currentUser || !currentUser.isLoggedIn) {
+        console.warn('⚠️ No user logged in');
+        window.location.href = 'index.html';
+    }
 
-        let allFriends = [];
-        let allRequests = [];
-        let allUsers = [];
+    let allFriends = [];
+    let allRequests = [];
+    let allUsers = [];
 
-        // === تحميل البيانات ===
-        function startListeners() {
-            // تحميل الأصدقاء
-            onSnapshot(doc(db, "users", currentUser.uid), (userSnap) => {
-                const userData = userSnap.data();
-                const friendsIds = userData.friends || [];
-                document.getElementById('friends-count').textContent = `${friendsIds.length} صديق`;
-                
-                if (friendsIds.length > 0) {
-                    const friendsQuery = query(collection(db, "users"), where("uid", "in", friendsIds.slice(0, 10)));
-                    onSnapshot(friendsQuery, (snapshot) => {
-                        allFriends = [];
-                        snapshot.forEach(doc => { allFriends.push({ id: doc.id, ...doc.data() }); });
-                        renderFriends(allFriends);
-                    });
-                }
-            });
-
-            // تحميل طلبات الصداقة
-            const requestsQuery = query(collection(db, "requests"), where("toUserId", "==", currentUser.uid), where("status", "==", "pending"));
-            onSnapshot(requestsQuery, (snapshot) => {
-                allRequests = [];
-                snapshot.forEach(doc => { allRequests.push({ id: doc.id, ...doc.data() }); });
-                renderRequests();
-            });
-
-            // تحميل المستخدمين للاقتراحات
-            onSnapshot(collection(db, "users"), (snapshot) => {
-                allUsers = [];
-                snapshot.forEach(doc => {
-                    const user = doc.data();
-                    if (doc.id !== currentUser.uid && !user.banned) {
-                        allUsers.push({ id: doc.id, ...user });
-                    }
-                });
-                renderSuggestions();
-            });
-        }
-
-        // === عرض الطلبات ===
-        function renderRequests() {
-            const container = document.getElementById('requests-container');
-            if (allRequests.length === 0) {
-                container.innerHTML = '<div style="color:var(--text-secondary); font-size:0.9rem; padding:10px;">لا توجد طلبات جديدة</div>';
-                return;
-            }
-            container.innerHTML = allRequests.map(req => `
-                <div class="request-card">
-                    <img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="req-avatar">
-                    <div class="req-info">
-                        <div class="req-name">${req.fromUserName}</div>
-                        <div class="req-mutual">يريد إضافتك كصديق</div>
-                        <div class="req-actions">
-                            <button class="btn-req btn-accept" onclick="handleFriendRequest('${req.id}', 'accept')">قبول</button>
-                            <button class="btn-req btn-decline" onclick="handleFriendRequest('${req.id}', 'reject')">رفض</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.handleFriendRequest = async function(requestId, action) {
-            const reqRef = doc(db, "requests", requestId);
-            const request = allRequests.find(r => r.id === requestId);
+    function startListeners() {
+        console.log('📡 Starting listeners...');
+        
+        onSnapshot(doc(db, "users", currentUser.uid), (userSnap) => {
+            const userData = userSnap.data();
+            const friendsIds = userData.friends || [];
+            document.getElementById('friends-count').textContent = `${friendsIds.length} صديق`;
             
-            if (action === 'accept') {
-                await updateDoc(reqRef, { status: 'accepted' });
-                await updateDoc(doc(db, "users", currentUser.uid), {
-                    friends: arrayUnion(request.fromUserId),
-                    'stats.friendsCount': increment(1)
+            if (friendsIds.length > 0) {
+                const friendsQuery = query(collection(db, "users"), where("uid", "in", friendsIds.slice(0, 10)));
+                onSnapshot(friendsQuery, (snapshot) => {
+                    allFriends = [];
+                    snapshot.forEach(doc => { allFriends.push({ id: doc.id, ...doc.data() }); });
+                    renderFriends(allFriends);
                 });
-                await updateDoc(doc(db, "users", request.fromUserId), {
-                    friends: arrayUnion(currentUser.uid),
-                    'stats.friendsCount': increment(1)
-                });
-                alert('تم قبول طلب الصداقة');
-            } else {
-                await updateDoc(reqRef, { status: 'rejected' });
-                alert('تم رفض الطلب');
             }
-        }
-
-        // === عرض الاقتراحات ===
-        function renderSuggestions() {
-            const container = document.getElementById('suggestions-container');
-            const suggestions = allUsers.filter(u => !u.friends?.includes(currentUser.uid)).slice(0, 4);
-            
-            if (suggestions.length === 0) {
-                container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد اقتراحات حالياً</div>';
-                return;
-            }
-            
-            container.innerHTML = suggestions.map(user => `
-                <div class="suggestion-card">
-                    <div class="sugg-avatar-wrapper">
-                        <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" class="sugg-avatar">
-                    </div>
-                    <div class="sugg-name">${user.fullName}</div>
-                    <div class="sugg-job">${user.country || 'مستخدم جديد'}</div>
-                    <button class="btn-add" onclick="sendFriendRequest('${user.id}', '${user.fullName}')">إضافة صديق</button>
-                </div>
-            `).join('');
-        }
-
-        window.sendFriendRequest = async function(userId, userName) {
-            await addDoc(collection(db, "requests"), {
-                type: 'friend',
-                fromUserId: currentUser.uid,
-                fromUserName: currentUser.fullName,
-                toUserId: userId,
-                status: 'pending',
-                timestamp: serverTimestamp()
-            });
-            alert(`تم إرسال طلب صداقة إلى ${userName}`);
-            renderSuggestions();
-        }
-
-        // === عرض الأصدقاء ===
-        function renderFriends(list) {
-            const container = document.getElementById('friends-list-container');
-            if (list.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">لا توجد أصدقاء بعد.<br>ابدأ بإضافة أصدقاء جدد!</div>';
-                return;
-            }
-            container.innerHTML = list.map(friend => `
-                <div class="friend-item" onclick="openProfile('${friend.id}')">
-                    <div class="friend-left">
-                        <div class="friend-avatar-wrapper">
-                            <img src="${friend.profileImage || 'https://i.pravatar.cc/150?u=' + friend.username}" class="friend-avatar">
-                            <span class="status-dot"></span>
-                        </div>
-                        <div class="friend-info">
-                            <h4>${friend.fullName}</h4>
-                            <p>متصل الآن</p>
-                        </div>
-                    </div>
-                    <div class="friend-actions">
-                        <button onclick="event.stopPropagation(); startChatWith('${friend.id}')"><i class="fas fa-comment"></i></button>
-                        <button><i class="fas fa-ellipsis-h"></i></button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // === البحث ===
-        window.filterFriends = function() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allFriends.filter(f => f.fullName?.toLowerCase().includes(query));
-            renderFriends(filtered);
-        }
-
-        // === البروفايل ===
-        const modal = document.getElementById('profileModal');
-
-        window.openProfile = async function(userId) {
-            const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const user = userSnap.data();
-                document.getElementById('modal-name').textContent = user.fullName;
-                document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
-                document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
-                document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
-                document.getElementById('modal-followers').textContent = user.stats?.followersCount || 0;
-                document.getElementById('modal-following').textContent = user.stats?.friendsCount || 0;
-                
-                // تحميل النشاطات
-                document.getElementById('modal-activities').innerHTML = `
-                    <p>• آخر دخول: منذ قليل</p>
-                    <p>• نشر منشوراً جديداً</p>
-                    <p>• أضاف صديقاً جديداً</p>
-                `;
-                
-                modal.classList.add('show');
-            }
-        }
-
-        window.closeProfile = function() {
-            modal.classList.remove('show');
-        }
-
-        window.startChat = function() {
-            window.location.href = 'chat.html';
-        }
-
-        window.startChatWith = function(userId) {
-            // هنا يتم إنشاء محادثة جديدة أو فتح موجودة
-            window.location.href = 'chat.html';
-        }
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeProfile();
         });
 
-        // === تهيئة ===
-        document.addEventListener('DOMContentLoaded', startListeners);
-    </script>
+        const requestsQuery = query(collection(db, "requests"), where("toUserId", "==", currentUser.uid), where("status", "==", "pending"));
+        onSnapshot(requestsQuery, (snapshot) => {
+            allRequests = [];
+            snapshot.forEach(doc => { allRequests.push({ id: doc.id, ...doc.data() }); });
+            renderRequests();
+        });
+
+        onSnapshot(collection(db, "users"), (snapshot) => {
+            allUsers = [];
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                if (doc.id !== currentUser.uid && !user.banned) {
+                    allUsers.push({ id: doc.id, ...user });
+                }
+            });
+            renderSuggestions();
+        });
+    }
+
+    function renderRequests() {
+        const container = document.getElementById('requests-container');
+        if (allRequests.length === 0) {
+            container.innerHTML = '<div style="color:var(--text-secondary); font-size:0.9rem; padding:10px;">لا توجد طلبات جديدة</div>';
+            return;
+        }
+        container.innerHTML = allRequests.map(req => `
+            <div class="request-card">
+                <img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="req-avatar">
+                <div class="req-info">
+                    <div class="req-name">${req.fromUserName}</div>
+                    <div class="req-mutual">يريد إضافتك كصديق</div>
+                    <div class="req-actions">
+                        <button class="btn-req btn-accept" onclick="handleFriendRequest('${req.id}', 'accept')">قبول</button>
+                        <button class="btn-req btn-decline" onclick="handleFriendRequest('${req.id}', 'reject')">رفض</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.handleFriendRequest = async function(requestId, action) {
+        const reqRef = doc(db, "requests", requestId);
+        const request = allRequests.find(r => r.id === requestId);
+        
+        if (action === 'accept') {
+            await updateDoc(reqRef, { status: 'accepted' });
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                friends: arrayUnion(request.fromUserId),
+                'stats.friendsCount': increment(1)
+            });
+            await updateDoc(doc(db, "users", request.fromUserId), {
+                friends: arrayUnion(currentUser.uid),
+                'stats.friendsCount': increment(1)
+            });
+
+            // إرسال إشعار قبول الطلب
+            await addDoc(collection(db, "notifications"), {
+                type: 'friend',
+                targetUserId: request.fromUserId,
+                senderName: currentUser.fullName || currentUser.username,
+                senderId: currentUser.uid,
+                title: '✅ تم قبول طلب صداقتك',
+                body: `${currentUser.fullName || currentUser.username} قبل طلب الصداقة`,
+                isRead: false,
+                timestamp: serverTimestamp()
+            });
+            
+            alert('✅ تم قبول طلب الصداقة + إرسال إشعار');
+        } else {
+            await updateDoc(reqRef, { status: 'rejected' });
+            alert('تم رفض الطلب');
+        }
+    }
+
+    function renderSuggestions() {
+        const container = document.getElementById('suggestions-container');
+        const suggestions = allUsers.filter(u => !u.friends?.includes(currentUser.uid)).slice(0, 4);
+        
+        if (suggestions.length === 0) {
+            container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد اقتراحات حالياً</div>';
+            return;
+        }
+        
+        container.innerHTML = suggestions.map(user => `
+            <div class="suggestion-card">
+                <div class="sugg-avatar-wrapper">
+                    <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" class="sugg-avatar">
+                </div>
+                <div class="sugg-name">${user.fullName}</div>
+                <div class="sugg-job">${user.country || 'مستخدم جديد'}</div>
+                <button class="btn-add" onclick="sendFriendRequest('${user.id}', '${user.fullName}')">إضافة صديق</button>
+            </div>
+        `).join('');
+    }
+
+    window.sendFriendRequest = async function(userId, userName) {
+        await addDoc(collection(db, "requests"), {
+            type: 'friend',
+            fromUserId: currentUser.uid,
+            fromUserName: currentUser.fullName,
+            toUserId: userId,
+            status: 'pending',
+            timestamp: serverTimestamp()
+        });
+        alert(`✅ تم إرسال طلب صداقة إلى ${userName}`);
+        renderSuggestions();
+    }
+
+    function renderFriends(list) {
+        const container = document.getElementById('friends-list-container');
+        if (list.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">لا توجد أصدقاء بعد.<br>ابدأ بإضافة أصدقاء جدد!</div>';
+            return;
+        }
+        container.innerHTML = list.map(friend => `
+            <div class="friend-item" onclick="openProfile('${friend.id}')">
+                <div class="friend-left">
+                    <div class="friend-avatar-wrapper">
+                        <img src="${friend.profileImage || 'https://i.pravatar.cc/150?u=' + friend.username}" class="friend-avatar">
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="friend-info">
+                        <h4>${friend.fullName}</h4>
+                        <p>متصل الآن</p>
+                    </div>
+                </div>
+                <div class="friend-actions">
+                    <button onclick="event.stopPropagation(); startChatWith('${friend.id}')"><i class="fas fa-comment"></i></button>
+                    <button><i class="fas fa-ellipsis-h"></i></button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.filterFriends = function() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const filtered = allFriends.filter(f => f.fullName?.toLowerCase().includes(query));
+        renderFriends(filtered);
+    }
+
+    const modal = document.getElementById('profileModal');
+
+    window.openProfile = async function(userId) {
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            const user = userSnap.data();
+            document.getElementById('modal-name').textContent = user.fullName;
+            document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
+            document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
+            document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
+            document.getElementById('modal-followers').textContent = user.stats?.followersCount || 0;
+            document.getElementById('modal-following').textContent = user.stats?.friendsCount || 0;
+            
+            document.getElementById('modal-activities').innerHTML = `
+                <p>• آخر دخول: منذ قليل</p>
+                <p>• نشر منشوراً جديداً</p>
+                <p>• أضاف صديقاً جديداً</p>
+            `;
+            
+            modal.classList.add('show');
+        }
+    }
+
+    window.closeProfile = function() {
+        modal.classList.remove('show');
+    }
+
+    window.startChatWith = function(userId) {
+        window.location.href = 'chat.html';
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeProfile();
+    });
+
+    console.log('🔧 Initializing friends page...');
+    startListeners();
+    console.log('🚀 === FRIENDS PAGE READY ===');
+</script>
 </body>
 </html>

@@ -200,10 +200,14 @@
                         <label class="form-label">إرسال إشعار</label>
                         <input type="text" class="form-control" placeholder="عنوان الإشعار" id="notif-title">
                         <textarea class="form-control" rows="3" placeholder="نص الإشعار" id="notif-body"></textarea>
-                        <select class="form-control" id="notif-type">
+<select class="form-control" id="notif-type" onchange="toggleUserSelect()">
                             <option value="all">جميع المستخدمين</option>
                             <option value="specific">مستخدم محدد</option>
                         </select>
+                        <div class="form-group" id="user-select-group" style="display: none;">
+                            <label class="form-label">اختر المستخدم</label>
+                            <select class="form-control" id="target-user"></select>
+                        </div>
                         <button class="btn btn-warning" style="width: 100%;" onclick="sendNotification()">إرسال</button>
                     </div>
                 </div>
@@ -440,23 +444,65 @@
             const action = document.getElementById('wallet-action').value;
             const amount = parseInt(document.getElementById('wallet-amount').value);
             if (!amount) return alert('أدخل المبلغ');
-            if (action === 'add') {
-                await db.collection('users').doc(userId).update({ 'wallet.points': firebase.firestore.FieldValue.increment(amount) });
-                await db.collection('transactions').add({ userId, amount, type: 'add', timestamp: firebase.firestore.FieldValue.serverTimestamp(), description: `إضافة رصيد من المالك` });
-            } else if (action === 'remove') {
-                await db.collection('users').doc(userId).update({ 'wallet.points': firebase.firestore.FieldValue.increment(-amount) });
-                await db.collection('transactions').add({ userId, amount: -amount, type: 'remove', timestamp: firebase.firestore.FieldValue.serverTimestamp(), description: `سحب رصيد من المالك` });
-            } else if (action === 'gift_all') {
-                const batch = db.batch();
-                allUsers.forEach(u => {
-                    const ref = db.collection('users').doc(u.id);
-                    batch.update(ref, { 'wallet.points': firebase.firestore.FieldValue.increment(amount) });
+            
+            try {
+                let notifTarget = userId;
+                let notifTitle = '';
+                let notifBody = '';
+                
+                if (action === 'add') {
+                    await db.collection('users').doc(userId).update({ 
+                        'wallet.points': firebase.firestore.FieldValue.increment(amount) 
+                    });
+                    await db.collection('transactions').add({ 
+                        userId, amount, type: 'add', 
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
+                        description: `إضافة رصيد من المالك (+${amount})`
+                    });
+                    notifTitle = '💰 تم إضافة نقاط لمحفظتك';
+                    notifBody = `تم إضافة ${amount} نقطة إلى رصيدك`;
+                } else if (action === 'remove') {
+                    await db.collection('users').doc(userId).update({ 
+                        'wallet.points': firebase.firestore.FieldValue.increment(-amount) 
+                    });
+                    await db.collection('transactions').add({ 
+                        userId, amount: -amount, type: 'remove', 
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp(), 
+                        description: `سحب رصيد من المالك (${amount})`
+                    });
+                    notifTitle = '💳 تم خصم نقاط من محفظتك';
+                    notifBody = `تم خصم ${amount} نقطة من رصيدك`;
+                } else if (action === 'gift_all') {
+                    const batch = db.batch();
+                    allUsers.forEach(u => {
+                        const ref = db.collection('users').doc(u.id);
+                        batch.update(ref, { 'wallet.points': firebase.firestore.FieldValue.increment(amount) });
+                    });
+                    await batch.commit();
+                    notifTarget = '';
+                    notifTitle = '🎁 هدية من الإدارة';
+                    notifBody = `تم إضافة ${amount} نقطة لمحفظتك`;
+                }
+                
+                // إرسال إشعار wallet
+                await db.collection('notifications').add({
+                    type: 'wallet',
+                    targetUserId: notifTarget,
+                    title: notifTitle,
+                    body: notifBody,
+                    senderName: 'فريق الدعم الفني',
+                    senderId: 'super_admin',
+                    isRead: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                await batch.commit();
+                
+                alert('✅ تم تنفيذ العملية + إرسال إشعار');
+                document.getElementById('wallet-amount').value = '';
+                
+            } catch (error) {
+                alert('❌ خطأ: ' + error.message);
             }
-            alert('تم تنفيذ العملية');
-            document.getElementById('wallet-amount').value = '';
-        }
+        };
 
         window.updateNews = async function() {
             const text = document.getElementById('news-ticker').value;
@@ -464,15 +510,52 @@
             alert('تم تحديث شريط الأخبار في جميع الصفحات');
         }
 
-        window.sendNotification = async function() {
-            const title = document.getElementById('notif-title').value;
-            const body = document.getElementById('notif-body').value;
+        window.toggleUserSelect = function() {
             const type = document.getElementById('notif-type').value;
-            await db.collection('notifications').add({ title, body, type, timestamp: firebase.firestore.FieldValue.serverTimestamp(), isRead: false });
-            alert('تم إرسال الإشعار');
-            document.getElementById('notif-title').value = '';
-            document.getElementById('notif-body').value = '';
+            document.getElementById('user-select-group').style.display = type === 'specific' ? 'block' : 'none';
+            if (type === 'specific') populateUserSelect();
+        };
+
+        function populateUserSelect() {
+            const select = document.getElementById('target-user');
+            select.innerHTML = '<option value="">-- اختر مستخدم --</option>';
+            allUsers.forEach(u => {
+                select.innerHTML += `<option value="${u.id}">${u.fullName} (@${u.username || 'N/A'})</option>`;
+            });
         }
+
+        window.sendNotification = async function() {
+            const notifType = document.getElementById('notif-type').value;
+            const title = document.getElementById('notif-title').value.trim();
+            const body = document.getElementById('notif-body').value.trim();
+            const targetUserId = document.getElementById('target-user').value || '';
+            
+            if (!title || !body) {
+                alert('يرجى إدخال العنوان والنص');
+                return;
+            }
+            
+            try {
+                await db.collection('notifications').add({
+                    type: notifType,
+                    targetUserId: notifType === 'specific' ? targetUserId : '',
+                    title: title,
+                    body: body,
+                    senderName: 'فريق الدعم الفني',
+                    senderId: 'super_admin',
+                    isRead: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                document.getElementById('notif-title').value = '';
+                document.getElementById('notif-body').value = '';
+                document.getElementById('target-user').value = '';
+                alert('✅ تم إرسال الإشعار بنجاح!');
+            } catch (error) {
+                console.error('خطأ في إرسال الإشعار:', error);
+                alert('❌ حدث خطأ: ' + error.message);
+            }
+        };
 
         // Utilities
         window.showSection = function(id) {

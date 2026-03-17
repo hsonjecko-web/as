@@ -938,7 +938,7 @@
         <!-- شريط الأخبار -->
         <div class="news-ticker">
             <div class="ticker-content" id="news-content">
-                📢 مرحباً بكم في التطبيق | 🔥 تحديثات جديدة قادمة | 📚 لا تنسوا قراءة الكتب | 💬 انضم للغرف النشطة
+                
             </div>
         </div>
 
@@ -1255,7 +1255,20 @@
                         status: 'pending',
                         timestamp: serverTimestamp()
                     });
-                    alert('تم إرسال طلب الصداقة');
+
+                    // إرسال إشعار طلب صداقة
+                    await addDoc(collection(db, "notifications"), {
+                        type: 'friend_request',
+                        targetUserId: userId,
+                        senderName: currentUser.fullName || currentUser.username,
+                        senderId: currentUser.uid,
+                        title: '📩 طلب صداقة جديد',
+                        body: `${currentUser.fullName || currentUser.username} أرسل لك طلب صداقة`,
+                        isRead: false,
+                        timestamp: serverTimestamp()
+                    });
+                    
+                    alert('✅ تم إرسال طلب الصداقة + إشعار');
                 });
             } catch (error) {
                 console.error('Error adding friend:', error);
@@ -1264,66 +1277,233 @@
         }
 
         // === الإشعارات ===
-        const notificationBtn = document.getElementById('notification-btn');
-        const notificationPanel = document.getElementById('notification-panel');
+       // === الإشعارات ===
+// === نظام الإشعارات المتكامل ===
+const notificationBtn = document.getElementById('notification-btn');
+const notificationPanel = document.getElementById('notification-panel');
+const notifCount = document.getElementById('notif-count');
 
-        notificationBtn.addEventListener('click', () => {
-            notificationPanel.classList.toggle('show');
-            loadNotifications();
+// تحديث عداد الإشعارات
+async function updateNotificationCount() {
+    try {
+        const notificationsRef = collection(db, "notifications");
+        const snapshot = await getDocs(notificationsRef);
+        
+        let unreadCount = 0;
+        snapshot.forEach(doc => {
+            const n = doc.data();
+            const targetUid = (n.targetUserId || '').toString().trim().toLowerCase();
+            const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
+            const type = (n.type || '').toString().trim().toLowerCase();
+            
+            const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
+            const isForUser = targetUid === currentUid;
+            
+            if ((isGlobal || isForUser) && !n.isRead) {
+                unreadCount++;
+            }
+        });
+        
+        notifCount.textContent = unreadCount;
+        notifCount.style.display = unreadCount > 0 ? 'flex' : 'none';
+        
+        console.log('🔔 Unread notifications:', unreadCount);
+    } catch (error) {
+        console.error('❌ Error updating notification count:', error);
+    }
+}
+
+// تحميل وعرض الإشعارات
+async function loadNotifications() {
+    try {
+        console.log('🔔 === Loading notifications START ===');
+        
+        const container = document.getElementById('notification-list');
+        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
+        
+        const notificationsRef = collection(db, "notifications");
+        const snapshot = await getDocs(notificationsRef);
+        
+        let userNotifications = [];
+        
+        snapshot.forEach(doc => {
+            const n = doc.data();
+            const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
+            const targetUid = (n.targetUserId || '').toString().trim().toLowerCase();
+            const type = (n.type || '').toString().trim().toLowerCase();
+            
+            const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
+            const isForUser = targetUid === currentUid;
+            
+            if (isGlobal || isForUser) {
+                userNotifications.push({ id: doc.id, ...n });
+            }
         });
 
-        async function loadNotifications() {
-            try {
-                const { query, where, orderBy, limit } = await import('./firebase-config.js');
-                const notifQuery = query(
-                    collection(db, "notifications"),
-                    where("targetUserId", "in", [currentUser.uid, "global"]),
-                    orderBy("timestamp", "desc"),
-                    limit(10)
-                );
-                const snapshot = await getDocs(notifQuery);
-                const container = document.getElementById('notification-list');
-                
-                if (snapshot.empty) {
-                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا توجد إشعارات</div>';
-                    document.getElementById('notif-count').style.display = 'none';
-                    return;
-                }
+        // ترتيب حسب الوقت (الأحدث أولاً)
+        userNotifications.sort((a, b) => {
+            const timeA = a.timestamp?.toDate?.() || a.timestamp || new Date(0);
+            const timeB = b.timestamp?.toDate?.() || b.timestamp || new Date(0);
+            return new Date(timeB) - new Date(timeA);
+        });
 
-                const unreadCount = snapshot.docs.filter(d => !d.data().isRead).length;
-                document.getElementById('notif-count').textContent = unreadCount;
-                document.getElementById('notif-count').style.display = unreadCount > 0 ? 'flex' : 'none';
+        userNotifications = userNotifications.slice(0, 50);
+        
+        // تحديث العداد
+        await updateNotificationCount();
 
-                container.innerHTML = snapshot.docs.map(doc => {
-                    const n = doc.data();
-                    return `
-                        <div class="notification-item">
-                            <div class="notification-icon ${n.type === 'message' ? 'message' : 'friend'}">
-                                <i class="fas ${n.type === 'message' ? 'fa-comment' : 'fa-user-plus'}"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">${n.title}</div>
-                                <div class="notification-text">${n.body}</div>
-                                <div class="notification-time">${n.timestamp?.toDate?.().toLocaleDateString('ar-SA') || ''}</div>
-                            </div>
+        if (userNotifications.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; color:var(--text-secondary);">
+                    <i class="fas fa-bell-slash" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i>
+                    <p>لا توجد إشعارات جديدة</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <strong>الإشعارات (${userNotifications.length})</strong>
+                <button onclick="clearAllNotifications()" style="background:var(--danger-color); color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.8rem;">
+                    <i class="fas fa-trash"></i> مسح الكل
+                </button>
+            </div>
+        ` + userNotifications.map(n => {
+            // تحديد أيقونة حسب النوع
+            let iconClass = 'fa-bell';
+            let iconBg = 'system';
+            
+            if (n.type === 'message') { iconClass = 'fa-comment'; iconBg = 'message'; }
+            else if (n.type === 'friend' || n.type === 'friend_request') { iconClass = 'fa-user-plus'; iconBg = 'friend'; }
+            else if (n.type === 'wallet' || n.type === 'points') { iconClass = 'fa-coins'; iconBg = 'wallet'; }
+            else if (n.type === 'group' || n.type === 'group_request') { iconClass = 'fa-users'; iconBg = 'group'; }
+            else if (n.type === 'support' || n.senderName === 'فريق الدعم الفني') { iconClass = 'fa-headset'; iconBg = 'support'; }
+            
+            return `
+                <div class="notification-item ${!n.isRead ? 'unread' : ''}" onclick="markNotificationRead('${n.id}')">
+                    <div class="notification-icon ${iconBg}">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <div class="notification-content" style="flex:1;">
+                        <div class="notification-title" style="font-weight:700;">
+                            ${n.title || 'إشعار جديد'}
+                            ${!n.isRead ? '<span style="width:8px;height:8px;background:var(--primary-color);border-radius:50%; display:inline-block; margin-right:5px;"></span>' : ''}
                         </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error loading notifications:', error);
-            }
-        }
+                        <div class="notification-text" style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">${n.body || ''}</div>
+                        <div class="notification-time" style="font-size:0.7rem; color:var(--text-secondary); margin-top:6px;">${formatNotificationTime(n.timestamp)}</div>
+                    </div>
+                    <button onclick="deleteNotification('${n.id}', event)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:5px;" title="حذف">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+        
+        console.log('✅ Notifications rendered:', userNotifications.length);
+        
+    } catch (error) {
+        console.error('❌ Error loading notifications:', error);
+        document.getElementById('notification-list').innerHTML = `
+            <div style="text-align:center; padding:30px; color:var(--danger-color);">
+                خطأ: ${error.message}
+                <br><br>
+                <button onclick="loadNotifications()" style="padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button>
+            </div>
+        `;
+    }
+}
 
-        window.clearAllNotifications = async function() {
-            document.getElementById('notification-list').innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا توجد إشعارات</div>';
-            document.getElementById('notif-count').style.display = 'none';
-        }
+function formatNotificationTime(timestamp) {
+    if (!timestamp) return '';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    if (diff < 60000) return 'الآن';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
+    return date.toLocaleDateString('ar-SA');
+}
 
-        document.addEventListener('click', (e) => {
-            if (!notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
-                notificationPanel.classList.remove('show');
+// تمييز إشعار كمقروء
+window.markNotificationRead = async function(notifId) {
+    try {
+        await updateDoc(doc(db, "notifications", notifId), { isRead: true });
+        loadNotifications();
+        await updateNotificationCount();
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
+
+// حذف إشعار واحد
+window.deleteNotification = async function(notifId, event) {
+    event.stopPropagation();
+    if (confirm('هل تريد حذف هذا الإشعار؟')) {
+        try {
+            await deleteDoc(doc(db, "notifications", notifId));
+            loadNotifications();
+            await updateNotificationCount();
+        } catch (error) {
+            console.error('❌ Error:', error);
+        }
+    }
+}
+
+// مسح كل الإشعارات
+window.clearAllNotifications = async function() {
+    if (!confirm('هل تريد مسح جميع الإشعارات؟')) return;
+    
+    try {
+        const notificationsRef = collection(db, "notifications");
+        const snapshot = await getDocs(notificationsRef);
+        
+        const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
+        const deletePromises = [];
+        
+        snapshot.forEach(doc => {
+            const n = doc.data();
+            const targetUid = (n.targetUserId || '').toString().trim().toLowerCase();
+            const type = (n.type || '').toString().trim().toLowerCase();
+            
+            const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
+            const isForUser = targetUid === currentUid;
+            
+            if (isGlobal || isForUser) {
+                deletePromises.push(deleteDoc(doc.ref));
             }
         });
+        
+        await Promise.all(deletePromises);
+        loadNotifications();
+        await updateNotificationCount();
+        alert('✅ تم مسح جميع الإشعارات');
+    } catch (error) {
+        console.error('❌ Error:', error);
+        alert('حدث خطأ: ' + error.message);
+    }
+}
+
+// فتح/غلق لوحة الإشعارات
+notificationBtn.addEventListener('click', () => {
+    notificationPanel.classList.toggle('show');
+    if (notificationPanel.classList.contains('show')) {
+        loadNotifications();
+    }
+});
+
+// إغلاق اللوحة عند النقر خارجها
+document.addEventListener('click', (e) => {
+    if (!notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
+        notificationPanel.classList.remove('show');
+    }
+});
+
+// تحديث العداد كل 10 ثواني
+setInterval(updateNotificationCount, 10000);
+
+console.log('🔔 Notification system initialized');
+      
 
         // === الوضع الليلي ===
         document.getElementById('theme-toggle').addEventListener('click', () => {
