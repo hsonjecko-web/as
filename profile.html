@@ -380,24 +380,24 @@
             if (privateToggle) privateToggle.checked = data.isPrivate || false;
             
             // تحديث المحفظة
-            updateWalletDisplay(data.wallet?.points || 0);
+        //     updateWalletDisplay(data.wallet?.points || 0);
             
-            // تعبئة فورم التعديل
-            document.getElementById('edit-name').value = data.fullName || '';
-            document.getElementById('edit-username').value = data.username || '';
-            document.getElementById('edit-country').value = data.country || 'SA';
-            document.getElementById('edit-phone').value = data.phone || '';
-            document.getElementById('edit-bio').value = data.bio || '';
-        }
+        //     // تعبئة فورم التعديل
+        //     document.getElementById('edit-name').value = data.fullName || '';
+        //     document.getElementById('edit-username').value = data.username || '';
+        //     document.getElementById('edit-country').value = data.country || 'SA';
+        //     document.getElementById('edit-phone').value = data.phone || '';
+        //     document.getElementById('edit-bio').value = data.bio || '';
+        // }
 
-        // تحديث عرض المحفظة
-        function updateWalletDisplay(points) {
-            const walletEl = document.getElementById('wallet-points');
-            const usdEl = document.getElementById('wallet-usd');
+        // // تحديث عرض المحفظة
+        // function updateWalletDisplay(points) {
+        //     const walletEl = document.getElementById('wallet-points');
+        //     const usdEl = document.getElementById('wallet-usd');
             
-            if (walletEl) walletEl.innerHTML = points.toLocaleString() + ' <i class="fas fa-coins"></i>';
-            if (usdEl) usdEl.textContent = `≈ $${(points * 0.02).toFixed(2)}`;
-        }
+        //     if (walletEl) walletEl.innerHTML = points.toLocaleString() + ' <i class="fas fa-coins"></i>';
+        //     if (usdEl) usdEl.textContent = `≈ $${(points * 0.02).toFixed(2)}`;
+        // }
 
         // === رفع صورة البروفايل ===
         window.uploadImage = async function(event) {
