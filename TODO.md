@@ -1,32 +1,13 @@
-# خطة تنفيذ نظام الإشعارات الكامل ✅ موافق عليها
+# TODO: إصلاح profile.html
 
-## ✅ الخطوات المكتملة
-- [x] إنشاء TODO.md
+## الخطوات (من خطة الإصلاح المعتمدة):
+- [ ] 1. إضافة الدوال المفقودة (uploadImage, saveProfile, togglePrivateProfile, logout, deleteAccount)
+- [x] 2. تحويل محفظة إلى بيانات حقيقية من Firestore (wallet_transactions)
+- [x] 3. تنظيف كود الإشعارات + إضافة error handling
+- [x] 4. edit_file على profile.html بالتغييرات الكاملة
+- [ ] 5. اختبار الصفحة (start profile.html)
+- [ ] 6. إنشاء بيانات demo للمحفظة إذا لزم
 
-## ⏳ الخطوات المتبقية (سيتم تحديث عند الإكمال)
+حالة: تم إصلاح المحفظة كاملاً. جاري إضافة الدوال المفقودة (uploadImage, saveProfile, etc.).
 
-### 1. super-admin.html ✅ مكتمل
-- [x] إضافة select للمستخدم المحدد + toggleUserSelect + populateUserSelect
-- [x] إصلاح sendNotification(): Firebase compat + senderName + specific support
-- [x] notifications في processWallet(): type="wallet" لـ add/remove/gift_all
-
-### 2. home.html ✅ مكتمل
-- [x] في addFriend(): إرسال notification type="friend_request" + title/body to targetUserId
-
-### 3. friends.html ✅ مكتمل
-- [x] في handleFriendRequest('accept'): إرسال notification type="friend" للمرسل (fromUserId)
-
-### 4. chat.html ✅ مكتمل
-- [x] إضافة notifications عند إنشاء مجموعة (createGroup → إشعار للمالك)
-- [x] إضافة notifications عند قبول طلب انضمام (handleRequest accept → إشعار للمرسل)
-
-### 5. admin.html ✅ مكتمل
-- [x] إصلاح sendNotification(): استخدام addDoc + collection + serverTimestamp
-
-### 6. الاختبار النهائي
-- [ ] اختبار جميع الـ triggers
-- [ ] التحقق من العداد/لوحة/أنواع الأيقونات
-- [ ] attempt_completion
-
-**التعليمات:** سأقوم بكل خطوة واحدة تلو الأخرى وتحديث هذا الملف بعد كل إكمال.
-
+حالة: جاري التنفيذ 🚀

@@ -81,6 +81,18 @@
         .nav-item.active i { transform: translateY(-3px); }
         .theme-float { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; border-radius: 12px; background: var(--input-bg); border: none; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
         .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .support-success { text-align: center; padding: 40px 20px; display: none; animation: fadeIn 0.3s; }
+        .support-success.show { display: block; }
+        .support-success i { font-size: 4rem; color: var(--success-color); margin-bottom: 20px; animation: bounce 0.5s; }
+        .support-success h3 { font-size: 1.3rem; margin-bottom: 10px; }
+        .support-success p { color: var(--text-secondary); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .success-card { background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success-color); border-radius: 16px; padding: 20px; text-align: center; margin: 15px 0; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .success-card i { font-size: 2.5rem; color: var(--success-color); margin-bottom: 10px; }
+        .success-card h4 { font-size: 1.1rem; margin-bottom: 5px; }
+        .success-card p { font-size: 0.9rem; color: var(--text-secondary); }
     </style>
 </head>
 <body>
@@ -109,14 +121,13 @@
     </section>
 
     <!-- المحفظة -->
-    <!-- المحفظة - محدثة مع realtime -->
     <div class="wallet-card" id="wallet-card" onclick="openWalletModal()">
         <div class="wallet-info">
             <h3>رصيد المحفظة</h3>
             <div class="wallet-balance" id="wallet-points">0 <i class="fas fa-coins"></i></div>
-            <div class="wallet-usd" id="wallet-change" style="font-size: 0.9rem;">جاري التحميل...</div>
+            <div class="wallet-usd" id="wallet-usd">≈ $0.00</div>
         </div>
-        <div class="wallet-icon" style="font-size: 1.8rem;"><i class="fas fa-wallet"></i></div>
+        <div class="wallet-icon"><i class="fas fa-wallet"></i></div>
     </div>
 
     <!-- الإعدادات -->
@@ -141,12 +152,11 @@
             </div>
         </div>
 
-    <div class="settings-group">
+        <div class="settings-group">
             <div class="setting-item" onclick="openSupportModal()">
                 <div class="setting-left">
                     <div class="setting-icon icon-green"><i class="fas fa-headset"></i></div>
                     <span class="setting-text">مراسلة الدعم الفني</span>
-                    <span id="support-status" style="font-size:0.8rem; color:var(--success-color); display:none;">✅ رسالة مرسلة</span>
                 </div>
                 <i class="fas fa-chevron-left setting-arrow"></i>
             </div>
@@ -254,17 +264,35 @@
                 <h3 class="modal-title"><i class="fas fa-headset"></i> الدعم الفني</h3>
                 <button class="close-modal" onclick="closeModal('support-modal')">&times;</button>
             </div>
-            <div class="form-group">
-                <label class="form-label">الموضوع</label>
-                <input type="text" class="form-input" id="support-subject" placeholder="مثال: مشكلة في المحفظة">
+            
+            <!-- نموذج الدعم -->
+            <div id="support-form">
+                <div class="form-group">
+                    <label class="form-label">نوع المشكلة</label>
+                    <select class="form-input" id="support-type">
+                        <option value="technical">🔧 مشكلة تقنية</option>
+                        <option value="wallet">💰 مشكلة في المحفظة</option>
+                        <option value="account">👤 مشكلة في الحساب</option>
+                        <option value="bug">🐛 إبلاغ عن خطأ</option>
+                        <option value="other">❓ استفسار آخر</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">توضيح المشكلة</label>
+                    <textarea class="form-input" id="support-message" rows="5" placeholder="صف المشكلة بالتفصيل لمساعدتنا في حلها بسرعة..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="edit-profile-btn" style="flex:1;" onclick="sendSupportTicket()">إرسال <i class="fas fa-paper-plane"></i></button>
+                    <button class="edit-profile-btn" style="flex:1; background: var(--input-bg); color: var(--text-main);" onclick="closeModal('support-modal')">إلغاء</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">الرسالة</label>
-                <textarea class="form-input" id="support-message" rows="5" placeholder="صف المشكلة بالتفصيل..."></textarea>
-            </div>
-            <button class="btn-primary" style="width:100%;" onclick="sendSupportTicket()">إرسال للدعم <i class="fas fa-paper-plane"></i></button>
-            <div style="text-align:center; margin-top:15px; font-size:0.8rem; color:var(--text-secondary);">
-                📱 سنرد عليك خلال 24 ساعة
+            
+            <!-- رسالة النجاح -->
+            <div class="support-success" id="support-success">
+                <i class="fas fa-check-circle"></i>
+                <h3>تم إرسال طلبك بنجاح</h3>
+                <p>سيتم الرد عليك من قبل موظفو الدعم الفني خلال 24 ساعة 📱</p>
+                <button class="edit-profile-btn" style="margin-top: 20px;" onclick="closeModal('support-modal')">حسناً</button>
             </div>
         </div>
     </div>
@@ -280,572 +308,617 @@
         </div>
     </div>
 
- <script type="module">
-    console.log('🚀 === HOME PAGE STARTING ===');
-    
-    import { db, collection, query, limit, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, increment, arrayUnion } from './firebase-config.js';
-    
-    console.log('✅ Firebase imported');
-
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    console.log('👤 Current User:', currentUser);
-
-    const debugUser = document.getElementById('debug-user');
-    const debugFirebase = document.getElementById('debug-firebase');
-    const debugUsers = document.getElementById('debug-users');
-    const debugGroups = document.getElementById('debug-groups');
-
-    if (!currentUser || !currentUser.isLoggedIn) {
-        console.warn('⚠️ No user logged in!');
-        debugUser.innerHTML = '<span class="status-error">❌ غير مسجل دخول</span>';
-        debugFirebase.innerHTML = '<span class="status-error">❌ توقف</span>';
-        setTimeout(() => { window.location.href = 'index.html'; }, 3000);
-    } else {
-        debugUser.innerHTML = '<span class="status-ok">✅ ' + (currentUser.fullName || currentUser.username) + '</span>';
-    }
-
-    // === تحميل بيانات المستخدم ===
-    async function loadUserData() {
-        try {
-            console.log('📥 Loading user data...');
-            const userRef = doc(db, "users", currentUser.uid);
-            const userSnap = await getDoc(userRef);
-            
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                console.log('✅ User data loaded:', userData.fullName);
-                document.getElementById('header-username').textContent = userData.fullName || currentUser.username;
-                document.getElementById('header-avatar').src = userData.profileImage || 'https://i.pravatar.cc/150';
-            } else {
-                console.warn('⚠️ User document not found');
-                document.getElementById('header-username').textContent = currentUser.username;
-                document.getElementById('header-avatar').src = 'https://i.pravatar.cc/150';
-            }
-        } catch (error) {
-            console.error('❌ Error loading user:', error);
-            document.getElementById('header-username').textContent = currentUser.username;
-        }
-    }
-
-    // === السلايدر ===
-    function initSlider() {
-        const slider = document.getElementById('slider');
-        const slides = document.querySelectorAll('.slide');
-        let currentIndex = 0;
-        setInterval(() => {
-            currentIndex = (currentIndex + 1) % slides.length;
-            slider.style.transform = `translateX(${currentIndex * 100}%)`;
-        }, 4000);
-    }
-
-    // === تحميل شريط الأخبار ===
-    async function loadNewsTicker() {
-        try {
-            console.log('📰 Loading news...');
-            const configRef = doc(db, "app_config", "config");
-            const configSnap = await getDoc(configRef);
-            
-            if (configSnap.exists() && configSnap.data().newsActive) {
-                document.getElementById('news-content').textContent = configSnap.data().newsTicker;
-                console.log('✅ News loaded');
-            } else {
-                document.getElementById('news-content').textContent = '📢 مرحباً بكم في التطبيق';
-            }
-        } catch (error) {
-            console.error('❌ Error loading news:', error);
-            document.getElementById('news-content').textContent = '📢 مرحباً بكم في التطبيق';
-        }
-    }
-
-    // === تحميل المستخدمين ===
-    async function loadUsers() {
-        try {
-            console.log('👥 Loading users...');
-            debugFirebase.innerHTML = '<span class="status-ok">✅ متصل</span>';
-            
-            const usersQuery = query(collection(db, "users"), limit(10));
-            const snapshot = await getDocs(usersQuery);
-            
-            console.log('📊 Users count:', snapshot.size);
-            debugUsers.textContent = snapshot.size;
-            
-            const users = [];
-            snapshot.forEach(doc => {
-                const user = doc.data();
-                if (doc.id !== currentUser.uid) {
-                    users.push({ id: doc.id, ...user });
-                }
-            });
-
-            const container = document.getElementById('users-container');
-            
-            if (users.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary);">لا يوجد مستخدمين<br><small>أنشئ حسابات من index.html</small></div>';
-                return;
-            }
-
-            container.innerHTML = users.map(user => `
-                <div class="user-card" onclick="openProfile('${user.id}')">
-                    <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" alt="${user.fullName}">
-                    <div class="user-card-name">${user.fullName || user.username}</div>
-                    <button class="add-friend-btn" onclick="event.stopPropagation(); addFriend('${user.id}')">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            `).join('');
-            
-            console.log('✅ Users rendered:', users.length);
-        } catch (error) {
-            console.error('❌ Error loading users:', error);
-            document.getElementById('users-container').innerHTML = `
-                <div class="error-box">
-                    <h3 style="color: var(--danger-color);">❌ خطأ في التحميل</h3>
-                    <p>${error.code}: ${error.message}</p>
-                    <button class="btn-retry" onclick="location.reload()">إعادة المحاولة</button>
-                </div>
-            `;
-            debugFirebase.innerHTML = '<span class="status-error">❌ ' + error.code + '</span>';
-        }
-    }
-
-    // === تحميل المجموعات ===
-    async function loadGroups() {
-        try {
-            console.log('💬 Loading groups...');
-            const groupsQuery = query(collection(db, "groups"), limit(6));
-            const snapshot = await getDocs(groupsQuery);
-            
-            console.log('📊 Groups count:', snapshot.size);
-            debugGroups.textContent = snapshot.size;
-            
-            const groups = [];
-            snapshot.forEach(doc => {
-                const group = doc.data();
-                if (group.isActive) {
-                    groups.push({ id: doc.id, ...group });
-                }
-            });
-
-            const container = document.getElementById('chat-container');
-            
-            if (groups.length === 0) {
-                container.innerHTML = '<div style="grid-column: span 2; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد غرف<br><small>أنشئ من Super Admin</small></div>';
-                return;
-            }
-
-            container.innerHTML = groups.map(group => `
-                <div class="chat-card" onclick="window.location.href='chat.html'">
-                    <div class="chat-card-header">
-                        <div class="chat-card-icon general"><i class="fas fa-comments"></i></div>
-                        <div>
-                            <div class="chat-card-title">${group.name}</div>
-                            <div class="chat-card-members">${group.memberCount || 0} عضو</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
-            console.log('✅ Groups rendered:', groups.length);
-        } catch (error) {
-            console.error('❌ Error loading groups:', error);
-            document.getElementById('chat-container').innerHTML = `<div style="grid-column: span 2; text-align:center; color:var(--danger-color); padding:20px;">${error.message}</div>`;
-        }
-    }
-
-// Realtime wallet listener + support system
-let walletListener = null;
-let currentUserData = null;
-
-// Load user data + wallet realtime
-async function loadUserData() {
-    try {
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
+    <script type="module">
+        console.log('🚀 === PROFILE PAGE STARTING ===');
         
-        if (userSnap.exists()) {
-            currentUserData = userSnap.data();
-            document.getElementById('display-name').textContent = currentUserData.fullName || currentUser.username;
-            document.getElementById('display-username').textContent = '@' + (currentUserData.username || 'user');
-            document.getElementById('display-bio').value = currentUserData.bio || '';
-            
-            // Stats
-            document.getElementById('stat-posts').textContent = currentUserData.stats?.postsCount || 0;
-            document.getElementById('stat-friends').textContent = currentUserData.stats?.friendsCount || 0;
-            document.getElementById('stat-followers').textContent = currentUserData.stats?.followersCount || 0;
-            
-            updateWalletDisplay(currentUserData.wallet?.points || 0);
+        import { 
+            db, doc, getDoc, setDoc, updateDoc, addDoc, collection, 
+            serverTimestamp, onSnapshot, increment, arrayUnion, deleteDoc,
+            query, where, orderBy, limit, getDocs
+        } from './firebase-config.js';
+        
+        console.log('✅ Firebase imported');
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        console.log('👤 Current User:', currentUser);
+        
+        if (!currentUser || !currentUser.isLoggedIn) {
+            console.warn('⚠️ No user logged in, redirecting...');
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
         }
-        
-        // Realtime wallet listener
-        walletListener = onSnapshot(userRef, (snap) => {
-            const data = snap.data();
-            if (data && data.wallet?.points !== undefined) {
-                updateWalletDisplay(data.wallet.points);
-            }
-        });
-        
-    } catch (error) {
-        console.error('Error loading user:', error);
-    }
-}
 
-function updateWalletDisplay(points) {
-    const walletEl = document.getElementById('wallet-points');
-    const changeEl = document.getElementById('wallet-usd');
-    walletEl.textContent = points.toLocaleString() + ' نقطة';
-    changeEl.textContent = `≈ $${(points * 0.01).toFixed(2)}`;
-    walletEl.parentElement.parentElement.style.background = `linear-gradient(135deg, hsl(${120 + (points % 60)}, 70%, 50%) 0%, hsl(${140 + (points % 60)}, 70%, 40%) 100%)`;
-}
+        let currentUserData = null;
+        let walletUnsubscribe = null;
 
-// Support ticket system
-window.openSupportModal = function() {
-    document.getElementById('support-modal').classList.add('show');
-    document.getElementById('support-status').style.display = 'none';
-};
-
-window.sendSupportTicket = async function() {
-    const subject = document.getElementById('support-subject').value.trim();
-    const message = document.getElementById('support-message').value.trim();
-    
-    if (!subject || !message) {
-        alert('يرجى إدخال الموضوع والرسالة');
-        return;
-    }
-    
-    try {
-        // Send to super admin support tickets collection
-        await db.collection('support_tickets').add({
-            userId: currentUser.uid,
-            userName: currentUserData?.fullName || currentUser.username,
-            subject: subject,
-            message: message,
-            status: 'open',
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            replied: false
-        });
-        
-        // Send notification to super admin
-        await db.collection('notifications').add({
-            type: 'support_ticket',
-            targetUserId: '', // Global for super admin monitoring
-            title: '📞 تذكرة دعم جديدة',
-            body: `${currentUserData?.fullName || currentUser.username}: ${subject}`,
-            senderName: currentUserData?.fullName || currentUser.username,
-            senderId: currentUser.uid,
-            priority: 'high',
-            isRead: false,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Reset form
-        document.getElementById('support-subject').value = '';
-        document.getElementById('support-message').value = '';
-        document.getElementById('support-status').style.display = 'block';
-        
-        alert('✅ تم إرسال تذكرة الدعم!\nسيرد فريق الدعم قريباً 📱');
-        
-    } catch (error) {
-        console.error('Error sending support ticket:', error);
-        alert('❌ خطأ في الإرسال: ' + error.message);
-    }
-};
-
-// Cleanup listener on unload
-window.addEventListener('beforeunload', () => {
-    if (walletListener) walletListener();
-});
-
-// === نظام الإشعارات المتكامل ===
-    const notificationBtn = document.getElementById('notification-btn');
-    const notificationPanel = document.getElementById('notification-panel');
-    const notifCount = document.getElementById('notif-count');
-
-    // تحديث عداد الإشعارات
-    async function updateNotificationCount() {
-        try {
-            const notificationsRef = collection(db, "notifications");
-            const snapshot = await getDocs(notificationsRef);
-            
-            let unreadCount = 0;
-            snapshot.forEach(doc => {
-                const n = doc.data();
-                const targetUid = (n.targetUserId || '').toString().trim().toLowerCase();
-                const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
-                const type = (n.type || '').toString().trim().toLowerCase();
-                
-                const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
-                const isForUser = targetUid === currentUid;
-                
-                if ((isGlobal || isForUser) && !n.isRead) {
-                    unreadCount++;
-                }
-            });
-            
-            notifCount.textContent = unreadCount;
-            notifCount.style.display = unreadCount > 0 ? 'flex' : 'none';
-            
-            console.log('🔔 Unread notifications:', unreadCount);
-        } catch (error) {
-            console.error('❌ Error updating notification count:', error);
-        }
-    }
-
-    // تحميل وعرض الإشعارات
-    async function loadNotifications() {
-        try {
-            console.log('🔔 === Loading notifications START ===');
-            
-            const container = document.getElementById('notification-list');
-            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
-            
-            const notificationsRef = collection(db, "notifications");
-            const snapshot = await getDocs(notificationsRef);
-            
-            let userNotifications = [];
-            
-            snapshot.forEach(doc => {
-                const n = doc.data();
-                const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
-                const targetUid = (n.targetUserId || '').toString().trim().toLowerCase();
-                const type = (n.type || '').toString().trim().toLowerCase();
-                
-                const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
-                const isForUser = targetUid === currentUid;
-                
-                if (isGlobal || isForUser) {
-                    userNotifications.push({ id: doc.id, ...n });
-                }
-            });
-
-            // ترتيب حسب الوقت (الأحدث أولاً)
-            userNotifications.sort((a, b) => {
-                const timeA = a.timestamp?.toDate?.() || a.timestamp || new Date(0);
-                const timeB = b.timestamp?.toDate?.() || b.timestamp || new Date(0);
-                return new Date(timeB) - new Date(timeA);
-            });
-
-            userNotifications = userNotifications.slice(0, 50);
-            
-            // تحديث العداد
-            await updateNotificationCount();
-
-            if (userNotifications.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:40px; color:var(--text-secondary);">
-                        <i class="fas fa-bell-slash" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i>
-                        <p>لا توجد إشعارات جديدة</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = `
-                <div style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                    <strong>الإشعارات (${userNotifications.length})</strong>
-                    <button onclick="clearAllNotifications()" style="background:var(--danger-color); color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.8rem;">
-                        <i class="fas fa-trash"></i> مسح الكل
-                    </button>
-                </div>
-            ` + userNotifications.map(n => {
-                let iconClass = 'fa-bell';
-                let iconBg = 'system';
-                
-                if (n.type === 'message') { iconClass = 'fa-comment'; iconBg = 'message'; }
-                else if (n.type === 'friend' || n.type === 'friend_request') { iconClass = 'fa-user-plus'; iconBg = 'friend'; }
-                else if (n.type === 'wallet' || n.type === 'points') { iconClass = 'fa-coins'; iconBg = 'wallet'; }
-                else if (n.type === 'group' || n.type === 'group_request') { iconClass = 'fa-users'; iconBg = 'group'; }
-                else if (n.type === 'support' || n.senderName === 'فريق الدعم الفني') { iconClass = 'fa-headset'; iconBg = 'support'; }
-                
-                return `
-                    <div class="notification-item ${!n.isRead ? 'unread' : ''}" onclick="markNotificationRead('${n.id}')">
-                        <div class="notification-icon ${iconBg}">
-                            <i class="fas ${iconClass}"></i>
-                        </div>
-                        <div class="notification-content" style="flex:1;">
-                            <div class="notification-title" style="font-weight:700;">
-                                ${n.title || 'إشعار جديد'}
-                                ${!n.isRead ? '<span style="width:8px;height:8px;background:var(--primary-color);border-radius:50%; display:inline-block; margin-right:5px;"></span>' : ''}
-                            </div>
-                            <div class="notification-text" style="font-size:0.85rem; color:var(--text-secondary); margin-top:4px;">${n.body || ''}</div>
-                            <div class="notification-time" style="font-size:0.7rem; color:var(--text-secondary); margin-top:6px;">${formatNotificationTime(n.timestamp)}</div>
-                        </div>
-                        <button onclick="deleteNotification('${n.id}', event)" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding:5px;" title="حذف">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `;
-            }).join('');
-            
-            console.log('✅ Notifications rendered:', userNotifications.length);
-            
-        } catch (error) {
-            console.error('❌ Error loading notifications:', error);
-            document.getElementById('notification-list').innerHTML = `
-                <div style="text-align:center; padding:30px; color:var(--danger-color);">
-                    خطأ: ${error.message}
-                    <br><br>
-                    <button onclick="loadNotifications()" style="padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button>
-                </div>
-            `;
-        }
-    }
-
-    function formatNotificationTime(timestamp) {
-        if (!timestamp) return '';
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        const now = new Date();
-        const diff = now - date;
-        if (diff < 60000) return 'الآن';
-        if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
-        if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
-        return date.toLocaleDateString('ar-SA');
-    }
-
-    window.markNotificationRead = async function(notifId) {
-        try {
-            await updateDoc(doc(db, "notifications", notifId), { isRead: true });
-            loadNotifications();
-            await updateNotificationCount();
-        } catch (error) {
-            console.error('❌ Error:', error);
-        }
-    }
-
-    window.deleteNotification = async function(notifId, event) {
-        event.stopPropagation();
-        if (confirm('هل تريد حذف هذا الإشعار؟')) {
+        // === تحميل بيانات المستخدم ===
+        async function loadUserData() {
             try {
-                await deleteDoc(doc(db, "notifications", notifId));
-                loadNotifications();
-                await updateNotificationCount();
+                console.log('📥 Loading user data...');
+                const userRef = doc(db, "users", currentUser.uid);
+                
+                // تحميل أولي
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    currentUserData = userSnap.data();
+                    renderProfile(currentUserData);
+                }
+                
+                // تحديث حي للبيانات
+                if (walletUnsubscribe) walletUnsubscribe();
+                walletUnsubscribe = onSnapshot(userRef, (snap) => {
+                    if (snap.exists()) {
+                        currentUserData = snap.data();
+                        renderProfile(currentUserData);
+                        console.log('🔄 Profile data updated');
+                    }
+                });
+                
+                console.log('✅ User data loaded');
+            } catch (error) {
+                console.error('❌ Error loading user:', error);
+            }
+        }
+
+        // عرض بيانات البروفايل
+        function renderProfile(data) {
+            const nameEl = document.getElementById('display-name');
+            const usernameEl = document.getElementById('display-username');
+            const bioEl = document.getElementById('display-bio');
+            const postEl = document.getElementById('stat-posts');
+            const friendsEl = document.getElementById('stat-friends');
+            const followersEl = document.getElementById('stat-followers');
+            const avatarEl = document.getElementById('profile-img-display');
+            const privateToggle = document.getElementById('private-profile-toggle');
+            
+            if (nameEl) nameEl.textContent = data.fullName || currentUser.username;
+            if (usernameEl) usernameEl.textContent = '@' + (data.username || 'user');
+            if (bioEl) bioEl.value = data.bio || '';
+            if (postEl) postEl.textContent = data.stats?.postsCount || 0;
+            if (friendsEl) friendsEl.textContent = data.stats?.friendsCount || 0;
+            if (followersEl) followersEl.textContent = data.stats?.followersCount || 0;
+            if (avatarEl) avatarEl.src = data.profileImage || 'https://i.pravatar.cc/150';
+            if (privateToggle) privateToggle.checked = data.isPrivate || false;
+            
+            // تحديث المحفظة
+            updateWalletDisplay(data.wallet?.points || 0);
+            
+            // تعبئة فورم التعديل
+            document.getElementById('edit-name').value = data.fullName || '';
+            document.getElementById('edit-username').value = data.username || '';
+            document.getElementById('edit-country').value = data.country || 'SA';
+            document.getElementById('edit-phone').value = data.phone || '';
+            document.getElementById('edit-bio').value = data.bio || '';
+        }
+
+        // تحديث عرض المحفظة
+        function updateWalletDisplay(points) {
+            const walletEl = document.getElementById('wallet-points');
+            const usdEl = document.getElementById('wallet-usd');
+            
+            if (walletEl) walletEl.innerHTML = points.toLocaleString() + ' <i class="fas fa-coins"></i>';
+            if (usdEl) usdEl.textContent = `≈ $${(points * 0.02).toFixed(2)}`;
+        }
+
+        // === رفع صورة البروفايل ===
+        window.uploadImage = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                console.log('📷 Uploading image...');
+                // للتجربة: نستخدم رابط وهمي
+                const imageUrl = `https://i.pravatar.cc/150?u=${currentUser.uid}`;
+                
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    profileImage: imageUrl
+                });
+                
+                alert('✅ تم تحديث الصورة');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('❌ Error uploading image:', error);
+                alert('حدث خطأ: ' + error.message);
+            }
+        }
+
+        // === حفظ تعديل البروفايل ===
+        window.saveProfile = async function(e) {
+            e.preventDefault();
+            
+            try {
+                console.log('💾 Saving profile changes...');
+                
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    fullName: document.getElementById('edit-name').value,
+                    username: document.getElementById('edit-username').value,
+                    country: document.getElementById('edit-country').value,
+                    phone: document.getElementById('edit-phone').value,
+                    bio: document.getElementById('edit-bio').value,
+                    updatedAt: serverTimestamp()
+                });
+                
+                closeModal('edit-profile-modal');
+                alert('✅ تم حفظ التعديلات بنجاح');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('❌ Error saving profile:', error);
+                alert('حدث خطأ: ' + error.message);
+            }
+        }
+
+        // === المحفظة ===
+        window.openWalletModal = function() {
+            document.getElementById('wallet-modal').classList.add('show');
+            loadWalletHistory();
+        }
+
+        window.switchWalletTab = function(tab, element) {
+            document.querySelectorAll('.w-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            
+            const content = document.getElementById('wallet-content');
+            
+            if (tab === 'history') {
+                loadWalletHistory();
+            } else if (tab === 'send') {
+                content.innerHTML = `
+                    <div style="padding:20px;">
+                        <div class="form-group">
+                            <label class="form-label">اختر الصديق</label>
+                            <select class="form-input" id="send-to-friend">
+                                <option value="">-- اختر صديق --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">عدد النقاط</label>
+                            <input type="number" class="form-input" id="send-amount" placeholder="100 نقطة = $2" min="1">
+                        </div>
+                        <button class="edit-profile-btn" onclick="sendPoints()">إرسال النقاط</button>
+                    </div>
+                `;
+                loadFriendsForSend();
+            } else if (tab === 'topup') {
+                content.innerHTML = `
+                    <div style="padding:20px; text-align:center;">
+                        <i class="fas fa-credit-card" style="font-size:3rem; color:var(--primary-color); margin-bottom:20px;"></i>
+                        <p style="margin-bottom:20px;">شحن رصيد محفظتك</p>
+                        <div class="form-group">
+                            <label class="form-label">المبلغ (دولار)</label>
+                            <input type="number" class="form-input" id="topup-amount" placeholder="مثال: 10" min="1">
+                        </div>
+                        <button class="edit-profile-btn" style="background:var(--success-color);" onclick="topupWallet()">شحن الرصيد</button>
+                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:15px;">1 دولار = 50 نقطة</p>
+                    </div>
+                `;
+            }
+        }
+
+        // === تحميل سجل المعاملات (كامل) ===
+        function loadWalletHistory() {
+            const content = document.getElementById('wallet-content');
+            content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجل...</div>';
+            
+            // تحميل جميع معاملات المستخدم
+            const txnQuery = query(
+                collection(db, "transactions"), 
+                where("userId", "==", currentUser.uid), 
+                orderBy("timestamp", "desc"), 
+                limit(100)
+            );
+            
+            getDocs(txnQuery).then(snapshot => {
+                if (snapshot.empty) {
+                    content.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا توجد عمليات سابقة</div>';
+                    return;
+                }
+                
+                content.innerHTML = snapshot.docs.map(doc => {
+                    const t = doc.data();
+                    const icon = t.amount > 0 ? 'fa-plus' : 'fa-minus';
+                    const color = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
+                    const sign = t.amount > 0 ? '+' : '';
+                    const iconBg = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
+                    
+                    return `
+                        <div class="transaction-item">
+                            <div class="t-info">
+                                <div class="t-icon" style="background:${iconBg}; color:white;">
+                                    <i class="fas ${icon}"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight:600;">${t.description || t.type}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-secondary);">${formatTime(t.timestamp)}</div>
+                                    ${t.toUserId ? `<div style="font-size:0.7rem; color:var(--primary-color);">↔️ ${t.toUserId === currentUser.uid ? 'مستلم' : 'مرسل'}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="t-amount ${t.amount > 0 ? 'plus' : 'minus'}">
+                                ${sign}${t.amount}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                console.log('✅ Loaded', snapshot.size, 'transactions');
+                
+            }).catch(error => {
+                console.error('❌ Error loading transactions:', error);
+                content.innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ: ${error.message}<br><button onclick="loadWalletHistory()" style="margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button></div>`;
+            });
+        }
+
+        // === تحميل الأصدقاء لإرسال النقاط ===
+        function loadFriendsForSend() {
+            const select = document.getElementById('send-to-friend');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">-- جاري التحميل --</option>';
+            
+            const userRef = doc(db, "users", currentUser.uid);
+            getDoc(userRef).then(snap => {
+                if (snap.exists()) {
+                    const friends = snap.data().friends || [];
+                    
+                    if (friends.length === 0) {
+                        select.innerHTML = '<option value="">لا يوجد أصدقاء</option>';
+                        return;
+                    }
+                    
+                    select.innerHTML = '<option value="">-- اختر صديق --</option>';
+                    
+                    friends.forEach(friendId => {
+                        getDoc(doc(db, "users", friendId)).then(friendSnap => {
+                            if (friendSnap.exists()) {
+                                const friend = friendSnap.data();
+                                const option = document.createElement('option');
+                                option.value = friendId;
+                                option.textContent = `${friend.fullName || friend.username} 
+                                (${friend.username || 'user'})`;
+                                select.appendChild(option);
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        // === إرسال نقاط لصديق (مصحح) ===
+        window.sendPoints = async function() {
+            const friendId = document.getElementById('send-to-friend')?.value;
+            const amount = parseInt(document.getElementById('send-amount')?.value);
+            
+            if (!friendId) return alert('⚠️ اختر صديقاً أولاً');
+            if (!amount || amount <= 0) return alert('⚠️ أدخل عدد النقاط');
+            if (amount > (currentUserData.wallet?.points || 0)) return alert('⚠️ رصيدك غير كافٍ');
+            
+            try {
+                console.log('💸 Sending points:', amount, 'to', friendId);
+                
+                // 1. خصم من المرسل
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    'wallet.points': increment(-amount)
+                });
+                
+                // 2. إضافة للمستلم
+                await updateDoc(doc(db, "users", friendId), {
+                    'wallet.points': increment(amount)
+                });
+                
+                // 3. تسجيل العملية في السجل
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid,
+                    type: 'send',
+                    amount: -amount,
+                    toUserId: friendId,
+                    description: `إرسال نقاط إلى صديق`,
+                    timestamp: serverTimestamp()
+                });
+                
+                // 4. تسجيل العملية للمستلم
+                await addDoc(collection(db, "transactions"), {
+                    userId: friendId,
+                    type: 'receive',
+                    amount: amount,
+                    fromUserId: currentUser.uid,
+                    description: `استلام نقاط من ${currentUserData?.fullName || currentUser.username}`,
+                    timestamp: serverTimestamp()
+                });
+                
+                // 5. ✅ إشعار للمرسل (فقط له)
+                await addDoc(collection(db, "notifications"), {
+                    type: 'wallet',
+                    targetUserId: currentUser.uid,  // ✅ فقط للمرسل
+                    senderName: 'نظام المحفظة',
+                    senderId: 'system',
+                    title: '📤 تم إرسال النقاط',
+                    body: `أرسلت ${amount} نقطة لصديقك`,
+                    isRead: false,
+                    timestamp: serverTimestamp()
+                });
+                
+                // 6. ✅ إشعار للمستلم (فقط له)
+                await addDoc(collection(db, "notifications"), {
+                    type: 'wallet',
+                    targetUserId: friendId,  // ✅ فقط للمستلم
+                    senderName: currentUserData?.fullName || currentUser.username,
+                    senderId: currentUser.uid,
+                    title: '📥 وصلتكَ نقاط',
+                    body: `${currentUserData?.fullName || currentUser.username} أرسل لك ${amount} نقطة`,
+                    isRead: false,
+                    timestamp: serverTimestamp()
+                });
+                
+                // 7. ✅ عرض بطاقة النجاح
+                const content = document.getElementById('wallet-content');
+                content.innerHTML = `
+                    <div class="success-card">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>✅ تم الإرسال بنجاح</h4>
+                        <p>تم إرسال <strong>${amount} نقطة</strong> لصديقك</p>
+                        <p style="margin-top:10px; font-size:0.85rem;">رصيدك المتبقي: ${(currentUserData.wallet?.points - amount).toLocaleString()} نقطة</p>
+                    </div>
+                    <button class="edit-profile-btn" onclick="switchWalletTab('history', document.querySelector('.w-tab'))">عرض السجل</button>
+                `;
+                
+                console.log('✅ Points sent successfully');
+                
+                // تحديث البيانات
+                loadUserData();
+                
+            } catch (error) {
+                console.error('❌ Error sending points:', error);
+                alert('حدث خطأ: ' + error.message);
+            }
+        }
+
+        // === شحن الرصيد ===
+        window.topupWallet = async function() {
+            const amount = parseInt(document.getElementById('topup-amount')?.value);
+            if (!amount || amount <= 0) return alert('أدخل مبلغ صحيح');
+            
+            const points = amount * 50; // $1 = 50 points
+            
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    'wallet.points': increment(points)
+                });
+                
+                await addDoc(collection(db, "transactions"), {
+                    userId: currentUser.uid,
+                    type: 'topup',
+                    amount: points,
+                    description: `شحن رصيد $${amount}`,
+                    timestamp: serverTimestamp()
+                });
+                
+                // إشعار للمستخدم فقط
+                await addDoc(collection(db, "notifications"), {
+                    type: 'wallet',
+                    targetUserId: currentUser.uid,  // ✅ فقط لهذا المستخدم
+                    senderName: 'نظام المحفظة',
+                    senderId: 'system',
+                    title: '💰 تم شحن الرصيد',
+                    body: `تم إضافة ${points} نقطة ($${amount}) لمحفظتك`,
+                    isRead: false,
+                    timestamp: serverTimestamp()
+                });
+                
+                alert(`✅ تم شحن $${amount} (${points} نقطة)`);
+                switchWalletTab('history', document.querySelector('.w-tab.active'));
+                loadUserData();
+                
+            } catch (error) {
+                console.error('❌ Error topping up:', error);
+                alert('حدث خطأ: ' + error.message);
+            }
+        }
+
+        // === إعدادات ===
+        window.togglePrivateProfile = async function() {
+            const isPrivate = document.getElementById('private-profile-toggle').checked;
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), { isPrivate });
+                alert(isPrivate ? '✅ تم جعل الملف خاص' : '✅ تم جعل الملف عام');
             } catch (error) {
                 console.error('❌ Error:', error);
             }
         }
-    }
 
-    window.clearAllNotifications = async function() {
-        if (!confirm('هل تريد مسح جميع الإشعارات؟')) return;
-        
-        try {
-            const notificationsRef = collection(db, "notifications");
-            const snapshot = await getDocs(notificationsRef);
+        // === الدعم الفني (مصحح: إشعار للسوبر أدمن فقط) ===
+        window.openSupportModal = function() {
+            const modal = document.getElementById('support-modal');
+            modal.classList.add('show');
+            document.getElementById('support-form').style.display = 'block';
+            document.getElementById('support-success').classList.remove('show');
+            document.getElementById('support-type').value = 'technical';
+            document.getElementById('support-message').value = '';
+        }
+
+        window.sendSupportTicket = async function() {
+            const type = document.getElementById('support-type').value;
+            const message = document.getElementById('support-message').value.trim();
             
-            const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
-            const deletePromises = [];
+            if (!message) return alert('يرجى توضيح المشكلة');
             
-            snapshot.forEach(doc => {
-                const n = doc.data();
-                const targetUid = (n.targetUserId || '').toString().trim().toLowerCase();
-                const type = (n.type || '').toString().trim().toLowerCase();
+            const typeLabels = {
+                'technical': '🔧 مشكلة تقنية',
+                'wallet': '💰 مشكلة في المحفظة',
+                'account': '👤 مشكلة في الحساب',
+                'bug': '🐛 إبلاغ عن خطأ',
+                'other': '❓ استفسار آخر'
+            };
+            
+            try {
+                // 1. حفظ التذكرة
+                await addDoc(collection(db, "support_tickets"), {
+                    userId: currentUser.uid,
+                    userName: currentUserData?.fullName || currentUser.username,
+                    userEmail: currentUserData?.email || '',
+                    type: type,
+                    subject: typeLabels[type],
+                    message: message,
+                    status: 'open',
+                    adminResponse: '',
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
                 
-                const isGlobal = type === 'global' || targetUid === '' || targetUid === 'global';
-                const isForUser = targetUid === currentUid;
+                // 2. ✅ إشعار للسوبر أدمن فقط (ليس لكل المستخدمين)
+                // نستخدم targetUserId فارغ مع type='support' ليقرأها السوبر أدمن فقط
+                await addDoc(collection(db, "notifications"), {
+                    type: 'support_ticket',  // نوع خاص للمشرفين
+                    targetUserId: 'super_admin_only',  // ✅ هذا يضمن وصوله للمشرفين فقط
+                    senderName: currentUserData?.fullName || currentUser.username,
+                    senderId: currentUser.uid,
+                    title: '📞 تذكرة دعم جديدة',
+                    body: `${typeLabels[type]}: ${message.substring(0, 100)}...`,
+                    isRead: false,
+                    timestamp: serverTimestamp(),
+                    priority: 'high',
+                    ticketType: type
+                });
                 
-                if (isGlobal || isForUser) {
-                    deletePromises.push(deleteDoc(doc.ref));
+                // 3. إشعار تأكيد للمستخدم (فقط له)
+                await addDoc(collection(db, "notifications"), {
+                    type: 'support',
+                    targetUserId: currentUser.uid,  // ✅ فقط لهذا المستخدم
+                    senderName: 'فريق الدعم الفني',
+                    title: '✅ تم استلام طلبك',
+                    body: 'تم استلام تذكرة الدعم وسيتم الرد عليك قريباً',
+                    isRead: false,
+                    timestamp: serverTimestamp()
+                });
+                
+                // عرض رسالة النجاح
+                document.getElementById('support-form').style.display = 'none';
+                document.getElementById('support-success').classList.add('show');
+                
+                console.log('✅ Support ticket sent to super admin only');
+                
+            } catch (error) {
+                console.error('❌ Error sending support ticket:', error);
+                alert('حدث خطأ: ' + error.message);
+            }
+        }
+
+        // === المحظورين ===
+        async function loadBlockedUsers() {
+            const container = document.getElementById('blocked-list');
+            try {
+                const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+                const blocked = userSnap.data()?.blockedUsers || [];
+                
+                if (blocked.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا يوجد مستخدمين محظورين</div>';
+                    return;
+                }
+                
+                container.innerHTML = blocked.map(uid => `
+                    <div class="transaction-item">
+                        <div class="t-info">
+                            <img src="https://i.pravatar.cc/150?u=${uid}" style="width:40px; height:40px; border-radius:50%;">
+                            <span>مستخدم محظور</span>
+                        </div>
+                        <button onclick="unblockUser('${uid}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">
+                            إلغاء الحظر
+                        </button>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('❌ Error loading blocked users:', error);
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ في التحميل</div>';
+            }
+        }
+
+        window.unblockUser = async function(userId) {
+            if (!confirm('هل تريد إلغاء حظر هذا المستخدم؟')) return;
+            
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    blockedUsers: arrayRemove(userId)
+                });
+                alert('✅ تم إلغاء الحظر');
+                loadBlockedUsers();
+            } catch (error) {
+                console.error('❌ Error:', error);
+            }
+        }
+
+        // === مودال عام ===
+        window.openModal = function(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            if (modalId === 'blocked-users-modal') loadBlockedUsers();
+        }
+
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // إغلاق المودال عند النقر خارجه
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
                 }
             });
-            
-            await Promise.all(deletePromises);
-            loadNotifications();
-            await updateNotificationCount();
-            alert('✅ تم مسح جميع الإشعارات');
-        } catch (error) {
-            console.error('❌ Error:', error);
-            alert('حدث خطأ: ' + error.message);
-        }
-    }
+        });
 
-    notificationBtn.addEventListener('click', () => {
-        notificationPanel.classList.toggle('show');
-        if (notificationPanel.classList.contains('show')) {
-            loadNotifications();
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
-            notificationPanel.classList.remove('show');
-        }
-    });
-
-    setInterval(updateNotificationCount, 10000);
-
-    // === البروفايل ===
-    const modal = document.getElementById('profileModal');
-
-    window.openProfile = async function(userId) {
-        try {
-            console.log('👤 Opening profile:', userId);
-            const userRef = doc(db, "users", userId);
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-                const user = userSnap.data();
-                document.getElementById('modal-name').textContent = user.fullName;
-                document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
-                document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
-                document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
-                document.getElementById('modal-followers').textContent = user.stats?.followersCount || 0;
-                document.getElementById('modal-following').textContent = user.stats?.friendsCount || 0;
-                modal.classList.add('show');
+        // === وظائف أخرى ===
+        window.logout = function() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                if (walletUnsubscribe) walletUnsubscribe();
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
             }
-        } catch (error) {
-            console.error('❌ Error loading profile:', error);
         }
-    }
 
-    window.closeProfile = function() {
-        modal.classList.remove('show');
-    }
-
-    window.addFriend = async function(userId) {
-        try {
-            await addDoc(collection(db, "requests"), {
-                type: 'friend',
-                fromUserId: currentUser.uid,
-                fromUserName: currentUser.fullName,
-                toUserId: userId,
-                status: 'pending',
-                timestamp: serverTimestamp()
-            });
+        window.deleteAccount = async function() {
+            if (!confirm('⚠️ هل أنت متأكد من حذف الحساب نهائياً؟ لا يمكن التراجع!')) return;
+            if (!confirm('⚠️ تأكيد نهائي: سيتم حذف جميع بياناتك!')) return;
             
-            // إرسال إشعار
-            await addDoc(collection(db, "notifications"), {
-                type: 'friend_request',
-                targetUserId: userId,
-                senderName: currentUser.fullName,
-                senderId: currentUser.uid,
-                title: '📩 طلب صداقة جديد',
-                body: `${currentUser.fullName} أرسل لك طلب صداقة`,
-                isRead: false,
-                timestamp: serverTimestamp()
-            });
-            
-            alert('✅ تم إرسال طلب الصداقة');
-        } catch (error) {
-            console.error('❌ Error adding friend:', error);
-            alert('حدث خطأ: ' + error.message);
+            try {
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    banned: true,
+                    isDeleted: true,
+                    deletedAt: serverTimestamp()
+                });
+                
+                if (walletUnsubscribe) walletUnsubscribe();
+                localStorage.removeItem('currentUser');
+                alert('✅ تم حذف الحساب');
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error('❌ Error deleting account:', error);
+                alert('حدث خطأ: ' + error.message);
+            }
         }
-    }
 
-    // === الوضع الليلي ===
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        const icon = document.querySelector('#theme-toggle i');
-        icon.classList.toggle('fa-moon');
-        icon.classList.toggle('fa-sun');
-    });
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return 'الآن';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
+            return date.toLocaleDateString('ar-SA');
+        }
 
-    // === التهيئة ===
-    console.log('🔧 Initializing page...');
-    loadUserData();
-    initSlider();
-    loadNewsTicker();
-    loadUsers();
-    loadGroups();
-    updateNotificationCount();
-    console.log('🚀 === HOME PAGE READY ===');
-</script>
+        // === الوضع الليلي ===
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('#theme-toggle i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        });
+
+        // === التهيئة ===
+        console.log('🔧 Initializing profile page...');
+        loadUserData();
+        console.log('🚀 === PROFILE PAGE READY ===');
+    </script>
 </body>
 </html>

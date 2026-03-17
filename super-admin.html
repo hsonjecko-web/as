@@ -323,6 +323,9 @@
                 updateSupportCount();
             });
         }
+        
+        // Add to realtime listeners
+        startSupportListener();
 
         function renderSupportTickets() {
             const container = document.getElementById('support-tickets-list');
@@ -470,6 +473,9 @@
             db.collection('app_config').doc('config').onSnapshot(doc => {
                 if (doc.exists) document.getElementById('news-ticker').value = doc.data().newsTicker || '';
             });
+            
+            // Support tickets
+            startSupportListener();
         }
 
         // Render functions
@@ -492,15 +498,18 @@
         }
 
         function renderMessages() {
-            document.getElementById('messages-tbody').innerHTML = allChats.map(c => `
+            document.getElementById('messages-tbody').innerHTML = allChats.map(c => {
+                const participantsText = Array.isArray(c.participants) ? c.participants.join(' ↔ ') : (c.name || 'N/A');
+                return `
                 <tr>
                     <td><span style="padding:4px 8px; border-radius:6px; background:${c.type === 'private' ? '#e0e7ff' : '#fce7f3'}; color:${c.type === 'private' ? '#4338ca' : '#be185d'}; font-size:0.8rem;">${c.type === 'private' ? 'خاص' : 'مجموعة'}</span></td>
-                    <td style="font-weight:600;">${c.participants?.join(' ↔ ') || c.name || 'N/A'}</td>
+                    <td style="font-weight:600;">${participantsText}</td>
                     <td style="color:var(--text-secondary);">${c.lastMessage?.text || 'لا توجد رسائل'}</td>
                     <td>${formatTime(c.lastMessage?.timestamp)}</td>
                     <td><button class="btn btn-primary" onclick="viewChat('${c.id}')"><i class="fas fa-desktop"></i> عرض</button></td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function renderGroups() {
