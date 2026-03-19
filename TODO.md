@@ -1,13 +1,18 @@
-# TODO: إصلاح profile.html
+# TODO: Comment Features Implementation Plan (Feed Page)
 
-## الخطوات (من خطة الإصلاح المعتمدة):
-- [ ] 1. إضافة الدوال المفقودة (uploadImage, saveProfile, togglePrivateProfile, logout, deleteAccount)
-- [x] 2. تحويل محفظة إلى بيانات حقيقية من Firestore (wallet_transactions)
-- [x] 3. تنظيف كود الإشعارات + إضافة error handling
-- [x] 4. edit_file على profile.html بالتغييرات الكاملة
-- [ ] 5. اختبار الصفحة (start profile.html)
-- [ ] 6. إنشاء بيانات demo للمحفظة إذا لزم
+**Status: Completed** ✅
 
-حالة: تم إصلاح المحفظة كاملاً. جاري إضافة الدوال المفقودة (uploadImage, saveProfile, etc.).
+## Approved Plan Steps:
 
-حالة: جاري التنفيذ 🚀
+### 1. [x] Create TODO.md (Done)
+### 2. [x] Edit feed.html - Complete implementation (CSS, HTML, JS)
+### 3. [x] Verified implementation: Full comments modal, like 👍, delete 🗑️ (own only), reply 💬 (nested, independent modal)
+### 4. [x] Minor fixes: Search button title, filter chip text
+
+**Demo:** Open feed.html → Post → Comment button → Test like/delete/reply in modal.
+
+**Final Notes:** 
+- Arabic RTL preserved
+- Realtime Firebase sync
+- Secure: Delete own comments only
+- Responsive nested replies (max depth 2)

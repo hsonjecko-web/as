@@ -752,7 +752,7 @@
 
     <script type="module">
         import { 
-            db, collection, query, where, onSnapshot, doc, getDoc, 
+            db, collection, query, where, onSnapshot, doc, getDoc, getDocs,
             updateDoc, addDoc, arrayUnion, arrayRemove, serverTimestamp, 
             increment, deleteDoc, orderBy, limit 
         } from './firebase-config.js';
@@ -773,6 +773,77 @@
         let pendingSentRequests = new Set();
         let blockedUsers = new Set();
         let currentContextMenuUserId = null;
+
+        // === دالة جلب أصدقاء الأصدقاء الذين لديهم طلبات معلقة (FoF with pending requests) ===
+        async function getFriendsOfFriendsWithRequests() {
+            try {
+                console.log('🔍 Fetching FoF with pending requests...');
+                
+                // الحصول على أصدقاء المستخدم الحالي (max 20 للأداء)
+                const myFriendsIds = allFriends.slice(0, 20).map(f => f.id);
+                if (myFriendsIds.length === 0) {
+                    console.log('No friends, falling back to random');
+                    return [];
+                }
+
+                // جلب أصدقاء كل صديق (batch query)
+                const fofPromises = myFriendsIds.map(async friendId => {
+                    const friendRef = doc(db, "users", friendId);
+                    const friendSnap = await getDoc(friendRef);
+                    if (friendSnap.exists()) {
+                        const friendData = friendSnap.data();
+                        return (friendData.friends || []).slice(0, 10); // max 10 FoF per friend
+                    }
+                    return [];
+                });
+
+                const allFoFsRaw = (await Promise.all(fofPromises)).flat();
+                
+                // فلترة الفريدين + استبعاد الأصدقاء/المعلق/المحظورين
+                const fofCandidates = [...new Set(allFoFsRaw)]
+                    .filter(id => id !== currentUser.uid)
+                    .filter(id => !allFriends.some(f => f.id === id))
+                    .filter(id => !pendingSentRequests.has(id))
+                    .filter(id => !blockedUsers.has(id))
+                    .slice(0, 30); // max candidates للأداء
+
+                if (fofCandidates.length === 0) {
+                    return [];
+                }
+
+                // التحقق من وجود طلبات مرسلة معلقة لكل مرشح
+                const candidatesWithRequests = [];
+                for (const candidateId of fofCandidates) {
+                    const pendingReqQuery = query(
+                        collection(db, "requests"),
+                        where("fromUserId", "==", candidateId),
+                        where("status", "==", "pending"),
+                        limit(1)
+                    );
+                    const hasPending = (await getDocs(pendingReqQuery)).size > 0;
+                    
+                    if (hasPending) {
+                        const userSnap = await getDoc(doc(db, "users", candidateId));
+                        if (userSnap.exists()) {
+                            candidatesWithRequests.push({
+                                id: candidateId,
+                                ...userSnap.data(),
+                                mutualFriends: allFriends.filter(f => 
+                                    (f.friends || []).includes(candidateId)
+                                ).length
+                            });
+                        }
+                    }
+                }
+
+                console.log(`✅ Found ${candidatesWithRequests.length} FoF with pending requests`);
+                return candidatesWithRequests.slice(0, 8);
+
+            } catch (error) {
+                console.error('Error fetching FoF:', error);
+                return [];
+            }
+        }
 
         // === تهيئة التبويبات ===
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -819,7 +890,11 @@
                     where("type", "==", "friend"),
                     where("status", "==", "pending")
                 );
-                const incomingSnap = await getDoc(incomingQuery);
+                const incomingSnap = await getDocs(incomingQuery);
+                incomingSnap.forEach((docSnap) => {
+                    const req = docSnap.data();
+                    pendingSentRequests.add(req.toUserId);
+                });
                 
                 // تحميل الطلبات المرسلة
                 const sentQuery = query(
@@ -828,7 +903,11 @@
                     where("type", "==", "friend"),
                     where("status", "==", "pending")
                 );
-                const sentSnap = await getDoc(sentQuery);
+                const sentSnap = await getDocs(sentQuery);
+                sentSnap.forEach((docSnap) => {
+                    const req = docSnap.data();
+                    pendingSentRequests.add(req.toUserId);
+                });
                 sentSnap.forEach(d => pendingSentRequests.add(d.data().toUserId));
 
             } catch (error) {
@@ -1047,50 +1126,93 @@
             `).join('');
         }
 
-        // === عرض المقترحات ===
-        function renderSuggestions(searchQuery = '') {
+        // === عرض المقترحات (FoF مع طلبات معلقة + fallback + بحث + أصدقاء مشتركين) ===
+        async function renderSuggestions(searchQuery = '') {
             const container = document.getElementById('suggestions-container');
-            let suggestions = allUsers.filter(u => {
-                const isFriend = u.friends?.includes(currentUser.uid) || 
-                               allFriends.some(f => f.id === u.id);
-                const isRequested = pendingSentRequests.has(u.id);
-                const isBlocked = blockedUsers.has(u.id);
-                const matchesSearch = !searchQuery || 
-                    u.fullName?.toLowerCase().includes(searchQuery) || 
-                    u.username?.toLowerCase().includes(searchQuery);
-                return !isFriend && !isRequested && !isBlocked && matchesSearch;
-            }).slice(0, 8);
             
-            if (suggestions.length === 0) {
+            // Loading state
+            container.innerHTML = '<div class="loading" style="grid-column: span 2;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المقترحات الذكية...</div>';
+            
+            try {
+                // 1. جلب FoF مع طلبات معلقة (الأولوية الأولى)
+                let fofSuggestions = await getFriendsOfFriendsWithRequests();
+                
+                // 2. تطبيق فلتر البحث على FoF
+                if (searchQuery) {
+                    fofSuggestions = fofSuggestions.filter(u => 
+                        u.fullName?.toLowerCase().includes(searchQuery) || 
+                        u.username?.toLowerCase().includes(searchQuery)
+                    );
+                }
+                
+                let suggestions = fofSuggestions;
+                
+                // 3. Fallback: إذا لم توجد FoF كافية، أضف عشوائيين
+                if (suggestions.length < 4) {
+                    const randomCandidates = allUsers.filter(u => {
+                        const isFriend = allFriends.some(f => f.id === u.id);
+                        const isRequested = pendingSentRequests.has(u.id);
+                        const isBlocked = blockedUsers.has(u.id);
+                        const matchesSearch = !searchQuery || 
+                            u.fullName?.toLowerCase().includes(searchQuery) || 
+                            u.username?.toLowerCase().includes(searchQuery);
+                        const isNotInFof = !fofSuggestions.some(f => f.id === u.id);
+                        return !isFriend && !isRequested && !isBlocked && matchesSearch && isNotInFof;
+                    }).slice(0, 8 - suggestions.length);
+                    
+                    suggestions = [...suggestions, ...randomCandidates];
+                }
+                
+                // 4. Empty state
+                if (suggestions.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: span 2;">
+                            <i class="fas fa-lightbulb"></i>
+                            <p>${searchQuery ? 'لا توجد نتائج تطابق البحث' : 'لا توجد مقترحات ذكية حالياً<br>ابدأ بإضافة أصدقاء للحصول على اقتراحات أفضل!'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 5. Render مع عرض الأصدقاء المشتركين
+                container.innerHTML = suggestions.slice(0, 8).map(user => {
+                    const isPending = pendingSentRequests.has(user.id);
+                    const mutualCount = user.mutualFriends || 0;
+                    const mutualText = mutualCount > 0 ? `(${mutualCount} صديق مشترك)` : '';
+                    
+                    return `
+                        <div class="suggestion-card">
+                            <div class="sugg-avatar-wrapper">
+                                <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + (user.username || user.id)}" 
+                                     class="sugg-avatar"
+                                     onclick="openProfile('${user.id}')">
+                            </div>
+                            <div class="sugg-name" onclick="openProfile('${user.id}')">
+                                ${user.fullName || user.username}
+                            </div>
+                            <div class="sugg-job">
+                                ${user.country || 'مستخدم نشيط'} ${mutualText}
+                                ${mutualCount > 0 ? '<i class="fas fa-users" style="font-size:0.7rem; opacity:0.7;"></i>' : ''}
+                            </div>
+                            <button class="btn-add ${isPending ? 'sent' : ''}" 
+                                    onclick="${isPending ? `cancelSentRequestByUser('${user.id}')` : `sendFriendRequest('${user.id}', '${user.fullName || user.username || 'مستخدم'}')`}">  
+                                ${isPending ? '<i class="fas fa-clock"></i> في الانتظار' : '<i class="fas fa-user-plus"></i> إضافة صديق'}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                
+                console.log(`✅ Rendered ${suggestions.length} smart suggestions (${fofSuggestions.length} FoF + ${suggestions.length - fofSuggestions.length} random)`);
+                
+            } catch (error) {
+                console.error('Error rendering suggestions:', error);
                 container.innerHTML = `
                     <div class="empty-state" style="grid-column: span 2;">
-                        <i class="fas fa-lightbulb"></i>
-                        <p>${searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد اقتراحات حالياً'}</p>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>خطأ في تحميل المقترحات<br>حاول لاحقاً</p>
                     </div>
                 `;
-                return;
             }
-            
-            container.innerHTML = suggestions.map(user => {
-                const isPending = pendingSentRequests.has(user.id);
-                return `
-                    <div class="suggestion-card">
-                        <div class="sugg-avatar-wrapper">
-                            <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" 
-                                 class="sugg-avatar"
-                                 onclick="openProfile('${user.id}')">
-                        </div>
-                        <div class="sugg-name" onclick="openProfile('${user.id}')">
-                            ${user.fullName || user.username}
-                        </div>
-                        <div class="sugg-job">${user.country || 'مستخدم جديد'}</div>
-                        <button class="btn-add ${isPending ? 'sent' : ''}" 
-                                onclick="${isPending ? `cancelSentRequestByUser('${user.id}')` : `sendFriendRequest('${user.id}', '${user.fullName || user.username}')`}">
-                            ${isPending ? '<i class="fas fa-clock"></i> في الانتظار' : '<i class="fas fa-user-plus"></i> إضافة صديق'}
-                        </button>
-                    </div>
-                `;
-            }).join('');
         }
 
         // === معالجة طلبات الصداقة ===
