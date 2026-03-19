@@ -1,5 +1,5 @@
 // firebase-config.js
-// نسخة متوافقة مع جميع الصفحات
+// نسخة متوافقة مع جميع الصفحات - مصححة
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
