@@ -59,6 +59,25 @@ color: var(--text-main); cursor: pointer;
 transition: all 0.3s; margin-left: 10px;
 }
 .header-actions button:hover { background: var(--primary-color); color: white; }
+/* شريط البحث */
+.search-bar {
+padding: 15px 20px; background: var(--card-bg);
+border-bottom: 1px solid var(--border-color);
+display: none;
+}
+.search-bar.show { display: block; }
+.search-input-wrapper { position: relative; }
+.search-input {
+width: 100%; padding: 12px 45px 12px 15px;
+background: var(--input-bg); border: none;
+border-radius: 14px; font-size: 0.95rem;
+color: var(--text-main); outline: none;
+}
+.search-input:focus { background: var(--card-bg); box-shadow: 0 0 0 2px var(--primary-color); }
+.search-icon {
+position: absolute; right: 15px; top: 50%;
+transform: translateY(-50%); color: var(--text-secondary);
+}
 .filters-scroll {
 display: flex; overflow-x: auto; padding: 15px 20px; gap: 12px;
 scrollbar-width: none; border-bottom: 1px solid var(--border-color);
@@ -106,7 +125,7 @@ color: var(--text-secondary); font-size: 0.85rem;
 margin-bottom: 15px; padding-bottom: 15px;
 border-bottom: 1px solid var(--border-color);
 }
-.post-actions { display: flex; justify-content: space-between; padding-top: 5px; }
+.post-actions { display: flex; justify-content: space-between; padding-top: 5px; flex-wrap: wrap; gap: 10px; }
 .action-btn {
 background: none; border: none; color: var(--text-secondary);
 font-size: 1.3rem; cursor: pointer;
@@ -179,42 +198,6 @@ color: white; border: none; border-radius: 14px;
 font-weight: 700; cursor: pointer;
 }
 .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-.image-upload-area {
-margin-bottom: 15px;
-border: 2px dashed var(--border-color);
-border-radius: 12px;
-padding: 15px;
-text-align: center;
-background: var(--input-bg);
-transition: 0.3s;
-}
-.image-upload-area:hover {
-border-color: var(--primary-color);
-background: rgba(99, 102, 241, 0.05);
-}
-.image-preview-container {
-position: relative; margin-top: 10px; display: none;
-}
-.image-preview-container.show { display: block; }
-.preview-image {
-width: 100%; max-height: 200px;
-object-fit: cover; border-radius: 8px;
-}
-.remove-image-btn {
-position: absolute; top: 5px; left: 5px;
-background: var(--danger-color); color: white;
-border: none; width: 30px; height: 30px;
-border-radius: 50%; cursor: pointer;
-display: flex; align-items: center; justify-content: center;
-font-size: 0.8rem;
-}
-.btn-add-image {
-background: var(--input-bg); color: var(--text-main);
-border: none; padding: 8px 15px; border-radius: 8px;
-cursor: pointer; font-size: 0.9rem;
-display: inline-flex; align-items: center; gap: 8px;
-}
-.btn-add-image:hover { background: var(--border-color); }
 .comment-item {
 display: flex; gap: 10px; margin-bottom: 12px;
 padding: 10px; border-radius: 12px;
@@ -228,12 +211,12 @@ padding-right: 15px; margin-top: 8px; background: var(--input-bg);
 width: 35px; height: 35px; border-radius: 50%;
 object-fit: cover; flex-shrink: 0; cursor: pointer;
 }
-.comment-content { flex: 1; }
-.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.comment-content { flex: 1; min-width: 0; }
+.comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 5px; }
 .comment-author { font-weight: 600; font-size: 0.85rem; cursor: pointer; }
 .comment-author:hover { color: var(--primary-color); }
 .comment-time { font-size: 0.7rem; color: var(--text-secondary); }
-.comment-text { font-size: 0.9rem; color: var(--text-main); margin-bottom: 8px; }
+.comment-text { font-size: 0.9rem; color: var(--text-main); margin-bottom: 8px; word-wrap: break-word; }
 .comment-actions { display: flex; gap: 10px; font-size: 0.75rem; flex-wrap: wrap; }
 .comment-action {
 background: none; border: none; cursor: pointer;
@@ -243,21 +226,27 @@ transition: color 0.2s; display: inline-flex; align-items: center; gap: 4px;
 .comment-action:hover { color: var(--primary-color); background: rgba(99,102,241,0.1); }
 .comment-action.liked { color: var(--like-color); }
 .comment-action.delete:hover { color: var(--danger-color); background: rgba(220,38,38,0.1); }
-.reply-input-wrapper { display: flex; gap: 8px; margin-top: 10px; }
+.reply-input-wrapper {
+display: flex; gap: 8px; margin-top: 10px;
+width: 100%;
+}
 .reply-input {
 flex: 1; padding: 8px 12px; background: var(--input-bg);
 border: none; border-radius: 15px; font-size: 0.85rem;
+min-width: 0;
 }
-.reply-actions { display: flex; gap: 8px; }
+.reply-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .reply-send {
 width: 35px; height: 35px; border-radius: 50%;
 background: var(--primary-gradient); color: white;
 border: none; cursor: pointer; font-size: 0.9rem;
+display: flex; align-items: center; justify-content: center;
 }
 .reply-cancel {
 width: 35px; height: 35px; border-radius: 50%;
 background: var(--input-bg); color: var(--text-secondary);
 border: none; cursor: pointer; font-size: 0.9rem;
+display: flex; align-items: center; justify-content: center;
 }
 .comments-modal .modal-content { max-height: 90vh; }
 .comments-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
@@ -273,12 +262,14 @@ padding-top: 15px; border-top: 1px solid var(--border-color);
 .comment-input {
 flex: 1; padding: 12px; background: var(--input-bg);
 border: none; border-radius: 20px; color: var(--text-main); outline: none;
+min-width: 0;
 }
 .comment-send {
 width: 40px; height: 40px; border-radius: 50%;
 background: var(--primary-gradient); color: white;
 border: none; cursor: pointer;
 display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
 }
 .share-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px 0; }
 .share-option { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
@@ -307,20 +298,21 @@ z-index: 2000; display: none; justify-content: center; align-items: flex-end;
 .profile-modal-overlay.show { display: flex; }
 .profile-modal {
 background: var(--card-bg); width: 100%; max-width: 500px;
-height: 90vh; border-radius: 30px 30px 0 0;
-padding: 20px; overflow-y: auto;
+height: 85vh; border-radius: 30px 30px 0 0;
+padding: 25px; overflow-y: auto;
 animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 position: relative;
 }
-.profile-header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
+.profile-header { text-align: center; margin-bottom: 25px; padding-top: 20px; }
 .profile-avatar-large {
 width: 100px; height: 100px; border-radius: 25px;
 object-fit: cover; border: 4px solid var(--primary-color);
 margin-bottom: 15px; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
 }
-.profile-name { font-size: 1.5rem; font-weight: 800; margin-bottom: 5px; }
+.profile-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 5px; }
+.profile-username { font-size: 0.9rem; color: var(--primary-color); font-weight: 600; margin-bottom: 10px; direction: ltr; }
 .profile-bio { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; }
-.profile-stats-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
+.profile-stats-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 25px; }
 .stat-item { text-align: center; }
 .stat-item b { display: block; font-size: 1.2rem; color: var(--text-main); }
 .stat-item span { font-size: 0.8rem; color: var(--text-secondary); }
@@ -333,22 +325,6 @@ text-align: center; padding: 40px; color: var(--text-secondary);
 }
 .empty-state i { font-size: 3rem; margin-bottom: 15px; opacity: 0.3; }
 .empty-state p { font-size: 0.9rem; margin-bottom: 20px; }
-.search-bar {
-padding: 15px 20px; background: var(--card-bg);
-border-bottom: 1px solid var(--border-color);
-}
-.search-input-wrapper { position: relative; }
-.search-input {
-width: 100%; padding: 12px 45px 12px 15px;
-background: var(--input-bg); border: none;
-border-radius: 14px; font-size: 0.95rem;
-color: var(--text-main); outline: none;
-}
-.search-input:focus { background: var(--card-bg); box-shadow: 0 0 0 2px var(--primary-color); }
-.search-icon {
-position: absolute; right: 15px; top: 50%;
-transform: translateY(-50%); color: var(--text-secondary);
-}
 .refresh-indicator {
 position: fixed; top: 80px; left: 50%;
 transform: translateX(-50%); background: var(--success-color);
@@ -362,23 +338,69 @@ box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
 to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
+/* زر تحميل المزيد */
+.load-more-container {
+text-align: center;
+padding: 20px;
+}
+.load-more-btn {
+background: var(--primary-gradient);
+color: white;
+border: none;
+padding: 12px 40px;
+border-radius: 12px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+}
+.load-more-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+.load-more-btn:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none;
+}
+/* شارة إعادة النشر */
 .repost-badge {
-background: rgba(245, 158, 11, 0.1); color: var(--warning-color);
-padding: 4px 10px; border-radius: 8px; font-size: 0.75rem;
-display: inline-flex; align-items: center; gap: 5px; margin-bottom: 10px;
+background: rgba(99, 102, 241, 0.1);
+color: var(--primary-color);
+padding: 8px 12px;
+border-radius: 10px;
+font-size: 0.8rem;
+margin-bottom: 10px;
+display: inline-flex;
+align-items: center;
+gap: 6px;
 }
 .repost-original {
-font-size: 0.8rem; color: var(--text-secondary);
-margin: 10px 0; padding: 10px; background: var(--input-bg);
-border-radius: 10px; cursor: pointer;
+font-size: 0.8rem;
+color: var(--text-secondary);
+margin: 10px 0;
+padding: 10px;
+background: var(--input-bg);
+border-radius: 10px;
+cursor: pointer;
 }
-.repost-original:hover { background: var(--border-color); }
+.repost-original:hover {
+background: var(--border-color);
+}
+@media (max-width: 480px) {
+.post-actions { gap: 15px; }
+.action-btn span { font-size: 0.65rem; }
+.comment-actions { gap: 5px; }
+.comment-action span { display: none; }
+.reply-input-wrapper { flex-wrap: wrap; }
+.reply-input { width: 100%; }
+.reply-actions { width: 100%; justify-content: flex-end; }
+}
 </style>
 </head>
 <body>
 <div class="refresh-indicator" id="refresh-indicator">
 <i class="fas fa-sync-alt fa-spin"></i>
-<span>جاري تحديث المنشورات...</span>
+<span>جاري التحديث...</span>
 </div>
 <header>
 <div class="header-title">المنشورات</div>
@@ -388,22 +410,26 @@ border-radius: 10px; cursor: pointer;
 </div>
 </header>
 <!-- شريط البحث -->
-<div class="search-bar" id="search-bar" style="display: none;">
+<div class="search-bar" id="search-bar">
 <div class="search-input-wrapper">
-<input type="text" class="search-input" id="feed-search" placeholder="بحث عن مستخدم..." oninput="filterPostsBySearch()">
+<input type="text" class="search-input" id="feed-search" placeholder="بحث عن اسم المستخدم..." oninput="filterPostsBySearch()">
 <i class="fas fa-search search-icon"></i>
 </div>
 </div>
-<!-- الفلاتر -->
 <div class="filters-scroll">
 <div class="filter-chip active" onclick="filterPosts('all', this)">الكل</div>
-<div class="filter-chip" onclick="filterPosts('following', this)">المتابعون</div>
+<div class="filter-chip" onclick="filterPosts('following', this)">متابعون</div>
 <div class="filter-chip" onclick="filterPosts('popular', this)">الأكثر تفاعلاً</div>
-<div class="filter-chip" onclick="filterPosts('new', this)">جديد</div>
 </div>
 <main id="posts-container">
-<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل المنشورات...</div>
+<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
 </main>
+<!-- زر تحميل المزيد -->
+<div class="load-more-container" id="load-more-container" style="display: none;">
+<button class="load-more-btn" id="load-more-btn" onclick="loadMorePosts()">
+<i class="fas fa-plus"></i> تحميل المزيد
+</button>
+</div>
 <button class="fab-write" onclick="openPostModal()"><i class="fas fa-pen"></i></button>
 <nav class="bottom-nav">
 <a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>الرئيسية</span></a>
@@ -419,24 +445,11 @@ border-radius: 10px; cursor: pointer;
 <h3 class="modal-title">نشر منشور جديد</h3>
 <button class="close-modal" onclick="closePostModal()">&times;</button>
 </div>
-<textarea class="form-input form-textarea" id="post-content" placeholder="بماذا تفكر؟ اكتب منشورك هنا..." maxlength="500"></textarea>
-<div class="image-upload-area">
-<button class="btn-add-image" onclick="document.getElementById('post-image-input').click()">
-<i class="fas fa-image"></i> إضافة صورة
-</button>
-<input type="file" id="post-image-input" accept="image/*" style="display:none" onchange="handleImageSelect(this)">
-<div class="image-preview-container" id="image-preview-container">
-<img src="" alt="معاينة" class="preview-image" id="image-preview">
-<button class="remove-image-btn" onclick="removeSelectedImage()"><i class="fas fa-times"></i></button>
-</div>
-<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px;">
-يتم ضغط الصورة تلقائياً لتوفير المساحة
-</div>
-</div>
+<textarea class="form-input form-textarea" id="post-content" placeholder="بماذا تفكر؟..." maxlength="500"></textarea>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
 <span style="font-size: 0.8rem; color: var(--text-secondary);" id="char-count">0/500</span>
 </div>
-<button class="btn-submit" id="post-submit" onclick="createPost()">نشر المنشور <i class="fas fa-paper-plane"></i></button>
+<button class="btn-submit" id="post-submit" onclick="createPost()">نشر <i class="fas fa-paper-plane"></i></button>
 </div>
 </div>
 <!-- مودال البروفايل -->
@@ -446,6 +459,7 @@ border-radius: 10px; cursor: pointer;
 <div class="profile-header">
 <img src="" alt="Profile" class="profile-avatar-large" id="modal-img">
 <h2 class="profile-name" id="modal-name">اسم المستخدم</h2>
+<p class="profile-username" id="modal-username">@username</p>
 <p class="profile-bio" id="modal-bio">نبذة المستخدم</p>
 <div class="profile-stats-row">
 <div class="stat-item"><b id="modal-posts">0</b><span>منشور</span></div>
@@ -468,7 +482,6 @@ border-radius: 10px; cursor: pointer;
 <div class="share-options">
 <div class="share-option" onclick="repostToProfile()"><i class="fas fa-retweet" style="color: var(--warning-color);"></i><span>إعادة نشر</span></div>
 <div class="share-option" onclick="shareTo('whatsapp')"><i class="fab fa-whatsapp" style="color: #25D366;"></i><span>واتساب</span></div>
-<div class="share-option" onclick="shareTo('twitter')"><i class="fab fa-twitter" style="color: #1DA1F2;"></i><span>تويتر</span></div>
 <div class="share-option" onclick="shareTo('copy')"><i class="fas fa-link" style="color: var(--primary-color);"></i><span>نسخ الرابط</span></div>
 </div>
 <div class="copy-link">
@@ -496,16 +509,14 @@ border-radius: 10px; cursor: pointer;
 </div>
 <script type="module">
 import {
-db, collection, query, orderBy, limit, onSnapshot, doc,
+db, collection, query, onSnapshot, doc,
 getDoc, getDocs, updateDoc, addDoc, arrayUnion, arrayRemove,
-serverTimestamp, increment, where, deleteDoc
+serverTimestamp, increment, where, deleteDoc, orderBy, limit
 } from './firebase-config.js';
-
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 if (!currentUser || !currentUser.isLoggedIn) {
 window.location.href = 'index.html';
 }
-
 let allPosts = [];
 let allUsers = {};
 let currentFilter = 'all';
@@ -513,11 +524,44 @@ let currentSharePostId = null;
 let currentCommentsPostId = null;
 let currentPostForComments = null;
 let commentsListeners = new Map();
-let currentPostImageBase64 = null;
 let myFollowing = new Set();
-let pageInitialized = false;
-
-// === تحميل بيانات المستخدم والمتابعين ===
+let cacheVersion = 1;
+// === للتحميل التدريجي ===
+let postsLimit = 10;
+let hasMorePosts = true;
+let isLoadingMore = false;
+// === تحميل من الذاكرة المحلية ===
+function loadFromCache() {
+try {
+const cached = localStorage.getItem('feedCache_v' + cacheVersion);
+if (cached) {
+const data = JSON.parse(cached);
+if (Date.now() - data.timestamp < 300000) {
+allPosts = data.posts || [];
+allUsers = data.users || {};
+myFollowing = new Set(data.following || []);
+return true;
+}
+}
+} catch (e) {
+console.error('Cache error:', e);
+}
+return false;
+}
+// === حفظ في الذاكرة المحلية ===
+function saveToCache() {
+try {
+localStorage.setItem('feedCache_v' + cacheVersion, JSON.stringify({
+posts: allPosts,
+users: allUsers,
+following: Array.from(myFollowing),
+timestamp: Date.now()
+}));
+} catch (e) {
+console.error('Save cache error:', e);
+}
+}
+// === تحميل البيانات ===
 async function loadUserData() {
 try {
 const userRef = doc(db, "users", currentUser.uid);
@@ -527,19 +571,17 @@ const userData = userSnap.data();
 myFollowing = new Set(userData.following || []);
 }
 } catch (error) {
-console.error('Error loading user data:', error);
+console.error('Error loading user:', error);
 }
 }
-
-// === تحميل المنشورات مع التحديث الحي ===
+// === تحميل المنشورات مع التحميل التدريجي ===
 function startPostsListener() {
-const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"), limit(50));
+const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
 onSnapshot(postsQuery, async (snapshot) => {
 showRefreshIndicator();
 allPosts = [];
 for (const docSnap of snapshot.docs) {
 const postData = { id: docSnap.id, ...docSnap.data() };
-// تحميل بيانات المستخدم إذا لم تكن موجودة
 if (!allUsers[postData.userId]) {
 try {
 const userSnap = await getDoc(doc(db, "users", postData.userId));
@@ -552,59 +594,32 @@ console.error('Error loading user:', postData.userId);
 }
 allPosts.push(postData);
 }
+// ترتيب محلي
+allPosts.sort((a, b) => {
+const timeA = a.timestamp?.toDate?.() || a.timestamp || 0;
+const timeB = b.timestamp?.toDate?.() || b.timestamp || 0;
+return new Date(timeB) - new Date(timeA);
+});
+hasMorePosts = allPosts.length > postsLimit;
 renderPosts();
+updateLoadMoreButton();
 hideRefreshIndicator();
-// حفظ محلي
-savePostsToLocalStorage();
+saveToCache();
 }, (error) => {
 console.error('Error loading posts:', error);
-// محاولة التحميل من الذاكرة المحلية
-loadPostsFromLocalStorage();
+if (!loadFromCache()) {
+document.getElementById('posts-container').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>خطأ في التحميل</p></div>';
+}
 });
 }
-
-// === الحفظ المحلي للمنشورات ===
-function savePostsToLocalStorage() {
-try {
-localStorage.setItem('feedPosts', JSON.stringify({
-posts: allPosts,
-users: allUsers,
-timestamp: Date.now()
-}));
-} catch (e) {
-console.error('Error saving to localStorage:', e);
-}
-}
-
-function loadPostsFromLocalStorage() {
-try {
-const saved = localStorage.getItem('feedPosts');
-if (saved) {
-const data = JSON.parse(saved);
-// إذا كانت البيانات حديثة (أقل من 5 دقائق)
-if (Date.now() - data.timestamp < 300000) {
-allPosts = data.posts || [];
-allUsers = data.users || {};
-renderPosts();
-return true;
-}
-}
-} catch (e) {
-console.error('Error loading from localStorage:', e);
-}
-return false;
-}
-
 // === عرض المنشورات ===
 function renderPosts() {
 const container = document.getElementById('posts-container');
 let postsToShow = [...allPosts];
-
 // فلترة حسب المتابعين
 if (currentFilter === 'following') {
 postsToShow = postsToShow.filter(post => myFollowing.has(post.userId));
 }
-
 // فلترة حسب البحث
 const searchQuery = document.getElementById('feed-search')?.value.toLowerCase() || '';
 if (searchQuery) {
@@ -614,84 +629,48 @@ const userName = (user?.fullName || user?.username || '').toLowerCase();
 return userName.includes(searchQuery);
 });
 }
-
 // ترتيب حسب الأكثر تفاعلاً
 if (currentFilter === 'popular') {
 postsToShow.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
-} else if (currentFilter === 'new') {
-postsToShow.sort((a, b) => {
-const timeA = a.timestamp?.toDate?.() || a.timestamp || 0;
-const timeB = b.timestamp?.toDate?.() || b.timestamp || 0;
-return new Date(timeB) - new Date(timeA);
-});
 }
-
-if (postsToShow.length === 0) {
-container.innerHTML = `
-<div class="empty-state">
-<i class="fas fa-inbox"></i>
-<p>لا توجد منشورات حالياً</p>
-<button class="btn-submit" style="width:auto; padding:10px 20px;" onclick="openPostModal()">
-<i class="fas fa-pen"></i> نشر منشور
-</button>
-</div>`;
+// تحديد عدد المنشورات المعروضة
+const displayPosts = postsToShow.slice(0, postsLimit);
+if (displayPosts.length === 0) {
+container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>لا توجد منشورات</p><button class="btn-submit" style="width:auto; padding:10px 20px; margin-top:15px;" onclick="openPostModal()">نشر منشور</button></div>';
 return;
 }
-
-container.innerHTML = postsToShow.map(post => {
+container.innerHTML = displayPosts.map(post => {
 const user = allUsers[post.userId] || {};
 const isLiked = Array.isArray(post.likes) && post.likes.includes(currentUser.uid);
 const isSaved = Array.isArray(post.saves) && post.saves.includes(currentUser.uid);
 const isOwner = post.userId === currentUser.uid;
-const comments = Array.isArray(post.comments) ? post.comments : [];
-
-// صورة المنشور
 let imageHtml = '';
 if (post.image) {
-imageHtml = `<div class="post-image-container">
-<img src="${post.image}" class="post-image" alt="صورة المنشور" onclick="openImageModal('${post.image}')">
-</div>`;
+imageHtml = `<div class="post-image-container"><img src="${post.image}" class="post-image" alt="صورة" onclick="openImageModal('${post.image}')"></div>`;
 }
-
-// شارة إعادة النشر
+// شارة إعادة النشر مع اسم صاحب المنشور الأصلي
 let repostHtml = '';
 if (post.isRepost && post.originalUserName) {
-repostHtml = `<div class="repost-badge">
-<i class="fas fa-retweet"></i> إعادة نشر من ${post.originalUserName}
-</div>`;
+repostHtml = `<div class="repost-badge"><i class="fas fa-retweet"></i> إعادة نشر من <strong>${escapeHtml(post.originalUserName)}</strong></div>`;
 }
-
-// رابط للمنشور الأصلي
-let originalLink = '';
-if (post.isRepost && post.originalPostId) {
-originalLink = `<div class="repost-original" onclick="viewOriginalPost('${post.originalPostId}')">
-<i class="fas fa-arrow-right"></i> عرض المنشور الأصلي
-</div>`;
-}
-
 return `
 <div class="post-card" id="post-${post.id}">
 ${repostHtml}
 <div class="post-header">
 <div class="post-user" onclick="openProfile('${post.userId}')">
-<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + post.userId}" 
-alt="${user.fullName}" class="post-avatar">
+<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + post.userId}" alt="${user.fullName}" class="post-avatar">
 <div class="post-user-info">
 <h4>${escapeHtml(user.fullName || post.userName || 'مستخدم')}</h4>
 <span>${formatTime(post.timestamp)}</span>
 </div>
 </div>
-${isOwner ? `
-<div class="post-options" onclick="togglePostOptions('${post.id}', event)">
-<i class="fas fa-ellipsis-h"></i>
-</div>` : ''}
+${isOwner ? `<div class="post-options" onclick="togglePostOptions('${post.id}', event)"><i class="fas fa-ellipsis-h"></i></div>` : ''}
 </div>
 <div class="post-content">${escapeHtml(post.content)}</div>
 ${imageHtml}
-${originalLink}
 <div class="post-stats">
-<span><i class="fas fa-heart" style="color: var(--like-color)"></i> ${post.likesCount || 0} إعجاب</span>
-<span><i class="fas fa-comment"></i> ${post.commentsCount || comments.length} تعليق</span>
+<span><i class="fas fa-heart" style="color: var(--like-color)"></i> ${post.likesCount || 0}</span>
+<span><i class="fas fa-comment"></i> ${post.commentsCount || 0}</span>
 </div>
 <div class="post-actions">
 <button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
@@ -710,29 +689,66 @@ ${originalLink}
 </div>`;
 }).join('');
 }
-
+// === تحديث زر تحميل المزيد ===
+function updateLoadMoreButton() {
+const container = document.getElementById('load-more-container');
+const btn = document.getElementById('load-more-btn');
+const searchQuery = document.getElementById('feed-search')?.value.toLowerCase() || '';
+let postsToShow = [...allPosts];
+if (currentFilter === 'following') {
+postsToShow = postsToShow.filter(post => myFollowing.has(post.userId));
+}
+if (searchQuery) {
+postsToShow = postsToShow.filter(post => {
+const user = allUsers[post.userId];
+const userName = (user?.fullName || user?.username || '').toLowerCase();
+return userName.includes(searchQuery);
+});
+}
+if (postsLimit < postsToShow.length) {
+container.style.display = 'block';
+btn.disabled = isLoadingMore;
+btn.innerHTML = isLoadingMore ? '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...' : '<i class="fas fa-plus"></i> تحميل المزيد';
+} else {
+container.style.display = 'none';
+}
+}
+// === تحميل المزيد من المنشورات ===
+window.loadMorePosts = function() {
+if (isLoadingMore) return;
+isLoadingMore = true;
+updateLoadMoreButton();
+// محاكاة تأخير بسيط للتحميل
+setTimeout(() => {
+postsLimit += 10;
+renderPosts();
+updateLoadMoreButton();
+isLoadingMore = false;
+}, 500);
+}
 // === فلترة المنشورات ===
 window.filterPosts = function(filter, element) {
 currentFilter = filter;
+postsLimit = 10;
 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
 element.classList.add('active');
 renderPosts();
+updateLoadMoreButton();
 }
-
-// === البحث عن مستخدم ===
+// === البحث عن اسم المستخدم ===
 window.filterPostsBySearch = function() {
+postsLimit = 10;
 renderPosts();
+updateLoadMoreButton();
 }
-
 // === تبديل شريط البحث ===
 window.toggleSearch = function() {
 const searchBar = document.getElementById('search-bar');
-searchBar.style.display = searchBar.style.display === 'none' ? 'block' : 'none';
-if (searchBar.style.display === 'block') {
+searchBar.classList.toggle('show');
+if (searchBar.classList.contains('show')) {
 document.getElementById('feed-search').focus();
 }
 }
-
 // === الإعجاب ===
 window.toggleLike = async function(postId) {
 try {
@@ -740,21 +756,15 @@ const postRef = doc(db, "posts", postId);
 const post = allPosts.find(p => p.id === postId);
 const isLiked = Array.isArray(post?.likes) && post.likes.includes(currentUser.uid);
 if (isLiked) {
-await updateDoc(postRef, { 
-likesCount: increment(-1), 
-likes: arrayRemove(currentUser.uid) 
-});
+await updateDoc(postRef, { likesCount: increment(-1), likes: arrayRemove(currentUser.uid) });
 } else {
-await updateDoc(postRef, { 
-likesCount: increment(1), 
-likes: arrayUnion(currentUser.uid) 
-});
+await updateDoc(postRef, { likesCount: increment(1), likes: arrayUnion(currentUser.uid) });
 }
 } catch (error) {
 console.error('Error toggling like:', error);
+showAlert('error', 'خطأ', error.message);
 }
 }
-
 // === الحفظ ===
 window.toggleSave = async function(postId) {
 try {
@@ -763,57 +773,43 @@ const post = allPosts.find(p => p.id === postId);
 const isSaved = Array.isArray(post?.saves) && post.saves.includes(currentUser.uid);
 if (isSaved) {
 await updateDoc(postRef, { saves: arrayRemove(currentUser.uid) });
-showAlert('info', 'تم الحذف', 'تم إزالة المنشور من المحفوظات');
+showAlert('info', 'تم الحذف', 'تمت الإزالة من المحفوظات');
 } else {
 await updateDoc(postRef, { saves: arrayUnion(currentUser.uid) });
-showAlert('success', 'تم الحفظ', 'تم حفظ المنشور بنجاح');
+showAlert('success', 'تم الحفظ', 'تم الحفظ بنجاح');
 }
 } catch (error) {
 console.error('Error toggling save:', error);
 }
 }
-
-// === حذف المنشور (لصاحب المنشور فقط) ===
+// === حذف المنشور ===
 window.deletePost = async function(postId) {
 if (!confirm('هل تريد حذف هذا المنشور نهائياً؟')) return;
 try {
 await deleteDoc(doc(db, "posts", postId));
-showAlert('success', 'تم الحذف', 'تم حذف المنشور بنجاح');
+showAlert('success', 'تم الحذف', 'تم حذف المنشور');
+allPosts = allPosts.filter(p => p.id !== postId);
+renderPosts();
+updateLoadMoreButton();
 } catch (error) {
 console.error('Error deleting post:', error);
-showAlert('error', 'خطأ', 'حدث خطأ أثناء الحذف: ' + error.message);
+showAlert('error', 'خطأ', error.message);
 }
 }
-
 // === خيارات المنشور ===
 window.togglePostOptions = function(postId, event) {
 event.stopPropagation();
 const post = allPosts.find(p => p.id === postId);
 if (!post) return;
 const isOwner = post.userId === currentUser.uid;
-const options = [
-{ text: '📋 نسخ الرابط', action: () => copyPostLink(postId) },
-{ text: '🔄 إعادة نشر', action: () => repostToProfile(postId) }
-];
-if (isOwner) {
-options.push({ text: '🗑️ حذف المنشور', action: () => deletePost(postId), danger: true });
-}
-// عرض بسيط للخيارات
 const menu = document.createElement('div');
-menu.style.cssText = `
-position: fixed; top: ${event.clientY}px; left: ${event.clientX}px;
-background: var(--card-bg); border-radius: 12px;
-box-shadow: var(--shadow); z-index: 3000;
-min-width: 200px; overflow: hidden; border: 1px solid var(--border-color);
-`;
-menu.innerHTML = options.map(opt => `
-<div style="padding: 12px 20px; cursor: pointer; color: ${opt.danger ? 'var(--danger-color)' : 'var(--text-main)'}; border-bottom: 1px solid var(--border-color);"
-onclick="${opt.action.toString()}; this.parentElement.remove();">
-${opt.text}
-</div>
-`).join('');
+menu.style.cssText = 'position:fixed;top:' + event.clientY + 'px;left:' + event.clientX + 'px;background:var(--card-bg);border-radius:12px;box-shadow:var(--shadow);z-index:3000;min-width:150px;overflow:hidden;border:1px solid var(--border-color);';
+menu.innerHTML = [
+{ text: '📋 نسخ الرابط', action: () => copyPostLink(postId) },
+{ text: '🔄 إعادة نشر', action: () => repostToProfile(postId) },
+...(isOwner ? [{ text: '🗑️ حذف', action: () => deletePost(postId), danger: true }] : [])
+].map(opt => `<div style="padding:12px 15px;cursor:pointer;color:${opt.danger ? 'var(--danger-color)' : 'var(--text-main)'};border-bottom:1px solid var(--border-color);" onclick="${opt.action.toString()};this.parentElement.remove();">${opt.text}</div>`).join('');
 document.body.appendChild(menu);
-// إغلاق عند النقر خارج القائمة
 setTimeout(() => {
 document.addEventListener('click', function closeMenu(e) {
 if (!menu.contains(e.target)) {
@@ -823,44 +819,40 @@ document.removeEventListener('click', closeMenu);
 });
 }, 100);
 }
-
-// === نسخ رابط المنشور ===
+// === نسخ الرابط ===
 window.copyPostLink = function(postId) {
 const url = window.location.origin + window.location.pathname + '?post=' + postId;
 navigator.clipboard?.writeText(url).then(() => {
-showAlert('success', 'تم النسخ', 'تم نسخ رابط المنشور');
+showAlert('success', 'تم النسخ', 'تم نسخ الرابط');
 }).catch(() => {
-// طريقة بديلة
 const input = document.createElement('input');
 input.value = url;
 document.body.appendChild(input);
 input.select();
 document.execCommand('copy');
 input.remove();
-showAlert('success', 'تم النسخ', 'تم نسخ رابط المنشور');
+showAlert('success', 'تم النسخ', 'تم نسخ الرابط');
 });
 }
-
 // === عرض البروفايل ===
-let currentProfileUserId = null;
 window.openProfile = async function(userId) {
-currentProfileUserId = userId;
 try {
 const userDoc = await getDoc(doc(db, 'users', userId));
-if (!userDoc.exists()) return;
+if (!userDoc.exists()) {
+showAlert('error', 'خطأ', 'المستخدم غير موجود');
+return;
+}
 const user = userDoc.data();
 document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150?u=' + userId;
 document.getElementById('modal-name').textContent = user.fullName || 'مستخدم';
-document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
-// تحميل منشورات المستخدم
-const postsSnap = await getDocs(query(collection(db, 'posts'), where('userId', '==', userId), orderBy('timestamp', 'desc'), limit(20)));
+document.getElementById('modal-username').textContent = user.username ? '@' + user.username : '';
+document.getElementById('modal-bio').textContent = user.bio || '';
+const postsSnap = await getDocs(query(collection(db, 'posts'), where('userId', '==', userId)));
 document.getElementById('modal-posts').textContent = postsSnap.size;
-// الإحصائيات
 const followersCount = Array.isArray(user.followers) ? user.followers.length : 0;
 const followingCount = Array.isArray(user.following) ? user.following.length : 0;
 document.getElementById('modal-followers').textContent = followersCount;
 document.getElementById('modal-following').textContent = followingCount;
-// زر المتابعة
 const actionBtn = document.getElementById('modal-action-btn');
 const isFollowing = myFollowing.has(userId);
 const isSelf = userId === currentUser.uid;
@@ -880,7 +872,6 @@ actionBtn.className = 'btn-submit';
 actionBtn.style.background = 'var(--primary-gradient)';
 actionBtn.onclick = () => followUser(userId);
 }
-// عرض منشورات المستخدم في المودال
 const postsList = document.getElementById('modal-posts-list');
 postsList.innerHTML = '';
 if (postsSnap.empty) {
@@ -888,86 +879,56 @@ postsList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--
 } else {
 postsSnap.forEach(docSnap => {
 const post = docSnap.data();
-let postImageHtml = '';
-if (post.image) {
-postImageHtml = `<div style="margin:10px 0;"><img src="${post.image}" style="width:100%; max-height:200px; object-fit:cover; border-radius:8px;"></div>`;
-}
-postsList.innerHTML += `
-<div class="post-card" style="margin:10px 0; padding:15px;" onclick="openCommentsModal('${docSnap.id}')">
-<div class="post-content" style="font-size:0.9rem;">${escapeHtml(post.content)}</div>
-${postImageHtml}
-<div class="post-stats" style="margin:10px 0 0; padding:10px 0 0; font-size:0.8rem;">
-<span><i class="fas fa-heart" style="color: var(--like-color)"></i> ${post.likesCount || 0}</span>
-<span><i class="fas fa-comment"></i> ${post.commentsCount || 0}</span>
-</div>
-</div>`;
+postsList.innerHTML += '<div class="post-card" style="margin:10px 0; padding:15px;"><div class="post-content" style="font-size:0.9rem;">' + escapeHtml(post.content) + '</div><div class="post-stats" style="margin:10px 0 0; padding:10px 0 0; font-size:0.8rem;"><span><i class="fas fa-heart" style="color: var(--like-color)"></i> ' + (post.likesCount || 0) + '</span><span><i class="fas fa-comment"></i> ' + (post.commentsCount || 0) + '</span></div></div>';
 });
 }
-// فتح المودال ومنع السكرول
 document.getElementById('profileModal').classList.add('show');
 document.body.classList.add('scroll-locked');
 } catch (error) {
 console.error('Error loading profile:', error);
+showAlert('error', 'خطأ', error.message);
 }
 }
-
 window.closeProfile = function() {
 document.getElementById('profileModal').classList.remove('show');
 document.body.classList.remove('scroll-locked');
-currentProfileUserId = null;
 }
-
 // === متابعة/إلغاء متابعة ===
 window.followUser = async function(userId) {
 try {
-await updateDoc(doc(db, "users", currentUser.uid), {
-following: arrayUnion(userId)
-});
-await updateDoc(doc(db, "users", userId), {
-followers: arrayUnion(currentUser.uid)
-});
+await updateDoc(doc(db, "users", currentUser.uid), { following: arrayUnion(userId) });
+await updateDoc(doc(db, "users", userId), { followers: arrayUnion(currentUser.uid) });
 myFollowing.add(userId);
 document.getElementById('modal-action-btn').textContent = 'تتابع ✓';
 showAlert('success', 'تمت المتابعة', 'أصبحت تتابع هذا المستخدم');
 } catch (error) {
-console.error('Error following user:', error);
 showAlert('error', 'خطأ', error.message);
 }
 }
-
 window.unfollowUser = async function(userId) {
-if (!confirm('هل تريد إلغاء متابعة هذا المستخدم؟')) return;
+if (!confirm('هل تريد إلغاء المتابعة؟')) return;
 try {
-await updateDoc(doc(db, "users", currentUser.uid), {
-following: arrayRemove(userId)
-});
-await updateDoc(doc(db, "users", userId), {
-followers: arrayRemove(currentUser.uid)
-});
+await updateDoc(doc(db, "users", currentUser.uid), { following: arrayRemove(userId) });
+await updateDoc(doc(db, "users", userId), { followers: arrayRemove(currentUser.uid) });
 myFollowing.delete(userId);
 document.getElementById('modal-action-btn').textContent = 'متابعة';
 showAlert('info', 'تم الإلغاء', 'تم إلغاء المتابعة');
 } catch (error) {
-console.error('Error unfollowing:', error);
+showAlert('error', 'خطأ', error.message);
 }
 }
-
 window.handleProfileAction = function() {
-if (currentProfileUserId && currentProfileUserId !== currentUser.uid) {
-if (myFollowing.has(currentProfileUserId)) {
+const btn = document.getElementById('modal-action-btn');
+if (btn.textContent.includes('تتابع')) {
 unfollowUser(currentProfileUserId);
-} else {
+} else if (btn.textContent === 'متابعة') {
 followUser(currentProfileUserId);
 }
 }
-}
-
 // === التعليقات ===
 function renderComments(comments, postId, parentId, depth) {
 if (depth > 3) return '';
-const filtered = comments.filter(c => 
-(!parentId && !c.parentCommentId) || c.parentCommentId === parentId
-);
+const filtered = comments.filter(c => (!parentId && !c.parentCommentId) || c.parentCommentId === parentId);
 if (filtered.length === 0) return '';
 return filtered.sort((a, b) => {
 const timeA = a.timestamp?.toDate?.() || a.timestamp || 0;
@@ -979,57 +940,41 @@ const isOwn = c.userId === currentUser.uid;
 const isPostOwner = currentPostForComments && currentPostForComments.userId === currentUser.uid;
 const canDelete = isOwn || isPostOwner;
 const replies = comments.filter(r => r.parentCommentId === c.id);
-let html = `
-<div class="comment-item ${parentId ? 'nested-comment' : ''}" style="margin-right: ${depth * 20}px;">
-<img src="${c.userAvatar || 'https://i.pravatar.cc/150?u=' + (c.userId || '')}" 
-class="comment-avatar" onclick="openProfile('${c.userId}')">
-<div class="comment-content">
-<div class="comment-header">
-<span class="comment-author" onclick="openProfile('${c.userId}')">${escapeHtml(c.userName || 'مستخدم')}</span>
-<span class="comment-time">${formatTime(c.timestamp)}</span>
-</div>
-<div class="comment-text">${escapeHtml(c.text || '')}</div>
-<div class="comment-actions">
-<button class="comment-action ${isLiked ? 'liked' : ''}" onclick="toggleCommentLike('${c.id}', '${postId}')">
-<i class="${isLiked ? 'fas' : 'far'} fa-heart"></i> ${c.likesCount || 0}
-</button>
-<button class="comment-action" onclick="showReplyInput('${c.id}')">
-<i class="fas fa-reply"></i> رد
-</button>
-${canDelete ? `
-<button class="comment-action delete" onclick="deleteComment('${c.id}', '${postId}')">
-<i class="fas fa-trash"></i>
-</button>` : ''}
-</div>`;
-// عرض الردود المباشرة
-if (replies.length > 0) {
-html += `<div class="nested-comments" style="margin-top: 10px;">${renderComments(comments, postId, c.id, depth + 1)}</div>`;
+let html = '<div class="comment-item ' + (parentId ? 'nested-comment' : '') + '" style="margin-right: ' + (depth * 20) + 'px;">';
+html += '<img src="' + (c.userAvatar || 'https://i.pravatar.cc/150?u=' + (c.userId || '')) + '" class="comment-avatar" onclick="openProfile(\'' + c.userId + '\')">';
+html += '<div class="comment-content">';
+html += '<div class="comment-header">';
+html += '<span class="comment-author" onclick="openProfile(\'' + c.userId + '\')">' + escapeHtml(c.userName || 'مستخدم') + '</span>';
+html += '<span class="comment-time">' + formatTime(c.timestamp) + '</span>';
+html += '</div>';
+html += '<div class="comment-text">' + escapeHtml(c.text || '') + '</div>';
+html += '<div class="comment-actions">';
+html += '<button class="comment-action ' + (isLiked ? 'liked' : '') + '" onclick="toggleCommentLike(\'' + c.id + '\', \'' + postId + '\')"><i class="' + (isLiked ? 'fas' : 'far') + ' fa-heart"></i> ' + (c.likesCount || 0) + '</button>';
+html += '<button class="comment-action" onclick="showReplyInput(\'' + c.id + '\')"><i class="fas fa-reply"></i> رد</button>';
+if (canDelete) {
+html += '<button class="comment-action delete" onclick="deleteComment(\'' + c.id + '\', \'' + postId + '\')"><i class="fas fa-trash"></i></button>';
 }
-html += `
-<div class="reply-input-wrapper" id="reply-${c.id}" style="display: none;">
-<input type="text" class="reply-input" placeholder="اكتب ردك..." 
-onkeypress="handleReplyKey(event, '${c.id}', '${postId}')" data-parent="${c.id}">
-<div class="reply-actions">
-<button class="reply-send" onclick="addReply('${c.id}', '${postId}')"><i class="fas fa-paper-plane"></i></button>
-<button class="reply-cancel" onclick="cancelReply('${c.id}')"><i class="fas fa-times"></i></button>
-</div>
-</div>
-</div></div>`;
+html += '</div>';
+if (replies.length) {
+html += '<div class="nested-comments">' + renderComments(comments, postId, c.id, depth + 1) + '</div>';
+}
+html += '<div class="reply-input-wrapper" id="reply-' + c.id + '" style="display: none;">';
+html += '<input type="text" class="reply-input" placeholder="اكتب ردك..." onkeypress="handleReplyKey(event, \'' + c.id + '\', \'' + postId + '\')" data-parent="' + c.id + '">';
+html += '<div class="reply-actions">';
+html += '<button class="reply-send" onclick="addReply(\'' + c.id + '\', \'' + postId + '\')"><i class="fas fa-paper-plane"></i></button>';
+html += '<button class="reply-cancel" onclick="cancelReply(\'' + c.id + '\')"><i class="fas fa-times"></i></button>';
+html += '</div></div></div></div>';
 return html;
 }).join('');
 }
-
 // === تحميل التعليقات ===
 async function loadComments(postId) {
 const commentsRef = collection(db, "posts", postId, "comments");
-const commentsQuery = query(commentsRef, orderBy("timestamp", "desc"));
+const commentsQuery = query(commentsRef);
 const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
 const comments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 if (currentCommentsPostId === postId) {
-currentPostForComments = { 
-...allPosts.find(p => p.id === postId), 
-comments: comments 
-};
+currentPostForComments = { ...allPosts.find(p => p.id === postId), comments: comments };
 document.getElementById('commentsCount').textContent = comments.length;
 renderFullComments();
 }
@@ -1037,8 +982,7 @@ renderFullComments();
 commentsListeners.set(postId, unsubscribe);
 return unsubscribe;
 }
-
-// === فتح مودال التعليقات ===
+// === فتح التعليقات ===
 window.openCommentsModal = async function(postId) {
 currentCommentsPostId = postId;
 currentPostForComments = allPosts.find(p => p.id === postId);
@@ -1048,31 +992,25 @@ document.getElementById('commentsTitle').textContent = (user.fullName || 'مست
 document.getElementById('main-comment-input').dataset.postId = postId;
 document.getElementById('commentsModal').classList.add('show');
 document.body.classList.add('scroll-locked');
-// الحفاظ على الكيبورد مفتوحاً
 document.getElementById('main-comment-input').addEventListener('focus', function() {
 document.body.classList.add('keyboard-open');
 });
 document.getElementById('main-comment-input').addEventListener('blur', function() {
-setTimeout(() => {
-document.body.classList.remove('keyboard-open');
-}, 300);
+setTimeout(() => { document.body.classList.remove('keyboard-open'); }, 300);
 });
 await loadComments(postId);
 }
-
 window.closeCommentsModal = function() {
 document.getElementById('commentsModal').classList.remove('show');
 document.body.classList.remove('scroll-locked');
 document.body.classList.remove('keyboard-open');
 currentCommentsPostId = null;
 currentPostForComments = null;
-// إزالة المستمعين
 if (currentCommentsPostId && commentsListeners.has(currentCommentsPostId)) {
 commentsListeners.get(currentCommentsPostId)();
 commentsListeners.delete(currentCommentsPostId);
 }
 }
-
 function renderFullComments() {
 const container = document.getElementById('fullCommentsList');
 const comments = Array.isArray(currentPostForComments?.comments) ? currentPostForComments.comments : [];
@@ -1082,30 +1020,21 @@ return;
 }
 container.innerHTML = renderComments(comments, currentCommentsPostId, null, 0);
 }
-
-// === إضافة تعليق رئيسي ===
 window.addMainComment = async function() {
 await addComment('', currentCommentsPostId);
 }
-
 window.handleMainCommentKey = function(e) {
-if (e.key === 'Enter') {
-e.preventDefault();
-addMainComment();
+if (e.key === 'Enter') { e.preventDefault(); addMainComment(); }
 }
-}
-
-// === إضافة تعليق أو رد ===
 window.addComment = async function(parentCommentId, postId) {
-const inputId = parentCommentId ? `#reply-${parentCommentId} input` : '#main-comment-input';
+const inputId = parentCommentId ? '#reply-' + parentCommentId + ' input' : '#main-comment-input';
 const input = document.querySelector(inputId);
 const text = input?.value.trim();
 if (!text || !postId) return;
 try {
 const commentsRef = collection(db, "posts", postId, "comments");
-const commentId = "c_" + Date.now();
 await addDoc(commentsRef, {
-id: commentId,
+id: "c_" + Date.now(),
 parentCommentId: parentCommentId || null,
 userId: currentUser.uid,
 userName: currentUser.fullName,
@@ -1119,30 +1048,20 @@ await updateDoc(doc(db, "posts", postId), { commentsCount: increment(1) });
 if (input) input.value = '';
 const replyWrapper = input?.closest('.reply-input-wrapper');
 if (replyWrapper) replyWrapper.style.display = 'none';
-if (currentCommentsPostId === postId) {
-loadComments(postId);
-}
-showAlert('success', 'تم الإرسال', 'تم نشر تعليقك بنجاح');
+if (currentCommentsPostId === postId) loadComments(postId);
+showAlert('success', 'تم الإرسال', 'تم نشر التعليق');
 } catch (error) {
-console.error('Error adding comment:', error);
-showAlert('error', 'خطأ', 'تعذر نشر التعليق: ' + error.message);
+showAlert('error', 'خطأ', error.message);
 }
 }
-
-// === عرض/إخفاء حقل الرد ===
 window.showReplyInput = function(commentId) {
 const wrapper = document.getElementById('reply-' + commentId);
 if (wrapper) {
 wrapper.style.display = wrapper.style.display === 'none' ? 'flex' : 'none';
 const input = wrapper.querySelector('input');
-if (input) {
-input.focus();
-// الحفاظ على الكيبورد
-document.body.classList.add('keyboard-open');
+if (input) { input.focus(); document.body.classList.add('keyboard-open'); }
 }
 }
-}
-
 window.cancelReply = function(commentId) {
 const wrapper = document.getElementById('reply-' + commentId);
 if (wrapper) {
@@ -1152,40 +1071,33 @@ if (input) input.value = '';
 document.body.classList.remove('keyboard-open');
 }
 }
-
 window.handleReplyKey = function(event, commentId, postId) {
 if (event.key === 'Enter' && !event.shiftKey) {
 event.preventDefault();
 addComment(commentId, postId);
 }
 }
-
 window.addReply = async function(parentCommentId, postId) {
 await addComment(parentCommentId, postId);
 }
-
-// === حذف التعليق ===
+// === حذف التعليق - مصحح ===
 window.deleteComment = async function(commentId, postId) {
 if (!confirm('هل تريد حذف هذا التعليق؟')) return;
 try {
-await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+const commentRef = doc(db, "posts", postId, "comments", commentId);
+await deleteDoc(commentRef);
 await updateDoc(doc(db, "posts", postId), { commentsCount: increment(-1) });
+showAlert('success', 'تم الحذف', 'تم حذف التعليق');
+// تحديث الواجهة
 if (currentCommentsPostId === postId && currentPostForComments) {
-currentPostForComments.comments = currentPostForComments.comments.filter(
-c => c.id !== commentId && c.parentCommentId !== commentId
-);
+currentPostForComments.comments = currentPostForComments.comments.filter(c => c.id !== commentId && c.parentCommentId !== commentId);
 renderFullComments();
 }
-const replyWrapper = document.getElementById('reply-' + commentId);
-if (replyWrapper) replyWrapper.style.display = 'none';
-showAlert('success', 'تم الحذف', 'تم حذف التعليق');
 } catch (error) {
 console.error('Delete comment error:', error);
 showAlert('error', 'خطأ', 'حدث خطأ أثناء الحذف: ' + error.message);
 }
 }
-
-// === الإعجاب على التعليق ===
 window.toggleCommentLike = async function(commentId, postId) {
 try {
 const commentsRef = collection(db, "posts", postId, "comments");
@@ -1196,88 +1108,25 @@ const commentDoc = commentSnap.docs[0];
 const comment = commentDoc.data();
 const isLiked = Array.isArray(comment.likes) && comment.likes.includes(currentUser.uid);
 if (isLiked) {
-await updateDoc(doc(db, "posts", postId, "comments", commentId), { 
-likes: arrayRemove(currentUser.uid), 
-likesCount: increment(-1) 
-});
+await updateDoc(doc(db, "posts", postId, "comments", commentId), { likes: arrayRemove(currentUser.uid), likesCount: increment(-1) });
 } else {
-await updateDoc(doc(db, "posts", postId, "comments", commentId), { 
-likes: arrayUnion(currentUser.uid), 
-likesCount: increment(1) 
-});
+await updateDoc(doc(db, "posts", postId, "comments", commentId), { likes: arrayUnion(currentUser.uid), likesCount: increment(1) });
 }
-if (currentPostForComments && currentCommentsPostId === postId) {
-loadComments(postId);
-}
+if (currentPostForComments && currentCommentsPostId === postId) loadComments(postId);
 } catch (error) {
 console.error('Toggle comment like error:', error);
 }
 }
-
 // === إنشاء منشور ===
 window.openPostModal = function() {
 document.getElementById('postModal').classList.add('show');
 document.getElementById('post-content').focus();
 }
-
 window.closePostModal = function() {
 document.getElementById('postModal').classList.remove('show');
 document.getElementById('post-content').value = '';
 document.getElementById('char-count').textContent = '0/500';
-removeSelectedImage();
 }
-
-// === معالجة صورة المنشور ===
-window.handleImageSelect = function(input) {
-if (input.files && input.files[0]) {
-const file = input.files[0];
-if (!file.type.startsWith('image/')) {
-showAlert('error', 'خطأ', 'الرجاء اختيار ملف صورة صحيح');
-return;
-}
-compressImage(file).then(base64 => {
-currentPostImageBase64 = base64;
-const preview = document.getElementById('image-preview');
-const container = document.getElementById('image-preview-container');
-preview.src = base64;
-container.classList.add('show');
-}).catch(err => {
-console.error(err);
-showAlert('error', 'خطأ', 'فشل معالجة الصورة');
-});
-}
-}
-
-window.removeSelectedImage = function() {
-currentPostImageBase64 = null;
-document.getElementById('post-image-input').value = '';
-document.getElementById('image-preview-container').classList.remove('show');
-document.getElementById('image-preview').src = '';
-}
-
-function compressImage(file) {
-return new Promise((resolve) => {
-const reader = new FileReader();
-reader.readAsDataURL(file);
-reader.onload = (event) => {
-const img = new Image();
-img.src = event.target.result;
-img.onload = () => {
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d');
-const maxWidth = 800;
-const scaleSize = maxWidth / img.width;
-canvas.width = maxWidth;
-canvas.height = img.height * scaleSize;
-ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-const base64 = canvas.toDataURL('image/jpeg', 0.6);
-resolve(base64);
-};
-};
-});
-}
-
-// === عدّاد الأحرف ===
 const postContentEl = document.getElementById('post-content');
 if (postContentEl) {
 postContentEl.addEventListener('input', function() {
@@ -1286,27 +1135,15 @@ document.getElementById('char-count').textContent = count + '/500';
 document.getElementById('post-submit').disabled = count === 0 || count > 500;
 });
 }
-
-// === نشر المنشور ===
 window.createPost = async function() {
 const content = document.getElementById('post-content').value.trim();
 const submitBtn = document.getElementById('post-submit');
-if (!content && !currentPostImageBase64) { 
-showAlert('warning', 'تنبيه', 'اكتب محتوى أو اختر صورة للمنشور'); 
-return; 
-}
-if (content.length > 500) { 
-showAlert('warning', 'تنبيه', 'المنشور طويل جداً (الحد الأقصى 500 حرف)'); 
-return; 
-}
-if (currentPostImageBase64 && currentPostImageBase64.length > 900000) {
-showAlert('warning', 'تنبيه', 'حجم الصورة كبير جداً، يرجى اختيار صورة أصغر');
-return;
-}
+if (!content) { showAlert('warning', 'تنبيه', 'اكتب محتوى أولاً'); return; }
+if (content.length > 500) { showAlert('warning', 'تنبيه', 'المنشور طويل جداً'); return; }
 submitBtn.disabled = true;
 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النشر...';
 try {
-const postData = {
+await addDoc(collection(db, "posts"), {
 userId: currentUser.uid,
 userName: currentUser.fullName,
 userAvatar: currentUser.profileImage || '',
@@ -1317,27 +1154,19 @@ sharesCount: 0,
 savesCount: 0,
 timestamp: serverTimestamp(),
 isPinned: false,
-isRepost: false,
 likes: [],
 saves: [],
 comments: []
-};
-if (currentPostImageBase64) {
-postData.image = currentPostImageBase64;
-}
-await addDoc(collection(db, "posts"), postData);
+});
 closePostModal();
-showAlert('success', 'نجاح', 'تم نشر منشورك بنجاح!');
+showAlert('success', 'نجاح', 'تم النشر بنجاح!');
 } catch (error) {
-console.error('Error creating post:', error);
-showAlert('error', 'خطأ', 'حدث خطأ أثناء النشر: ' + error.message);
+showAlert('error', 'خطأ', error.message);
 } finally {
 submitBtn.disabled = false;
-submitBtn.innerHTML = 'نشر المنشور <i class="fas fa-paper-plane"></i>';
+submitBtn.innerHTML = 'نشر <i class="fas fa-paper-plane"></i>';
 }
 }
-
-// === المشاركة ===
 window.openShareModal = function(postId) {
 currentSharePostId = postId;
 const post = allPosts.find(p => p.id === postId);
@@ -1346,21 +1175,21 @@ document.getElementById('share-link').value = window.location.origin + '/feed.ht
 document.getElementById('shareModal').classList.add('show');
 document.body.classList.add('scroll-locked');
 }
-
-window.repostToProfile = async function(originalPostId) {
-const postId = originalPostId || currentSharePostId;
-if (!postId) return;
-const originalPost = allPosts.find(p => p.id === postId);
+// === إعادة النشر مع إظهار اسم صاحب المنشور الأصلي ===
+window.repostToProfile = async function() {
+if (!currentSharePostId) return;
+const originalPost = allPosts.find(p => p.id === currentSharePostId);
 if (!originalPost) return;
 try {
-const repostData = {
+const originalUser = allUsers[originalPost.userId] || {};
+await addDoc(collection(db, "posts"), {
 userId: currentUser.uid,
 userName: currentUser.fullName,
 userAvatar: currentUser.profileImage || '',
 content: originalPost.content,
 originalPostId: originalPost.id,
 originalUserId: originalPost.userId,
-originalUserName: originalPost.userName,
+originalUserName: originalUser.fullName || originalPost.userName || 'مستخدم',
 likesCount: 0,
 commentsCount: 0,
 sharesCount: 0,
@@ -1370,76 +1199,39 @@ isRepost: true,
 likes: [],
 saves: [],
 comments: []
-};
-if (originalPost.image) {
-repostData.image = originalPost.image;
-}
-await addDoc(collection(db, "posts"), repostData);
-await updateDoc(doc(db, "posts", postId), { sharesCount: increment(1) });
+});
+await updateDoc(doc(db, "posts", currentSharePostId), { sharesCount: increment(1) });
 closeModal('shareModal');
-showAlert('success', 'تمت إعادة النشر', 'ظهر المنشور في صفحتك الشخصية');
+showAlert('success', 'تمت إعادة النشر', 'ظهر في صفحتك');
 } catch (error) {
-console.error('Error reposting:', error);
-showAlert('error', 'خطأ', 'تعذر إعادة نشر المنشور');
+showAlert('error', 'خطأ', error.message);
 }
 }
-
 window.shareTo = function(platform) {
 const post = allPosts.find(p => p.id === currentSharePostId);
 const shareUrl = window.location.origin + window.location.pathname + '?post=' + currentSharePostId;
 const contentText = (post?.content) ? post.content.substring(0, 100) : '';
-const shareText = `📝 منشور من ${post?.userName || ''}: ${contentText}... 🔗 ${shareUrl}`;
-switch(platform) {
-case 'whatsapp': 
-window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank'); 
-break;
-case 'twitter': 
-window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText), '_blank'); 
-break;
-case 'facebook': 
-window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank'); 
-break;
-case 'copy': 
-copyLink(); 
-break;
-}
+const shareText = '📝 منشور: ' + contentText + '... 🔗 ' + shareUrl;
+if (platform === 'whatsapp') window.open('https://wa.me/?text=' + encodeURIComponent(shareText), '_blank');
+else if (platform === 'copy') copyLink();
 closeModal('shareModal');
 }
-
 window.copyLink = function() {
 const input = document.getElementById('share-link');
 input.select();
 document.execCommand('copy');
-showAlert('success', 'تم النسخ', 'تم نسخ رابط المنشور');
+showAlert('success', 'تم النسخ', 'تم نسخ الرابط');
 }
-
-// === عرض الصورة الكاملة ===
 window.openImageModal = function(src) {
 const win = window.open();
-win.document.write('<iframe src="' + src + '" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>');
+win.document.write('<iframe src="' + src + '" frameborder="0" style="border:0; width:100%; height:100%;"></iframe>');
 }
-
-// === عرض المنشور الأصلي ===
-window.viewOriginalPost = function(postId) {
-const originalPost = allPosts.find(p => p.id === postId);
-if (originalPost) {
-// التمرير للمنشور الأصلي
-const postEl = document.getElementById('post-' + postId);
-if (postEl) {
-postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-postEl.style.animation = 'pop 0.3s ease';
-}
-}
-}
-
-// === دوال مساعدة ===
 function escapeHtml(text) {
 if (!text) return '';
 const div = document.createElement('div');
 div.textContent = text;
 return div.innerHTML;
 }
-
 function formatTime(timestamp) {
 if (!timestamp) return '';
 const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -1450,58 +1242,42 @@ if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
 if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
 return date.toLocaleDateString('ar-SA');
 }
-
 function showAlert(type, title, message) {
 const alert = document.createElement('div');
-alert.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:15px 25px;box-shadow:0 10px 40px rgba(0,0,0,0.2);z-index:4000;display:flex;align-items:center;gap:10px;animation:slideDown 0.3s;border-right:4px solid ${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}`;
-alert.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle'}" style="color:${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}"></i><div><b>${title}</b><br><small style="color:var(--text-secondary)">${message}</small></div>`;
+alert.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:15px 25px;box-shadow:0 10px 40px rgba(0,0,0,0.2);z-index:4000;display:flex;align-items:center;gap:10px;animation:slideDown 0.3s;border-right:4px solid ' + (type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)');
+alert.innerHTML = '<i class="fas fa-' + (type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle') + '" style="color:' + (type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)') + '"></i><div><b>' + title + '</b><br><small style="color:var(--text-secondary)">' + message + '</small></div>';
 document.body.appendChild(alert);
 setTimeout(() => alert.remove(), 3000);
 }
-
 function showRefreshIndicator() {
-const indicator = document.getElementById('refresh-indicator');
-indicator.classList.add('show');
+document.getElementById('refresh-indicator').classList.add('show');
 }
-
 function hideRefreshIndicator() {
-const indicator = document.getElementById('refresh-indicator');
-setTimeout(() => {
-indicator.classList.remove('show');
-}, 1000);
+setTimeout(() => { document.getElementById('refresh-indicator').classList.remove('show'); }, 1000);
 }
-
 window.refreshPosts = function() {
+postsLimit = 10;
 showRefreshIndicator();
-// إعادة تحميل البيانات
 startPostsListener();
-showAlert('info', 'جارٍ التحديث', 'تم تحديث المنشورات');
 }
-
 window.closeModal = function(id) {
 document.getElementById(id).classList.remove('show');
 document.body.classList.remove('scroll-locked');
 document.body.classList.remove('keyboard-open');
 }
-
 // === التهيئة ===
 document.addEventListener('DOMContentLoaded', async () => {
-// تطبيق الوضع الليلي
 const isDark = localStorage.getItem('darkMode') === 'true';
 if (isDark) document.body.classList.add('dark-mode');
-// تحميل بيانات المستخدم
 await loadUserData();
-// محاولة التحميل من الذاكرة المحلية أولاً
-if (!loadPostsFromLocalStorage()) {
-// إذا فشل، بدء المستمع
+if (!loadFromCache()) {
 startPostsListener();
+} else {
+renderPosts();
+updateLoadMoreButton();
 }
-// علامة تحميل الصفحة
-pageInitialized = true;
 console.log('🚀 === FEED PAGE READY ===');
 });
-
-// إغلاق المودالات عند النقر خارجها
 document.querySelectorAll('.modal-overlay').forEach(modal => {
 modal.addEventListener('click', (e) => {
 if (e.target === modal) {

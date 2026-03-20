@@ -825,6 +825,20 @@ text-align: center;
 padding: 40px;
 color: var(--text-secondary);
 }
+/* === Home Requests Section === */
+.home-requests-section {
+    padding: 0 20px 10px;
+}
+.home-requests-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+.home-requests-scroll::-webkit-scrollbar {
+    display: none;
+}
 </style>
 </head>
 <body>
@@ -891,6 +905,18 @@ color: var(--text-secondary);
 <div class="ticker-content" id="news-content">
 </div>
 </div>
+
+<!-- الطلبات المعلقة (للمنشئين) -->
+<section class="home-requests-section" id="home-requests-container" style="display:none;">
+<div class="section-title">
+<h2>طلبات انضمام غرفك</h2>
+<a href="chat.html?tab=suggested" class="see-all">إدارة الكل <i class="fas fa-chevron-left"></i></a>
+</div>
+<div class="home-requests-scroll" id="home-requests-scroll">
+<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+</div>
+</section>
+
 <!-- المستخدمون (نظام المتابعة) -->
 <section>
 <div class="section-title">
@@ -905,7 +931,8 @@ color: var(--text-secondary);
 <section>
 <div class="section-title">
 <h2>غرف الدردشة</h2>
-<a href="chat.html" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
+<!-- Link to Chat Page Suggested Tab -->
+<a href="chat.html?tab=suggested" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
 </div>
 <div class="groups-scroll" id="chat-container">
 <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
@@ -1012,7 +1039,19 @@ color: var(--text-secondary);
 </div>
 </div>
 <script type="module">
-import { db, collection, query, limit, getDocs, doc, getDoc, deleteDoc, addDoc, serverTimestamp, where, updateDoc, arrayUnion, arrayRemove } from './firebase-config.js';
+import { db, collection, query, limit, getDocs, doc, getDoc, deleteDoc, addDoc, serverTimestamp, where, updateDoc, arrayUnion, arrayRemove, onSnapshot } from './firebase-config.js';
+
+// === Local Storage Cache ===
+const HOME_CACHE_KEY = 'home_app_cache_v1';
+function getHomeCache() {
+    const cached = localStorage.getItem(HOME_CACHE_KEY);
+    return cached ? JSON.parse(cached) : { groups: [], users: [], requests: [] };
+}
+function saveHomeCache(data) {
+    localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(data));
+}
+let homeCache = getHomeCache();
+
 // === التحقق من الجلسة ===
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 if (!currentUser || !currentUser.isLoggedIn) {
@@ -1025,6 +1064,7 @@ let approvedFriends = new Set();
 let joinedGroups = new Set();
 let myFollowing = [];
 let myFollowers = [];
+
 // === تحميل بيانات المستخدم في الهيدر ===
 async function loadUserData() {
 try {
@@ -1043,6 +1083,7 @@ document.getElementById('header-username').textContent = currentUser.username;
 document.getElementById('header-avatar').src = 'https://i.pravatar.cc/150';
 }
 }
+
 // === السلايدر (يتم تحميله من Firebase) ===
 async function loadSlider() {
 try {
@@ -1093,6 +1134,7 @@ currentIndex = (currentIndex + 1) % slideCount;
 goToSlide(currentIndex);
 }, 4000);
 }
+
 // === تحميل شريط الأخبار من Firebase ===
 async function loadNewsTicker() {
 try {
@@ -1105,6 +1147,7 @@ document.getElementById('news-content').textContent = configSnap.data().newsTick
 console.error('Error loading news:', error);
 }
 }
+
 // === تحميل البيانات المحظورة (أصدقاء، مجموعات، طلبات) ===
 async function loadBlockedData() {
 try {
@@ -1143,9 +1186,14 @@ pendingGroupRequests.add(doc.data().targetId || doc.data().groupId);
 console.error('Error loading blocked data:', error);
 }
 }
+
 // === تحميل المستخدمين (نظام المتابعة) ===
 async function loadUsers() {
 try {
+// Check cache first
+if (homeCache.users.length > 0) {
+    renderUsers(homeCache.users);
+}
 const usersQuery = query(collection(db, "users"), limit(10));
 const snapshot = await getDocs(usersQuery);
 const users = [];
@@ -1156,39 +1204,46 @@ if (doc.id !== currentUser.uid && !myFollowing.includes(doc.id)) {
 users.push({ id: doc.id, ...user });
 }
 });
-const container = document.getElementById('users-container');
-if (users.length === 0) {
-container.innerHTML = '<div style="color:var(--text-secondary); padding:20px; text-align:center;">لا يوجد مستخدمين جدد</div>';
-return;
-}
-container.innerHTML = users.map(user => {
-const isFollowing = myFollowing.includes(user.id);
-let btnContent = '<i class="fas fa-user-plus"></i>';
-let btnClass = '';
-let btnAction = `followUser('${user.id}')`;
-if (isFollowing) {
-btnContent = '<i class="fas fa-check"></i>';
-btnClass = 'following';
-btnAction = `unfollowUser('${user.id}')`;
-}
-return `
-<div class="user-card" onclick="openProfile('${user.id}')">
-<div class="user-card-img-wrapper">
-<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" alt="${user.fullName}">
-<span class="online-indicator"></span>
-</div>
-<div class="user-card-name">${user.fullName || user.username}</div>
-<button class="add-friend-btn ${btnClass}" onclick="event.stopPropagation(); ${btnAction}">
-${btnContent}
-</button>
-</div>
-`;
-}).join('');
+homeCache.users = users;
+saveHomeCache(homeCache);
+renderUsers(users);
 } catch (error) {
 console.error('Error loading users:', error);
 document.getElementById('users-container').innerHTML = '<div class="loading">خطأ في التحميل</div>';
 }
 }
+
+function renderUsers(users) {
+    const container = document.getElementById('users-container');
+    if (users.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-secondary); padding:20px; text-align:center;">لا يوجد مستخدمين جدد</div>';
+    return;
+    }
+    container.innerHTML = users.map(user => {
+    const isFollowing = myFollowing.includes(user.id);
+    let btnContent = '<i class="fas fa-user-plus"></i>';
+    let btnClass = '';
+    let btnAction = `followUser('${user.id}')`;
+    if (isFollowing) {
+    btnContent = '<i class="fas fa-check"></i>';
+    btnClass = 'following';
+    btnAction = `unfollowUser('${user.id}')`;
+    }
+    return `
+    <div class="user-card" onclick="openProfile('${user.id}')">
+    <div class="user-card-img-wrapper">
+    <img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" alt="${user.fullName}">
+    <span class="online-indicator"></span>
+    </div>
+    <div class="user-card-name">${user.fullName || user.username}</div>
+    <button class="add-friend-btn ${btnClass}" onclick="event.stopPropagation(); ${btnAction}">
+    ${btnContent}
+    </button>
+    </div>
+    `;
+    }).join('');
+}
+
 // === متابعة مستخدم ===
 window.followUser = async function(userId) {
 try {
@@ -1219,6 +1274,7 @@ console.error('Error following user:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 // === إلغاء المتابعة ===
 window.unfollowUser = async function(userId) {
 if (!confirm('هل تريد إلغاء متابعة هذا المستخدم؟')) return;
@@ -1237,9 +1293,14 @@ console.error('Error unfollowing:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 // === تحميل غرف الدردشة (مع إرسال طلب انضمام) ===
 async function loadGroups() {
 try {
+// Check cache
+if (homeCache.groups.length > 0) {
+    renderHomeGroups(homeCache.groups);
+}
 const groupsQuery = query(collection(db, "groups"), limit(10));
 const snapshot = await getDocs(groupsQuery);
 const groups = [];
@@ -1250,48 +1311,111 @@ if (group.isActive && group.createdBy !== currentUser.uid && !joinedGroups.has(d
 groups.push({ id: doc.id, ...group });
 }
 });
-const container = document.getElementById('chat-container');
-if (groups.length === 0) {
-container.innerHTML = '<div style="min-width:260px; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد غرف جديدة</div>';
-return;
-}
-const icons = ['general', 'quran', 'hadith'];
-const iconsClass = ['fa-comments', 'fa-book-quran', 'fa-star-and-crescent'];
-container.innerHTML = groups.map((group, index) => {
-const isPending = pendingGroupRequests.has(group.id);
-let btnText = 'انضمام';
-let btnClass = '';
-let btnAction = `requestJoinGroup('${group.id}', '${group.createdBy}')`;
-if (isPending) {
-btnText = 'تم الإرسال';
-btnClass = 'requested';
-btnAction = `cancelGroupRequest('${group.id}')`;
-}
-return `
-<div class="chat-card" onclick="event.stopPropagation()">
-<div class="chat-card-header">
-<div class="chat-card-icon ${icons[index % icons.length]}">
-<i class="fas ${iconsClass[index % iconsClass.length]}"></i>
-</div>
-<div>
-<div class="chat-card-title">${group.name}</div>
-<div class="chat-card-members">
-<i class="fas fa-circle"></i> ${group.memberCount || group.members?.length || 0} عضو
-</div>
-</div>
-</div>
-<div class="chat-card-footer">
-<div class="chat-card-last-msg">${group.description || 'غرفة نقاش عامة'}</div>
-<button class="join-btn ${btnClass}" onclick="${btnAction}">${btnText}</button>
-</div>
-</div>
-`;
-}).join('');
+homeCache.groups = groups;
+saveHomeCache(homeCache);
+renderHomeGroups(groups);
 } catch (error) {
 console.error('Error loading groups:', error);
 document.getElementById('chat-container').innerHTML = '<div class="loading">خطأ في التحميل</div>';
 }
 }
+
+function renderHomeGroups(groups) {
+    const container = document.getElementById('chat-container');
+    if (groups.length === 0) {
+    container.innerHTML = '<div style="min-width:260px; text-align:center; color:var(--text-secondary); padding:20px;">لا توجد غرف جديدة</div>';
+    return;
+    }
+    const icons = ['general', 'quran', 'hadith'];
+    const iconsClass = ['fa-comments', 'fa-book-quran', 'fa-star-and-crescent'];
+    container.innerHTML = groups.map((group, index) => {
+    const isPending = pendingGroupRequests.has(group.id);
+    let btnText = 'انضمام';
+    let btnClass = '';
+    let btnAction = `requestJoinGroup('${group.id}', '${group.createdBy}')`;
+    if (isPending) {
+    btnText = 'تم الإرسال';
+    btnClass = 'requested';
+    btnAction = `cancelGroupRequest('${group.id}')`;
+    }
+    return `
+    <div class="chat-card" onclick="event.stopPropagation()">
+    <div class="chat-card-header">
+    <div class="chat-card-icon ${icons[index % icons.length]}">
+    <i class="fas ${iconsClass[index % iconsClass.length]}"></i>
+    </div>
+    <div>
+    <div class="chat-card-title">${group.name}</div>
+    <div class="chat-card-members">
+    <i class="fas fa-circle"></i> ${group.memberCount || group.members?.length || 0} عضو
+    </div>
+    </div>
+    </div>
+    <div class="chat-card-footer">
+    <div class="chat-card-last-msg">${group.description || 'غرفة نقاش عامة'}</div>
+    <button class="join-btn ${btnClass}" onclick="${btnAction}">${btnText}</button>
+    </div>
+    </div>
+    `;
+    }).join('');
+}
+
+// === تحميل طلبات انضمام الغرف (للمنشئ) ===
+async function loadHomeRequests() {
+    try {
+        const groupJoinRequestsQuery = query(
+            collection(db, "requests"),
+            where("type", "==", "group_join"),
+            where("status", "==", "pending")
+        );
+        onSnapshot(groupJoinRequestsQuery, (snapshot) => {
+            const groupReqs = [];
+            snapshot.forEach(doc => {
+                const req = { id: doc.id, ...doc.data() };
+                if (req.groupCreatorId === currentUser.uid) {
+                    groupReqs.push(req);
+                }
+            });
+            homeCache.requests = groupReqs;
+            saveHomeCache(homeCache);
+            renderHomeRequests(groupReqs);
+        });
+    } catch (error) {
+        console.error('Error loading home requests:', error);
+    }
+}
+
+function renderHomeRequests(requests) {
+    const container = document.getElementById('home-requests-container');
+    const scrollContainer = document.getElementById('home-requests-scroll');
+    if (requests.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = 'block';
+    scrollContainer.innerHTML = requests.map(req => `
+    <div class="request-card group-req" style="min-width:250px;">
+        <div class="request-header">
+            <img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="request-avatar">
+            <div class="request-info">
+                <div class="request-title">${req.fromUserName || 'مستخدم'}</div>
+                <div class="request-desc">طلب انضمام لـ "${req.groupName}"</div>
+            </div>
+        </div>
+        <div class="request-actions">
+            <button class="btn-req btn-accept" onclick="handleHomeGroupJoinRequest('${req.id}', '${req.groupId}', 'accept')">قبول</button>
+            <button class="btn-req btn-decline" onclick="handleHomeGroupJoinRequest('${req.id}', '${req.groupId}', 'reject')">رفض</button>
+        </div>
+    </div>
+    `).join('');
+}
+
+window.handleHomeGroupJoinRequest = async function(requestId, groupId, action) {
+    // Redirect to chat page to handle logic consistently or duplicate logic
+    // For simplicity, redirect to chat page requests section
+    window.location.href = `chat.html?tab=messages`; 
+}
+
 // === إرسال طلب انضمام للمجموعة ===
 window.requestJoinGroup = async function(groupId, creatorId) {
 if (pendingGroupRequests.has(groupId)) {
@@ -1332,6 +1456,7 @@ console.error('Error joining group:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 // === إلغاء طلب انضمام المجموعة ===
 window.cancelGroupRequest = async function(groupId) {
 if (!confirm('هل تريد سحب طلب الانضمام؟')) return;
@@ -1348,6 +1473,7 @@ console.error('Error canceling group request:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 // === البروفايل ===
 const modal = document.getElementById('profileModal');
 let currentProfileUserId = null;
@@ -1395,6 +1521,7 @@ window.closeProfile = function() {
 modal.classList.remove('show');
 document.body.classList.remove('scroll-locked');
 }
+
 // === الإشعارات ===
 const notificationBtn = document.getElementById('notification-btn');
 const notificationPanel = document.getElementById('notification-panel');
@@ -1465,7 +1592,7 @@ if (n.type === 'message') { iconClass = 'fa-comment'; iconBg = 'message'; }
 else if (n.type === 'friend' || n.type === 'friend_request') { iconClass = 'fa-user-plus'; iconBg = 'friend'; }
 else if (n.type === 'wallet' || n.type === 'points') { iconClass = 'fa-coins'; iconBg = 'wallet'; }
 else if (n.type === 'group' || n.type === 'group_request') { iconClass = 'fa-users'; iconBg = 'group'; }
-else if (n.type === 'support' || n.senderName === 'فريق الدعم الفني') { iconClass = 'fa-headset'; iconBg = 'support'; }
+else if (n.type === 'support' || n.type === 'senderName' === 'فريق الدعم الفني') { iconClass = 'fa-headset'; iconBg = 'support'; }
 else if (n.type === 'new_follower') { iconClass = 'fa-user'; iconBg = 'friend'; }
 return `
 <div class="notification-item ${!n.isRead ? 'unread' : ''}" onclick="markNotificationRead('${n.id}')">
@@ -1611,6 +1738,7 @@ loadNewsTicker();
 await loadBlockedData();
 loadUsers();
 loadGroups();
+loadHomeRequests();
 });
 modal.addEventListener('click', (e) => {
 if (e.target === modal) closeProfile();

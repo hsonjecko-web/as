@@ -211,6 +211,7 @@ width: 45px;
 height: 45px;
 border-radius: 12px;
 object-fit: cover;
+cursor: pointer;
 }
 .request-info {
 flex: 1;
@@ -341,6 +342,7 @@ width: 55px;
 height: 55px;
 border-radius: 16px;
 object-fit: cover;
+cursor: pointer;
 }
 .online-dot {
 position: absolute;
@@ -366,6 +368,7 @@ margin-bottom: 6px;
 font-weight: 700;
 font-size: 1rem;
 color: var(--text-main);
+cursor: pointer;
 }
 .chat-time {
 font-size: 0.75rem;
@@ -1004,6 +1007,103 @@ width: calc(100% - 40px);
 transform: translateY(-2px);
 box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
+/* Profile Modal Styles */
+.profile-modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.6);
+backdrop-filter: blur(5px);
+z-index: 3500;
+display: none;
+justify-content: center;
+align-items: flex-end;
+}
+.profile-modal-overlay.show {
+display: flex;
+}
+.profile-modal {
+background: var(--card-bg);
+width: 100%;
+max-width: 500px;
+height: 85vh;
+border-radius: 30px 30px 0 0;
+padding: 25px;
+overflow-y: auto;
+animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+position: relative;
+}
+.profile-header {
+text-align: center;
+margin-bottom: 25px;
+padding-top: 20px;
+}
+.profile-avatar-lg {
+width: 100px;
+height: 100px;
+border-radius: 25px;
+object-fit: cover;
+border: 4px solid var(--primary-color);
+margin-bottom: 15px;
+}
+.profile-name {
+font-size: 1.4rem;
+font-weight: 800;
+margin-bottom: 5px;
+}
+.profile-username {
+font-size: 0.9rem;
+color: var(--primary-color);
+font-weight: 600;
+margin-bottom: 10px;
+direction: ltr;
+}
+.profile-bio {
+color: var(--text-secondary);
+font-size: 0.9rem;
+margin-bottom: 20px;
+}
+.profile-stats {
+display: flex;
+justify-content: center;
+gap: 30px;
+margin-bottom: 25px;
+padding: 15px;
+background: var(--bg-color);
+border-radius: 16px;
+}
+.stat-box b {
+display: block;
+font-size: 1.2rem;
+color: var(--text-main);
+}
+.stat-box span {
+font-size: 0.8rem;
+color: var(--text-secondary);
+}
+.profile-actions {
+display: flex;
+gap: 10px;
+}
+.btn-profile {
+flex: 1;
+padding: 12px;
+border-radius: 12px;
+border: none;
+font-weight: 700;
+cursor: pointer;
+}
+.btn-primary {
+background: var(--primary-gradient);
+color: white;
+}
+.btn-secondary {
+background: var(--bg-color);
+color: var(--text-main);
+border: 1px solid var(--border-color);
+}
 </style>
 </head>
 <body>
@@ -1178,6 +1278,27 @@ box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 <div id="pinned-list-container" style="text-align: center; color: var(--text-secondary);">لا توجد رسائل مثبتة</div>
 </div>
 </div>
+<!-- Profile Modal -->
+<div class="profile-modal-overlay" id="profileModal">
+<div class="profile-modal">
+<button class="close-modal" onclick="closeProfile()" style="position:absolute; top:20px; left:20px; width:35px; height:35px; border-radius:50%; background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-main); cursor:pointer; z-index:10;"><i class="fas fa-times"></i></button>
+<div class="profile-header">
+<img src="" alt="Profile" class="profile-avatar-lg" id="modal-img">
+<h2 class="profile-name" id="modal-name">اسم المستخدم</h2>
+<p class="profile-username" id="modal-username">@username</p>
+<p class="profile-bio" id="modal-bio">نبذة المستخدم</p>
+<div class="profile-stats">
+<div class="stat-box"><b id="modal-posts">0</b><span>منشور</span></div>
+<div class="stat-box"><b id="modal-followers">0</b><span>متابع</span></div>
+<div class="stat-box"><b id="modal-following">0</b><span>يتابع</span></div>
+</div>
+<div class="profile-actions">
+<button class="btn-profile btn-primary" id="modal-follow-btn">متابعة</button>
+<button class="btn-profile btn-secondary" id="modal-message-btn">مراسلة</button>
+</div>
+</div>
+</div>
+</div>
 <script type="module">
 console.log('🚀 === CHAT PAGE STARTING ===');
 import {
@@ -1185,6 +1306,18 @@ db, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc,
 setDoc, updateDoc, addDoc, arrayUnion, arrayRemove, serverTimestamp, increment, getDocs, deleteDoc
 } from './firebase-config.js';
 console.log('✅ Firebase imported');
+
+// === Local Storage Cache Helpers ===
+const CACHE_KEY = 'chat_app_cache_v1';
+function getCache() {
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? JSON.parse(cached) : { chats: [], groups: [], users: [], requests: [] };
+}
+function saveCache(data) {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+}
+let cache = getCache();
+
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 console.log('👤 Current User:', currentUser);
 if (!currentUser || !currentUser.isLoggedIn) {
@@ -1194,14 +1327,15 @@ window.location.href = 'index.html';
 let currentChatId = null;
 let currentChatType = null;
 let replyToId = null;
-let allChats = [];
-let allGroups = [];
-let allRequests = [];
-let allUsers = [];
+let allChats = cache.chats || [];
+let allGroups = cache.groups || [];
+let allRequests = cache.requests || [];
+let allUsers = cache.users || [];
 let totalUnreadCount = 0;
 let chatUnreadCounts = {};
 let pendingJoinRequestIds = [];
 let currentMessageImageBase64 = null;
+let currentGroupImageBase64 = null;
 let myFollowing = [];
 let myFollowers = [];
 let blockedUsers = new Set();
@@ -1232,7 +1366,6 @@ console.error('Error loading user data:', error);
 
 function startListeners() {
 console.log('📡 Starting listeners...');
-
 // 1. مستمع المحادثات الخاصة
 const chatsQuery = query(collection(db, "chats"), where("participants", "array-contains", currentUser.uid));
 onSnapshot(chatsQuery, (snapshot) => {
@@ -1245,9 +1378,10 @@ allChats.push(chat);
 });
 updateTotalUnreadCount();
 renderChats();
+cache.chats = allChats;
+saveCache(cache);
 console.log('✅ Chats loaded:', allChats.length);
 });
-
 // 2. مستمع المجموعات
 const groupsQuery = query(collection(db, "groups"), where("isActive", "==", true));
 onSnapshot(groupsQuery, (snapshot) => {
@@ -1266,9 +1400,10 @@ updateTotalUnreadCount();
 renderMyGroups();
 renderSuggestedGroups();
 renderJoinedGroups();
+cache.groups = allGroups;
+saveCache(cache);
 console.log('✅ Groups loaded:', allGroups.length);
 });
-
 // 3. مستمع طلبات انضمام المجموعات (للمنشئ فقط)
 const groupJoinRequestsQuery = query(
 collection(db, "requests"),
@@ -1283,9 +1418,11 @@ if (req.groupCreatorId === currentUser.uid || req.toUserId === currentUser.uid) 
 groupReqs.push(req);
 }
 });
+allRequests = groupReqs;
+cache.requests = allRequests;
+saveCache(cache);
 renderGroupJoinRequests(groupReqs);
 });
-
 // 4. مستمع طلبات الانضمام المرسلة من المستخدم
 const myJoinRequestsQuery = query(
 collection(db, "requests"),
@@ -1300,13 +1437,17 @@ pendingJoinRequestIds = myReqs.map(r => r.groupId || r.targetId);
 renderSuggestedGroups();
 renderJoinedGroups();
 });
-
 // 5. تحميل قائمة المستخدمين
 loadAllUsers();
 }
 
 async function loadAllUsers() {
 try {
+// Try cache first
+if (allUsers.length > 0) {
+    console.log('✅ Users loaded from cache');
+    return;
+}
 const usersSnapshot = await getDocs(collection(db, "users"));
 allUsers = [];
 usersSnapshot.forEach(doc => {
@@ -1315,6 +1456,8 @@ if (doc.id !== currentUser.uid) {
 allUsers.push(user);
 }
 });
+cache.users = allUsers;
+saveCache(cache);
 console.log('✅ Users loaded:', allUsers.length);
 } catch (error) {
 console.error('❌ Error loading users:', error);
@@ -1355,7 +1498,7 @@ const card = document.createElement('div');
 card.className = 'request-card group-req';
 card.innerHTML = `
 <div class="request-header">
-<img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="request-avatar">
+<img src="https://i.pravatar.cc/150?u=${req.fromUserId}" class="request-avatar" onclick="openProfile('${req.fromUserId}')">
 <div class="request-info">
 <div class="request-title">${req.fromUserName || 'مستخدم'}</div>
 <div class="request-desc">طلب انضمام لـ "${req.groupName || req.targetName}"</div>
@@ -1394,12 +1537,12 @@ const name = otherUser ? (otherUser.fullName || otherUser.username) : 'مستخ�
 return `
 <div class="chat-item ${unread > 0 ? 'unread' : ''}" onclick="openChat('${chat.id}', 'private', '${otherUserId || ''}')">
 <div class="chat-avatar-wrapper">
-<img src="${avatar}" class="chat-avatar">
+<img src="${avatar}" class="chat-avatar" onclick="event.stopPropagation(); openProfile('${otherUserId}')">
 <span class="online-dot"></span>
 </div>
 <div class="chat-info">
 <div class="chat-header">
-<span class="chat-name">${name}</span>
+<span class="chat-name" onclick="event.stopPropagation(); openProfile('${otherUserId}')">${name}</span>
 <span class="chat-time">${lastTime}</span>
 </div>
 <div class="chat-preview">
@@ -1411,10 +1554,11 @@ ${unread > 0 ? `<span class="unread-count">${unread > 99 ? '99+' : unread}</span
 }).join('');
 }
 
-// === عرض مجموعاتي ===
+// === عرض مجموعاتي (التي أنشأتها) ===
 function renderMyGroups() {
 const container = document.getElementById('my-groups-list');
-if (allGroups.length === 0) {
+const myCreatedGroups = allGroups.filter(g => g.creatorId === currentUser.uid);
+if (myCreatedGroups.length === 0) {
 container.innerHTML = `
 <div class="empty-state">
 <i class="fas fa-users"></i>
@@ -1424,7 +1568,7 @@ container.innerHTML = `
 `;
 return;
 }
-container.innerHTML = allGroups.map(group => {
+container.innerHTML = myCreatedGroups.map(group => {
 const unread = group.unreadCount?.[currentUser.uid] || 0;
 const lastMsg = group.lastMessage?.text || 'لا توجد رسائل';
 const lastTime = group.lastMessage?.timestamp ? formatTime(group.lastMessage.timestamp) : '';
@@ -1448,7 +1592,7 @@ ${unread > 0 ? `<span class="unread-count">${unread > 99 ? '99+' : unread}</span
 }).join('');
 }
 
-// === عرض المجموعات المقترحة ===
+// === عرض المجموعات المقترحة (للآخرين) ===
 function renderSuggestedGroups() {
 const container = document.getElementById('suggested-groups-container');
 const suggestedGroups = allGroups.filter(group => {
@@ -1490,16 +1634,20 @@ suggestedBadge.style.display = suggestedGroups.length > 0 ? 'block' : 'none';
 }
 }
 
-// === عرض كل المجموعات المنضم إليها ===
+// === عرض كل المجموعات المنضم إليها (طلبات مقبولة) ===
 function renderJoinedGroups() {
 const container = document.getElementById('joined-groups-container');
-if (allGroups.length === 0) {
+const joinedGroups = allGroups.filter(group => {
+const isMember = group.creatorId !== currentUser.uid &&
+(Array.isArray(group.members) && group.members.some(m => m.userId === currentUser.uid));
+return isMember;
+});
+if (joinedGroups.length === 0) {
 container.innerHTML = '<div class="empty-state" style="grid-column: span 2;"><i class="fas fa-users"></i><p>لا توجد مجموعات</p></div>';
 return;
 }
-container.innerHTML = allGroups.map(group => {
-const isMember = group.creatorId === currentUser.uid ||
-(Array.isArray(group.members) && group.members.some(m => m.userId === currentUser.uid));
+container.innerHTML = joinedGroups.map(group => {
+const isMember = true; // filtered above
 const isPending = pendingJoinRequestIds.includes(group.id);
 const memberCount = group.memberCount || (group.members ? group.members.length : 0);
 return `
@@ -1680,11 +1828,14 @@ return null;
 }
 }
 
-// === فتح الدردشة ===
+// === فتح الدردشة (مع History API) ===
 window.openChat = async function(chatId, type, friendId = null) {
 currentChatId = chatId;
 currentChatType = type;
 document.getElementById('chat-screen').classList.add('active');
+// Push state for back button
+history.pushState({page: 'chat'}, '', '#chat-open');
+
 if (chatUnreadCounts[chatId]) {
 chatUnreadCounts[chatId] = 0;
 updateTotalUnreadCount();
@@ -1710,7 +1861,19 @@ document.getElementById('cs-status').textContent = `${group.memberCount || (grou
 }
 }
 loadMessages();
+// Focus input immediately
+setTimeout(() => {
+    const input = document.getElementById('message-input');
+    if(input) input.focus();
+}, 500);
 }
+
+// === Back Button Handler ===
+window.addEventListener('popstate', (event) => {
+    if (document.getElementById('chat-screen').classList.contains('active')) {
+        closeChat();
+    }
+});
 
 // === تحميل الرسائل ===
 function loadMessages() {
@@ -1831,6 +1994,7 @@ timestamp: serverTimestamp()
 }
 });
 input.value = '';
+// Keep keyboard open
 input.focus();
 removeSelectedImage();
 cancelReply();
@@ -1845,13 +2009,7 @@ document.getElementById('message-input').addEventListener('focus', function() {
 document.body.classList.add('keyboard-open');
 isKeyboardOpen = true;
 });
-
-document.getElementById('message-input').addEventListener('blur', function() {
-setTimeout(() => {
-document.body.classList.remove('keyboard-open');
-isKeyboardOpen = false;
-}, 300);
-});
+// Removed blur listener that closes keyboard immediately
 
 // === وظائف معالجة الصورة ===
 window.handleImageSelect = function(input) {
@@ -1948,7 +2106,7 @@ name: name,
 description: desc || 'لا يوجد وصف',
 creatorId: currentUser.uid,
 creatorName: currentUser.fullName,
-groupImage: '',
+groupImage: currentGroupImageBase64 || '',
 members: [{
 userId: currentUser.uid,
 userName: currentUser.fullName,
@@ -1977,12 +2135,23 @@ closeModal('create-group-modal');
 showAlert('success', 'نجاح', 'تم إنشاء المجموعة بنجاح!');
 document.getElementById('group-name').value = '';
 document.getElementById('group-desc').value = '';
+currentGroupImageBase64 = null;
 startListeners();
 } catch (error) {
 console.error('❌ Error creating group:', error);
 showAlert('error', 'خطأ', error.message);
 }
 }
+
+// Group Image Handling
+document.getElementById('group-image').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+        compressImage(e.target.files[0]).then(base64 => {
+            currentGroupImageBase64 = base64;
+            showAlert('success', 'تم', 'تم اختيار صورة المجموعة');
+        });
+    }
+});
 
 window.openNewChatModal = function() {
 document.getElementById('new-chat-modal').classList.add('show');
@@ -2056,19 +2225,25 @@ members: group.members.map(m =>
 m.userId === memberId ? { ...m, role: 'admin' } : m
 )
 });
-showAlert('success', 'نجاح', 'تم ترقية العضو لأدمن');
+showAdminCard('تمت الترقية', 'تم ترقية العضو إلى مشرف', 'success');
 toggleMembersModal();
 }
 
 window.muteMember = async function(memberId) {
 const group = allGroups.find(g => g.id === currentChatId);
 if (!group) return;
+const member = group.members.find(m => m.userId === memberId);
+const newStatus = !member.isMuted;
 await updateDoc(doc(db, 'groups', currentChatId), {
 members: group.members.map(m =>
-m.userId === memberId ? { ...m, isMuted: !m.isMuted } : m
+m.userId === memberId ? { ...m, isMuted: newStatus } : m
 )
 });
-showAlert('info', 'تم التغيير', 'تم تغيير حالة الكتم');
+if(newStatus) {
+    showAdminCard('تم الكتم', 'تم كتم العضو ومنعه من الكتابة', 'warning');
+} else {
+    showAdminCard('تم رفع الكتم', 'يمكن للعضو الكتابة الآن', 'success');
+}
 toggleMembersModal();
 }
 
@@ -2080,7 +2255,7 @@ await updateDoc(doc(db, 'groups', currentChatId), {
 members: group.members.filter(m => m.userId !== memberId),
 memberCount: increment(-1)
 });
-showAlert('success', 'تم الحظر', 'تم حظر العضو');
+showAdminCard('تم الحظر', 'تم حظر العضو وإخراجه من المجموعة', 'danger');
 toggleMembersModal();
 }
 
@@ -2136,6 +2311,7 @@ document.getElementById(tab + '-list').classList.add('active');
 window.closeChat = function() {
 document.getElementById('chat-screen').classList.remove('active');
 currentChatId = null;
+// Clear history state if needed, but popstate handles UI
 }
 
 window.closeModal = function(id) {
@@ -2172,10 +2348,135 @@ document.body.appendChild(alert);
 setTimeout(() => alert.remove(), 3000);
 }
 
+function showAdminCard(title, message, type) {
+    const card = document.createElement('div');
+    card.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);z-index:4000;display:flex;flex-direction:column;align-items:center;gap:10px;animation:slideUp 0.3s;border-top:4px solid ${type==='success'?'var(--success-color)':type==='danger'?'var(--danger-color)':'var(--warning-color)'};width:80%;max-width:400px;text-align:center;`;
+    card.innerHTML = `
+        <i class="fas fa-${type==='success'?'check-circle':type==='danger'?'ban':'microphone-slash'}" style="font-size:2rem;color:${type==='success'?'var(--success-color)':type==='danger'?'var(--danger-color)':'var(--warning-color)'}"></i>
+        <h4 style="color:var(--text-main)">${title}</h4>
+        <p style="color:var(--text-secondary);font-size:0.9rem">${message}</p>
+    `;
+    document.body.appendChild(card);
+    setTimeout(() => {
+        card.style.opacity = '0';
+        card.style.transition = 'opacity 0.5s';
+        setTimeout(() => card.remove(), 500);
+    }, 3000);
+}
+
+// === Profile Modal Logic ===
+const profileModal = document.getElementById('profileModal');
+let currentProfileUserId = null;
+window.openProfile = async function(userId) {
+try {
+currentProfileUserId = userId;
+const userRef = doc(db, "users", userId);
+const userSnap = await getDoc(userRef);
+if (userSnap.exists()) {
+const user = userSnap.data();
+document.getElementById('modal-name').textContent = user.fullName;
+document.getElementById('modal-username').textContent = user.username ? '@' + user.username : '';
+document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
+document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
+document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
+document.getElementById('modal-followers').textContent = user.followers?.length || 0;
+document.getElementById('modal-following').textContent = user.following?.length || 0;
+// زر المراسلة
+const msgBtn = document.getElementById('modal-message-btn');
+msgBtn.onclick = () => {
+    profileModal.classList.remove('show');
+    // Check if chat exists or create new
+    // Simplified for now: open new chat modal or direct logic
+    openNewChatModal(); 
+    // Pre-fill search could be added here
+};
+// زر المتابعة
+const followBtn = document.getElementById('modal-follow-btn');
+const isFollowing = myFollowing.includes(userId);
+if (isFollowing) {
+followBtn.textContent = 'تتابع ✓';
+followBtn.classList.add('btn-secondary');
+followBtn.classList.remove('btn-primary');
+followBtn.onclick = () => unfollowUser(userId);
+} else {
+followBtn.textContent = 'متابعة';
+followBtn.classList.add('btn-primary');
+followBtn.classList.remove('btn-secondary');
+followBtn.onclick = () => followUser(userId);
+}
+profileModal.classList.add('show');
+document.body.classList.add('modal-open');
+}
+} catch (error) {
+console.error('Error loading profile:', error);
+}
+}
+
+window.closeProfile = function() {
+profileModal.classList.remove('show');
+document.body.classList.remove('modal-open');
+}
+
+window.followUser = async function(userId) {
+try {
+await updateDoc(doc(db, "users", currentUser.uid), {
+following: arrayUnion(userId),
+[`lastFollowedAt.${userId}`]: serverTimestamp()
+});
+await updateDoc(doc(db, "users", userId), {
+followers: arrayUnion(currentUser.uid),
+[`lastFollowedAt.${currentUser.uid}`]: serverTimestamp()
+});
+await addDoc(collection(db, "notifications"), {
+type: 'new_follower',
+targetUserId: userId,
+senderId: currentUser.uid,
+senderName: currentUser.fullName || currentUser.username,
+title: '👤 متابع جديد',
+body: `${currentUser.fullName || currentUser.username} بدأ متابعتك`,
+isRead: false,
+timestamp: serverTimestamp()
+});
+myFollowing.push(userId);
+openProfile(userId); // Refresh
+showAlert('success', 'تمت المتابعة', 'أصبحت تتابع هذا المستخدم');
+} catch (error) {
+console.error('Error following user:', error);
+alert('حدث خطأ: ' + error.message);
+}
+}
+
+window.unfollowUser = async function(userId) {
+if (!confirm('هل تريد إلغاء متابعة هذا المستخدم؟')) return;
+try {
+await updateDoc(doc(db, "users", currentUser.uid), {
+following: arrayRemove(userId)
+});
+await updateDoc(doc(db, "users", userId), {
+followers: arrayRemove(currentUser.uid)
+});
+myFollowing = myFollowing.filter(id => id !== userId);
+openProfile(userId); // Refresh
+showAlert('info', 'تم الإلغاء', 'تم إلغاء المتابعة');
+} catch (error) {
+console.error('Error unfollowing:', error);
+alert('حدث خطأ: ' + error.message);
+}
+}
+
 console.log('🔧 Initializing chat page...');
 initEmojiPicker();
 loadUserData();
 startListeners();
+
+// Handle URL Params for Tabs (from Home Page)
+const urlParams = new URLSearchParams(window.location.search);
+const tabParam = urlParams.get('tab');
+if (tabParam) {
+    const tabEl = document.querySelector(`.chat-tab[onclick*="'${tabParam}'"]`);
+    if(tabEl) tabEl.click();
+}
+
 console.log('🚀 === CHAT PAGE READY ===');
 </script>
 </body>
