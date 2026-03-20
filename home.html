@@ -229,7 +229,7 @@ gap: 5px;
 .see-all:hover {
 gap: 8px;
 }
-/* === المستخدمون === */
+/* === المستخدمون (نظام المتابعة) === */
 .users-scroll {
 display: flex;
 overflow-x: auto;
@@ -319,6 +319,10 @@ font-size: 0.9rem;
 cursor: pointer;
 box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
 transition: all 0.3s;
+}
+.add-friend-btn.following {
+background: var(--input-bg);
+color: var(--text-secondary);
 }
 .add-friend-btn.sent {
 background: var(--warning-color);
@@ -858,7 +862,7 @@ color: var(--text-secondary);
 </div>
 </div>
 <main>
-<!-- السلايدر -->
+<!-- السلايدر (يتم التحكم به من السوبر أدمن) -->
 <section class="slider-container">
 <div class="slider" id="slider">
 <div class="slide">
@@ -887,10 +891,10 @@ color: var(--text-secondary);
 <div class="ticker-content" id="news-content">
 </div>
 </div>
-<!-- المستخدمون -->
+<!-- المستخدمون (نظام المتابعة) -->
 <section>
 <div class="section-title">
-<h2>المستخدمون</h2>
+<h2>اقترحات المتابعة</h2>
 <a href="friends.html" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
 </div>
 <div class="users-scroll" id="users-container">
@@ -901,7 +905,7 @@ color: var(--text-secondary);
 <section>
 <div class="section-title">
 <h2>غرف الدردشة</h2>
-<a href="all-groups.html" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
+<a href="chat.html" class="see-all">عرض الكل <i class="fas fa-chevron-left"></i></a>
 </div>
 <div class="groups-scroll" id="chat-container">
 <div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
@@ -979,7 +983,7 @@ color: var(--text-secondary);
 </a>
 <a href="friends.html" class="nav-item">
 <i class="fas fa-user-friends"></i>
-<span>الأصدقاء</span>
+<span>المتابعون</span>
 </a>
 <a href="profile.html" class="nav-item">
 <i class="fas fa-user"></i>
@@ -1008,20 +1012,19 @@ color: var(--text-secondary);
 </div>
 </div>
 <script type="module">
-import { db, collection, query, limit, getDocs, doc, getDoc, deleteDoc, addDoc, serverTimestamp, where, updateDoc } from './firebase-config.js';
-
+import { db, collection, query, limit, getDocs, doc, getDoc, deleteDoc, addDoc, serverTimestamp, where, updateDoc, arrayUnion, arrayRemove } from './firebase-config.js';
 // === التحقق من الجلسة ===
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
 if (!currentUser || !currentUser.isLoggedIn) {
 window.location.href = 'index.html';
 }
-
 // متغير عام لتخزين البيانات المحظورة
 let pendingFriendRequests = new Set();
 let pendingGroupRequests = new Set();
 let approvedFriends = new Set();
 let joinedGroups = new Set();
-
+let myFollowing = [];
+let myFollowers = [];
 // === تحميل بيانات المستخدم في الهيدر ===
 async function loadUserData() {
 try {
@@ -1031,26 +1034,53 @@ if (userSnap.exists()) {
 const userData = userSnap.data();
 document.getElementById('header-username').textContent = userData.fullName || currentUser.username;
 document.getElementById('header-avatar').src = userData.profileImage || 'https://i.pravatar.cc/150';
+myFollowing = userData.following || [];
+myFollowers = userData.followers || [];
 }
 } catch (error) {
-console.error('Error loading user ', error);
+console.error('Error loading user data:', error);
 document.getElementById('header-username').textContent = currentUser.username;
 document.getElementById('header-avatar').src = 'https://i.pravatar.cc/150';
 }
 }
-
-// === السلايدر ===
-function initSlider() {
+// === السلايدر (يتم تحميله من Firebase) ===
+async function loadSlider() {
+try {
+const sliderRef = doc(db, "app_config", "slider");
+const sliderSnap = await getDoc(sliderRef);
+if (sliderSnap.exists()) {
+const sliderData = sliderSnap.data();
+const items = sliderData.items || [];
+if (items.length > 0) {
 const slider = document.getElementById('slider');
-const slides = document.querySelectorAll('.slide');
 const dotsContainer = document.getElementById('slider-dots');
-let currentIndex = 0;
-slides.forEach((_, index) => {
+slider.innerHTML = '';
+dotsContainer.innerHTML = '';
+items.forEach((item, index) => {
+const slide = document.createElement('div');
+slide.className = 'slide';
+slide.innerHTML = `
+<img src="${item.image}" alt="${item.title}">
+<div class="slide-overlay">
+<div class="slide-title">${item.title || ''}</div>
+</div>
+`;
+slider.appendChild(slide);
 const dot = document.createElement('div');
 dot.className = `dot ${index === 0 ? 'active' : ''}`;
 dot.onclick = () => goToSlide(index);
 dotsContainer.appendChild(dot);
 });
+initSliderLogic(items.length);
+}
+}
+} catch (error) {
+console.error('Error loading slider:', error);
+}
+}
+function initSliderLogic(slideCount) {
+const slider = document.getElementById('slider');
+let currentIndex = 0;
 function goToSlide(index) {
 currentIndex = index;
 slider.style.transform = `translateX(${currentIndex * 100}%)`;
@@ -1059,11 +1089,10 @@ dot.classList.toggle('active', i === currentIndex);
 });
 }
 setInterval(() => {
-currentIndex = (currentIndex + 1) % slides.length;
+currentIndex = (currentIndex + 1) % slideCount;
 goToSlide(currentIndex);
 }, 4000);
 }
-
 // === تحميل شريط الأخبار من Firebase ===
 async function loadNewsTicker() {
 try {
@@ -1076,7 +1105,6 @@ document.getElementById('news-content').textContent = configSnap.data().newsTick
 console.error('Error loading news:', error);
 }
 }
-
 // === تحميل البيانات المحظورة (أصدقاء، مجموعات، طلبات) ===
 async function loadBlockedData() {
 try {
@@ -1092,7 +1120,6 @@ snap2.forEach(doc => {
 const data = doc.data();
 approvedFriends.add(data.userId1);
 });
-
 // 2. تحميل المجموعات المنضم إليها
 const memberQuery = query(collection(db, "group_members"), where("userId", "==", currentUser.uid), where("status", "==", "accepted"));
 const memberSnap = await getDocs(memberQuery);
@@ -1100,14 +1127,12 @@ memberSnap.forEach(doc => {
 const data = doc.data();
 joinedGroups.add(data.groupId);
 });
-
 // 3. تحميل الطلبات المعلقة (أصدقاء)
 const friendReqQuery = query(collection(db, "requests"), where("fromUserId", "==", currentUser.uid), where("type", "==", "friend"), where("status", "==", "pending"));
 const friendSnap = await getDocs(friendReqQuery);
 friendSnap.forEach(doc => {
 pendingFriendRequests.add(doc.data().toUserId);
 });
-
 // 4. تحميل طلبات انضمام المجموعات المعلقة
 const groupReqQuery = query(collection(db, "requests"), where("fromUserId", "==", currentUser.uid), where("type", "==", "group_join"), where("status", "==", "pending"));
 const groupSnap = await getDocs(groupReqQuery);
@@ -1115,11 +1140,10 @@ groupSnap.forEach(doc => {
 pendingGroupRequests.add(doc.data().targetId || doc.data().groupId);
 });
 } catch (error) {
-console.error('Error loading blocked ', error);
+console.error('Error loading blocked data:', error);
 }
 }
-
-// === تحميل المستخدمين (استبعاد الأصدقاء المعتمدين) ===
+// === تحميل المستخدمين (نظام المتابعة) ===
 async function loadUsers() {
 try {
 const usersQuery = query(collection(db, "users"), limit(10));
@@ -1127,8 +1151,8 @@ const snapshot = await getDocs(usersQuery);
 const users = [];
 snapshot.forEach(doc => {
 const user = doc.data();
-// استبعاد: المستخدم الحالي + الأصدقاء المعتمدين
-if (doc.id !== currentUser.uid && !approvedFriends.has(doc.id)) {
+// استبعاد: المستخدم الحالي + الذين أتابعهم بالفعل
+if (doc.id !== currentUser.uid && !myFollowing.includes(doc.id)) {
 users.push({ id: doc.id, ...user });
 }
 });
@@ -1138,17 +1162,15 @@ container.innerHTML = '<div style="color:var(--text-secondary); padding:20px; te
 return;
 }
 container.innerHTML = users.map(user => {
-const isPending = pendingFriendRequests.has(user.id);
-let btnContent = '<i class="fas fa-plus"></i>';
+const isFollowing = myFollowing.includes(user.id);
+let btnContent = '<i class="fas fa-user-plus"></i>';
 let btnClass = '';
-let btnAction = `addFriend('${user.id}')`;
-
-if (isPending) {
-btnContent = '<i class="fas fa-times"></i>';
-btnClass = 'cancel';
-btnAction = `cancelFriendRequest('${user.id}')`;
+let btnAction = `followUser('${user.id}')`;
+if (isFollowing) {
+btnContent = '<i class="fas fa-check"></i>';
+btnClass = 'following';
+btnAction = `unfollowUser('${user.id}')`;
 }
-
 return `
 <div class="user-card" onclick="openProfile('${user.id}')">
 <div class="user-card-img-wrapper">
@@ -1167,8 +1189,55 @@ console.error('Error loading users:', error);
 document.getElementById('users-container').innerHTML = '<div class="loading">خطأ في التحميل</div>';
 }
 }
-
-// === تحميل غرف الدردشة (استبعاد مجموعاتي والمنضم إليها) ===
+// === متابعة مستخدم ===
+window.followUser = async function(userId) {
+try {
+await updateDoc(doc(db, "users", currentUser.uid), {
+following: arrayUnion(userId),
+[`lastFollowedAt.${userId}`]: serverTimestamp()
+});
+await updateDoc(doc(db, "users", userId), {
+followers: arrayUnion(currentUser.uid),
+[`lastFollowedAt.${currentUser.uid}`]: serverTimestamp()
+});
+// إشعار للمستخدم
+await addDoc(collection(db, "notifications"), {
+type: 'new_follower',
+targetUserId: userId,
+senderId: currentUser.uid,
+senderName: currentUser.fullName || currentUser.username,
+title: '👤 متابع جديد',
+body: `${currentUser.fullName || currentUser.username} بدأ متابعتك`,
+isRead: false,
+timestamp: serverTimestamp()
+});
+myFollowing.push(userId);
+loadUsers();
+showAlert('success', 'تمت المتابعة', 'أصبحت تتابع هذا المستخدم');
+} catch (error) {
+console.error('Error following user:', error);
+alert('حدث خطأ: ' + error.message);
+}
+}
+// === إلغاء المتابعة ===
+window.unfollowUser = async function(userId) {
+if (!confirm('هل تريد إلغاء متابعة هذا المستخدم؟')) return;
+try {
+await updateDoc(doc(db, "users", currentUser.uid), {
+following: arrayRemove(userId)
+});
+await updateDoc(doc(db, "users", userId), {
+followers: arrayRemove(currentUser.uid)
+});
+myFollowing = myFollowing.filter(id => id !== userId);
+loadUsers();
+showAlert('info', 'تم الإلغاء', 'تم إلغاء المتابعة');
+} catch (error) {
+console.error('Error unfollowing:', error);
+alert('حدث خطأ: ' + error.message);
+}
+}
+// === تحميل غرف الدردشة (مع إرسال طلب انضمام) ===
 async function loadGroups() {
 try {
 const groupsQuery = query(collection(db, "groups"), limit(10));
@@ -1192,14 +1261,12 @@ container.innerHTML = groups.map((group, index) => {
 const isPending = pendingGroupRequests.has(group.id);
 let btnText = 'انضمام';
 let btnClass = '';
-let btnAction = `requestJoinGroup('${group.id}')`;
-
+let btnAction = `requestJoinGroup('${group.id}', '${group.createdBy}')`;
 if (isPending) {
 btnText = 'تم الإرسال';
 btnClass = 'requested';
 btnAction = `cancelGroupRequest('${group.id}')`;
 }
-
 return `
 <div class="chat-card" onclick="event.stopPropagation()">
 <div class="chat-card-header">
@@ -1225,59 +1292,8 @@ console.error('Error loading groups:', error);
 document.getElementById('chat-container').innerHTML = '<div class="loading">خطأ في التحميل</div>';
 }
 }
-
-// === إدارة طلبات الصداقة ===
-window.addFriend = async function(userId) {
-if (pendingFriendRequests.has(userId)) {
-alert('تم إرسال الطلب بالفعل');
-return;
-}
-try {
-await addDoc(collection(db, "requests"), {
-type: 'friend',
-fromUserId: currentUser.uid,
-fromUserName: currentUser.fullName,
-toUserId: userId,
-status: 'pending',
-timestamp: serverTimestamp()
-});
-await addDoc(collection(db, "notifications"), {
-type: 'friend_request',
-targetUserId: userId,
-senderName: currentUser.fullName || currentUser.username,
-senderId: currentUser.uid,
-title: '📩 طلب صداقة جديد',
-body: `${currentUser.fullName || currentUser.username} أرسل لك طلب صداقة`,
-isRead: false,
-timestamp: serverTimestamp()
-});
-pendingFriendRequests.add(userId);
-loadUsers();
-alert('✅ تم إرسال طلب الصداقة');
-} catch (error) {
-console.error('Error adding friend:', error);
-alert('حدث خطأ أثناء إرسال الطلب');
-}
-}
-
-window.cancelFriendRequest = async function(userId) {
-if (!confirm('هل تريد سحب طلب الصداقة؟')) return;
-try {
-const reqQuery = query(collection(db, "requests"), where("fromUserId", "==", currentUser.uid), where("toUserId", "==", userId), where("type", "==", "friend"), where("status", "==", "pending"));
-const snapshot = await getDocs(reqQuery);
-const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-await Promise.all(deletePromises);
-pendingFriendRequests.delete(userId);
-loadUsers();
-alert('✅ تم سحب الطلب');
-} catch (error) {
-console.error('Error canceling request:', error);
-alert('حدث خطأ');
-}
-}
-
-// === إدارة طلبات انضمام المجموعات ===
-window.requestJoinGroup = async function(groupId) {
+// === إرسال طلب انضمام للمجموعة ===
+window.requestJoinGroup = async function(groupId, creatorId) {
 if (pendingGroupRequests.has(groupId)) {
 alert('تم إرسال طلب الانضمام بالفعل');
 return;
@@ -1287,21 +1303,19 @@ const groupRef = doc(db, "groups", groupId);
 const groupSnap = await getDoc(groupRef);
 if (!groupSnap.exists()) return;
 const groupData = groupSnap.data();
-const ownerId = groupData.createdBy;
-
 await addDoc(collection(db, "requests"), {
 type: 'group_join',
 fromUserId: currentUser.uid,
 fromUserName: currentUser.fullName,
 targetId: groupId,
 targetName: groupData.name,
-toUserId: ownerId,
+toUserId: creatorId,
 status: 'pending',
 timestamp: serverTimestamp()
 });
 await addDoc(collection(db, "notifications"), {
 type: 'group_request',
-targetUserId: ownerId,
+targetUserId: creatorId,
 senderName: currentUser.fullName || currentUser.username,
 senderId: currentUser.uid,
 groupId: groupId,
@@ -1312,13 +1326,13 @@ timestamp: serverTimestamp()
 });
 pendingGroupRequests.add(groupId);
 loadGroups();
-alert('✅ تم إرسال طلب الانضمام لمالك الغرفة');
+showAlert('success', 'تم الإرسال', 'تم إرسال طلب الانضمام لمالك الغرفة');
 } catch (error) {
 console.error('Error joining group:', error);
-alert('حدث خطأ');
+alert('حدث خطأ: ' + error.message);
 }
 }
-
+// === إلغاء طلب انضمام المجموعة ===
 window.cancelGroupRequest = async function(groupId) {
 if (!confirm('هل تريد سحب طلب الانضمام؟')) return;
 try {
@@ -1328,17 +1342,15 @@ const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
 await Promise.all(deletePromises);
 pendingGroupRequests.delete(groupId);
 loadGroups();
-alert('✅ تم سحب الطلب');
+showAlert('info', 'تم السحب', 'تم سحب طلب الانضمام');
 } catch (error) {
 console.error('Error canceling group request:', error);
-alert('حدث خطأ');
+alert('حدث خطأ: ' + error.message);
 }
 }
-
 // === البروفايل ===
 const modal = document.getElementById('profileModal');
 let currentProfileUserId = null;
-
 window.openProfile = async function(userId) {
 try {
 currentProfileUserId = userId;
@@ -1351,35 +1363,27 @@ document.getElementById('modal-username').textContent = user.username ? '@' + us
 document.getElementById('modal-img').src = user.profileImage || 'https://i.pravatar.cc/150';
 document.getElementById('modal-bio').textContent = user.bio || 'لا توجد نبذة';
 document.getElementById('modal-posts').textContent = user.stats?.postsCount || 0;
-document.getElementById('modal-followers').textContent = user.stats?.followersCount || 0;
-document.getElementById('modal-following').textContent = user.stats?.friendsCount || 0;
-
+document.getElementById('modal-followers').textContent = user.followers?.length || 0;
+document.getElementById('modal-following').textContent = user.following?.length || 0;
 // زر المراسلة - يفتح محادثة مباشرة
 const msgBtn = document.getElementById('modal-message-btn');
 msgBtn.onclick = () => {
 window.location.href = `chat.html?targetId=${userId}&targetName=${encodeURIComponent(user.fullName || user.username)}`;
 };
-
 // زر المتابعة
 const followBtn = document.getElementById('modal-follow-btn');
-if (pendingFriendRequests.has(userId)) {
-followBtn.textContent = 'تم الإرسال';
+const isFollowing = myFollowing.includes(userId);
+if (isFollowing) {
+followBtn.textContent = 'تتابع ✓';
 followBtn.classList.add('btn-secondary');
 followBtn.classList.remove('btn-primary');
-followBtn.onclick = () => cancelFriendRequest(userId);
-} else if (approvedFriends.has(userId)) {
-followBtn.textContent = 'صديق';
-followBtn.classList.add('btn-secondary');
-followBtn.classList.remove('btn-primary');
-followBtn.disabled = true;
-followBtn.style.opacity = '0.6';
+followBtn.onclick = () => unfollowUser(userId);
 } else {
 followBtn.textContent = 'متابعة';
 followBtn.classList.add('btn-primary');
 followBtn.classList.remove('btn-secondary');
-followBtn.onclick = () => addFriend(userId);
+followBtn.onclick = () => followUser(userId);
 }
-
 modal.classList.add('show');
 document.body.classList.add('scroll-locked');
 }
@@ -1387,17 +1391,14 @@ document.body.classList.add('scroll-locked');
 console.error('Error loading profile:', error);
 }
 }
-
 window.closeProfile = function() {
 modal.classList.remove('show');
 document.body.classList.remove('scroll-locked');
 }
-
 // === الإشعارات ===
 const notificationBtn = document.getElementById('notification-btn');
 const notificationPanel = document.getElementById('notification-panel');
 const notifCount = document.getElementById('notif-count');
-
 async function updateNotificationCount() {
 try {
 const notificationsRef = collection(db, "notifications");
@@ -1420,7 +1421,6 @@ notifCount.style.display = unreadCount > 0 ? 'flex' : 'none';
 console.error('Error updating notification count:', error);
 }
 }
-
 async function loadNotifications() {
 try {
 const container = document.getElementById('notification-list');
@@ -1445,7 +1445,6 @@ const timeB = b.timestamp?.toDate?.() || b.timestamp || new Date(0);
 return new Date(timeB) - new Date(timeA);
 });
 userNotifications = userNotifications.slice(0, 50);
-
 if (userNotifications.length === 0) {
 container.innerHTML = `
 <div style="text-align:center; padding:40px; color:var(--text-secondary);">
@@ -1467,6 +1466,7 @@ else if (n.type === 'friend' || n.type === 'friend_request') { iconClass = 'fa-u
 else if (n.type === 'wallet' || n.type === 'points') { iconClass = 'fa-coins'; iconBg = 'wallet'; }
 else if (n.type === 'group' || n.type === 'group_request') { iconClass = 'fa-users'; iconBg = 'group'; }
 else if (n.type === 'support' || n.senderName === 'فريق الدعم الفني') { iconClass = 'fa-headset'; iconBg = 'support'; }
+else if (n.type === 'new_follower') { iconClass = 'fa-user'; iconBg = 'friend'; }
 return `
 <div class="notification-item ${!n.isRead ? 'unread' : ''}" onclick="markNotificationRead('${n.id}')">
 <div class="notification-icon ${iconBg}">
@@ -1495,7 +1495,6 @@ document.getElementById('notification-list').innerHTML = `
 `;
 }
 }
-
 function formatNotificationTime(timestamp) {
 if (!timestamp) return '';
 const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -1506,7 +1505,6 @@ if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
 if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
 return date.toLocaleDateString('ar-SA');
 }
-
 window.markNotificationRead = async function(notifId) {
 try {
 await updateDoc(doc(db, "notifications", notifId), { isRead: true });
@@ -1516,7 +1514,6 @@ await updateNotificationCount();
 console.error('Error:', error);
 }
 }
-
 window.deleteNotification = async function(notifId, event) {
 event.stopPropagation();
 if (confirm('هل تريد حذف هذا الإشعار؟')) {
@@ -1529,7 +1526,6 @@ console.error('Error:', error);
 }
 }
 }
-
 window.clearAllNotifications = async function() {
 if (!confirm('هل تريد مسح جميع الإشعارات؟')) return;
 try {
@@ -1550,29 +1546,22 @@ deletePromises.push(deleteDoc(doc.ref));
 await Promise.all(deletePromises);
 loadNotifications();
 await updateNotificationCount();
-alert('✅ تم مسح جميع الإشعارات');
+showAlert('success', 'تم المسح', 'تم مسح جميع الإشعارات');
 } catch (error) {
 console.error('Error:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
-
-// === إغلاق لوحة الإشعارات (زر إلغاء) ===
 window.closeNotificationPanel = function() {
 notificationPanel.classList.remove('show');
 document.body.classList.remove('scroll-locked');
 }
-
-// فتح/غلق لوحة الإشعارات مع قفل السكرول
 notificationBtn.addEventListener('click', async () => {
 const isOpening = !notificationPanel.classList.contains('show');
 notificationPanel.classList.toggle('show');
-
 if (isOpening) {
-// عند الفتح: قفل السكرول + تحميل الإشعارات + تصفير العداد
 document.body.classList.add('scroll-locked');
 await loadNotifications();
-// تصفير جميع الإشعارات كمقروءة
 const notificationsRef = collection(db, "notifications");
 const snapshot = await getDocs(notificationsRef);
 const currentUid = (currentUser.uid || '').toString().trim().toLowerCase();
@@ -1590,21 +1579,15 @@ updatePromises.push(updateDoc(docSnap.ref, { isRead: true }));
 await Promise.all(updatePromises);
 await updateNotificationCount();
 } else {
-// عند الغلق: فتح السكرول
 document.body.classList.remove('scroll-locked');
 }
 });
-
-// إغلاق اللوحة عند النقر خارجها
 document.addEventListener('click', (e) => {
 if (!notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
 closeNotificationPanel();
 }
 });
-
-// تحديث العداد كل 10 ثواني (للاشعارات الجديدة فقط)
 setInterval(updateNotificationCount, 10000);
-
 // === الوضع الليلي ===
 document.getElementById('theme-toggle').addEventListener('click', () => {
 document.body.classList.toggle('dark-mode');
@@ -1612,18 +1595,23 @@ const icon = document.querySelector('#theme-toggle i');
 icon.classList.toggle('fa-moon');
 icon.classList.toggle('fa-sun');
 });
-
+// === دالة التنبيه ===
+function showAlert(type, title, message) {
+const alert = document.createElement('div');
+alert.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:15px 25px;box-shadow:0 10px 40px rgba(0,0,0,0.2);z-index:4000;display:flex;align-items:center;gap:10px;animation:slideDown 0.3s;border-right:4px solid ${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}`;
+alert.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle'}" style="color:${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}"></i><div><b>${title}</b><br><small style="color:var(--text-secondary)">${message}</small></div>`;
+document.body.appendChild(alert);
+setTimeout(() => alert.remove(), 3000);
+}
 // === التهيئة ===
 document.addEventListener('DOMContentLoaded', async () => {
 loadUserData();
-initSlider();
+await loadSlider();
 loadNewsTicker();
-await loadBlockedData(); // تحميل البيانات المحظورة أولاً
+await loadBlockedData();
 loadUsers();
 loadGroups();
 });
-
-// إغلاق المودال عند النقر خارجه
 modal.addEventListener('click', (e) => {
 if (e.target === modal) closeProfile();
 });
