@@ -48,7 +48,7 @@ body.modal-open {
 overflow: hidden;
 }
 body.keyboard-open {
-padding-bottom: calc(var(--nav-height) + 350px);
+padding-bottom: 400px;
 }
 header {
 position: sticky;
@@ -840,6 +840,7 @@ width: 40px;
 height: 40px;
 border-radius: 50%;
 object-fit: cover;
+cursor: pointer;
 }
 .member-role {
 font-size: 0.75rem;
@@ -1007,7 +1008,56 @@ width: calc(100% - 40px);
 transform: translateY(-2px);
 box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
-/* Profile Modal Styles */
+/* Admin Card Toast */
+.admin-card-toast {
+position: fixed;
+bottom: 100px;
+left: 50%;
+transform: translateX(-50%);
+background: var(--card-bg);
+border-radius: 16px;
+padding: 20px;
+box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+z-index: 4000;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 10px;
+animation: slideUp 0.3s;
+border-top: 4px solid;
+width: 80%;
+max-width: 400px;
+text-align: center;
+}
+.admin-card-toast.success {
+border-color: var(--success-color);
+}
+.admin-card-toast.warning {
+border-color: var(--warning-color);
+}
+.admin-card-toast.danger {
+border-color: var(--danger-color);
+}
+.admin-card-toast i {
+font-size: 2rem;
+}
+.admin-card-toast.success i {
+color: var(--success-color);
+}
+.admin-card-toast.warning i {
+color: var(--warning-color);
+}
+.admin-card-toast.danger i {
+color: var(--danger-color);
+}
+.admin-card-toast h4 {
+color: var(--text-main);
+}
+.admin-card-toast p {
+color: var(--text-secondary);
+font-size: 0.9rem;
+}
+/* Profile Modal */
 .profile-modal-overlay {
 position: fixed;
 top: 0;
@@ -1047,6 +1097,7 @@ border-radius: 25px;
 object-fit: cover;
 border: 4px solid var(--primary-color);
 margin-bottom: 15px;
+cursor: pointer;
 }
 .profile-name {
 font-size: 1.4rem;
@@ -1307,14 +1358,14 @@ setDoc, updateDoc, addDoc, arrayUnion, arrayRemove, serverTimestamp, increment, 
 } from './firebase-config.js';
 console.log('✅ Firebase imported');
 
-// === Local Storage Cache Helpers ===
+// === Local Storage Cache ===
 const CACHE_KEY = 'chat_app_cache_v1';
 function getCache() {
-    const cached = localStorage.getItem(CACHE_KEY);
-    return cached ? JSON.parse(cached) : { chats: [], groups: [], users: [], requests: [] };
+const cached = localStorage.getItem(CACHE_KEY);
+return cached ? JSON.parse(cached) : { chats: [], groups: [], users: [], requests: [], homeContent: null };
 }
 function saveCache(data) {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+localStorage.setItem(CACHE_KEY, JSON.stringify(data));
 }
 let cache = getCache();
 
@@ -1340,6 +1391,7 @@ let myFollowing = [];
 let myFollowers = [];
 let blockedUsers = new Set();
 let isKeyboardOpen = false;
+let chatInHistory = false;
 
 function applyDarkMode() {
 const isDark = localStorage.getItem('darkMode') === 'true';
@@ -1370,10 +1422,10 @@ console.log('📡 Starting listeners...');
 const chatsQuery = query(collection(db, "chats"), where("participants", "array-contains", currentUser.uid));
 onSnapshot(chatsQuery, (snapshot) => {
 allChats = [];
-snapshot.forEach(doc => {
-const chat = { id: doc.id, ...doc.data() };
+snapshot.forEach(docSnapshot => {
+const chat = { id: docSnapshot.id, ...docSnapshot.data() };
 const unread = chat.unreadCount?.[currentUser.uid] || 0;
-chatUnreadCounts[doc.id] = unread;
+chatUnreadCounts[docSnapshot.id] = unread;
 allChats.push(chat);
 });
 updateTotalUnreadCount();
@@ -1386,13 +1438,13 @@ console.log('✅ Chats loaded:', allChats.length);
 const groupsQuery = query(collection(db, "groups"), where("isActive", "==", true));
 onSnapshot(groupsQuery, (snapshot) => {
 allGroups = [];
-snapshot.forEach(doc => {
-const group = { id: doc.id, ...doc.data() };
+snapshot.forEach(docSnapshot => {
+const group = { id: docSnapshot.id, ...docSnapshot.data() };
 const isMember = group.creatorId === currentUser.uid ||
 (Array.isArray(group.members) && group.members.some(m => m.userId === currentUser.uid));
 if (isMember) {
 const unread = group.unreadCount?.[currentUser.uid] || 0;
-chatUnreadCounts[doc.id] = unread;
+chatUnreadCounts[docSnapshot.id] = unread;
 allGroups.push(group);
 }
 });
@@ -1412,8 +1464,8 @@ where("status", "==", "pending")
 );
 onSnapshot(groupJoinRequestsQuery, (snapshot) => {
 const groupReqs = [];
-snapshot.forEach(doc => {
-const req = { id: doc.id, ...doc.data() };
+snapshot.forEach(docSnapshot => {
+const req = { id: docSnapshot.id, ...docSnapshot.data() };
 if (req.groupCreatorId === currentUser.uid || req.toUserId === currentUser.uid) {
 groupReqs.push(req);
 }
@@ -1432,7 +1484,7 @@ where("status", "==", "pending")
 );
 onSnapshot(myJoinRequestsQuery, (snapshot) => {
 const myReqs = [];
-snapshot.forEach(doc => { myReqs.push({ id: doc.id, ...doc.data() }); });
+snapshot.forEach(docSnapshot => { myReqs.push({ id: docSnapshot.id, ...docSnapshot.data() }); });
 pendingJoinRequestIds = myReqs.map(r => r.groupId || r.targetId);
 renderSuggestedGroups();
 renderJoinedGroups();
@@ -1443,16 +1495,15 @@ loadAllUsers();
 
 async function loadAllUsers() {
 try {
-// Try cache first
 if (allUsers.length > 0) {
-    console.log('✅ Users loaded from cache');
-    return;
+console.log('✅ Users loaded from cache');
+return;
 }
 const usersSnapshot = await getDocs(collection(db, "users"));
 allUsers = [];
-usersSnapshot.forEach(doc => {
-const user = { id: doc.id, ...doc.data() };
-if (doc.id !== currentUser.uid) {
+usersSnapshot.forEach(docSnapshot => {
+const user = { id: docSnapshot.id, ...docSnapshot.data() };
+if (docSnapshot.id !== currentUser.uid) {
 allUsers.push(user);
 }
 });
@@ -1647,7 +1698,7 @@ container.innerHTML = '<div class="empty-state" style="grid-column: span 2;"><i 
 return;
 }
 container.innerHTML = joinedGroups.map(group => {
-const isMember = true; // filtered above
+const isMember = true;
 const isPending = pendingJoinRequestIds.includes(group.id);
 const memberCount = group.memberCount || (group.members ? group.members.length : 0);
 return `
@@ -1724,8 +1775,8 @@ where("status", "==", "pending")
 );
 const snapshot = await getDocs(requestsQuery);
 const deletePromises = [];
-snapshot.forEach(doc => {
-deletePromises.push(deleteDoc(doc.ref));
+snapshot.forEach(docSnapshot => {
+deletePromises.push(deleteDoc(docSnapshot.ref));
 });
 await Promise.all(deletePromises);
 pendingJoinRequestIds = pendingJoinRequestIds.filter(id => id !== groupId);
@@ -1834,7 +1885,10 @@ currentChatId = chatId;
 currentChatType = type;
 document.getElementById('chat-screen').classList.add('active');
 // Push state for back button
+if (!chatInHistory) {
 history.pushState({page: 'chat'}, '', '#chat-open');
+chatInHistory = true;
+}
 
 if (chatUnreadCounts[chatId]) {
 chatUnreadCounts[chatId] = 0;
@@ -1861,18 +1915,22 @@ document.getElementById('cs-status').textContent = `${group.memberCount || (grou
 }
 }
 loadMessages();
-// Focus input immediately
+// Focus input immediately - Keep keyboard open
 setTimeout(() => {
-    const input = document.getElementById('message-input');
-    if(input) input.focus();
+const input = document.getElementById('message-input');
+if(input) {
+input.focus();
+document.body.classList.add('keyboard-open');
+isKeyboardOpen = true;
+}
 }, 500);
 }
 
 // === Back Button Handler ===
 window.addEventListener('popstate', (event) => {
-    if (document.getElementById('chat-screen').classList.contains('active')) {
-        closeChat();
-    }
+if (document.getElementById('chat-screen').classList.contains('active')) {
+closeChat();
+}
 });
 
 // === تحميل الرسائل ===
@@ -1885,8 +1943,8 @@ const messagesQuery = query(collection(db, collectionPath), orderBy("timestamp",
 onSnapshot(messagesQuery, (snapshot) => {
 const area = document.getElementById('messages-area');
 area.innerHTML = '';
-snapshot.forEach(doc => {
-const msg = doc.data();
+snapshot.forEach(docSnapshot => {
+const msg = docSnapshot.data();
 const isSent = msg.senderId === currentUser.uid;
 const sender = allUsers.find(u => u.id === msg.senderId);
 const senderName = sender ? (sender.fullName || sender.username) : (msg.senderName || 'مستخدم');
@@ -1897,18 +1955,18 @@ imageHtml = `<img src="${msg.image}" class="message-image" onclick="openImageMod
 const isLiked = msg.reactions?.like?.includes(currentUser.uid);
 const canDelete = msg.senderId === currentUser.uid || currentUser.role === 'admin' || currentUser.role === 'super_admin';
 area.innerHTML += `
-<div class="message-row ${isSent ? 'sent' : 'received'}" data-message-id="${doc.id}">
+<div class="message-row ${isSent ? 'sent' : 'received'}" data-message-id="${docSnapshot.id}">
 ${!isSent && currentChatType === 'group' ? `<div class="message-sender-name">${senderName}</div>` : ''}
 <div class="message-bubble">
 ${msg.text ? `<div>${msg.text}</div>` : ''}
 ${imageHtml}
 <div class="message-reactions">
 ${msg.reactions?.like?.length > 0 ? `
-<div class="reaction-badge ${isLiked ? 'active' : ''}" onclick="toggleReaction('${doc.id}', '${collectionPath}')">
+<div class="reaction-badge ${isLiked ? 'active' : ''}" onclick="toggleReaction('${docSnapshot.id}', '${collectionPath}')">
 ❤️ ${msg.reactions.like.length}
 </div>
 ` : `
-<div class="reaction-badge" onclick="toggleReaction('${doc.id}', '${collectionPath}')">
+<div class="reaction-badge" onclick="toggleReaction('${docSnapshot.id}', '${collectionPath}')">
 ❤️ أعجبني
 </div>
 `}
@@ -1917,7 +1975,7 @@ ${msg.reactions?.like?.length > 0 ? `
 <small style="font-size:0.7rem; color:var(--text-secondary); margin-top:4px;">${formatTime(msg.timestamp)}</small>
 <div class="message-actions">
 <button class="action-icon" onclick="replyToMessage('${(msg.text || '').substring(0, 30)}')"><i class="fas fa-reply"></i> رد</button>
-${canDelete ? `<button class="action-icon admin-delete" onclick="deleteMessage('${doc.id}', '${collectionPath}')"><i class="fas fa-trash"></i> حذف</button>` : ''}
+${canDelete ? `<button class="action-icon admin-delete" onclick="deleteMessage('${docSnapshot.id}', '${collectionPath}')"><i class="fas fa-trash"></i> حذف</button>` : ''}
 </div>
 </div>`;
 });
@@ -1994,8 +2052,10 @@ timestamp: serverTimestamp()
 }
 });
 input.value = '';
-// Keep keyboard open
+// Keep keyboard open - DO NOT remove focus
 input.focus();
+document.body.classList.add('keyboard-open');
+isKeyboardOpen = true;
 removeSelectedImage();
 cancelReply();
 }
@@ -2009,7 +2069,7 @@ document.getElementById('message-input').addEventListener('focus', function() {
 document.body.classList.add('keyboard-open');
 isKeyboardOpen = true;
 });
-// Removed blur listener that closes keyboard immediately
+// Removed blur listener that closes keyboard
 
 // === وظائف معالجة الصورة ===
 window.handleImageSelect = function(input) {
@@ -2145,12 +2205,12 @@ showAlert('error', 'خطأ', error.message);
 
 // Group Image Handling
 document.getElementById('group-image').addEventListener('change', function(e) {
-    if (e.target.files && e.target.files[0]) {
-        compressImage(e.target.files[0]).then(base64 => {
-            currentGroupImageBase64 = base64;
-            showAlert('success', 'تم', 'تم اختيار صورة المجموعة');
-        });
-    }
+if (e.target.files && e.target.files[0]) {
+compressImage(e.target.files[0]).then(base64 => {
+currentGroupImageBase64 = base64;
+showAlert('success', 'تم', 'تم اختيار صورة المجموعة');
+});
+}
 });
 
 window.openNewChatModal = function() {
@@ -2200,7 +2260,7 @@ const isCreator = group.creatorId === currentUser.uid;
 container.innerHTML = group.members.map(member => `
 <div class="member-item">
 <div class="member-info">
-<img src="https://i.pravatar.cc/150?u=${member.userId}" class="member-avatar">
+<img src="https://i.pravatar.cc/150?u=${member.userId}" class="member-avatar" onclick="openProfile('${member.userId}')">
 <div>
 <div>${member.userName}</div>
 <span class="member-role">${member.role === 'admin' ? 'مشرف' : 'عضو'}</span>
@@ -2240,9 +2300,9 @@ m.userId === memberId ? { ...m, isMuted: newStatus } : m
 )
 });
 if(newStatus) {
-    showAdminCard('تم الكتم', 'تم كتم العضو ومنعه من الكتابة', 'warning');
+showAdminCard('تم الكتم', 'تم كتمك ومنعك من الكتابة', 'warning');
 } else {
-    showAdminCard('تم رفع الكتم', 'يمكن للعضو الكتابة الآن', 'success');
+showAdminCard('تم رفع الكتم', 'يمكنك الكتابة الآن', 'success');
 }
 toggleMembersModal();
 }
@@ -2255,7 +2315,7 @@ await updateDoc(doc(db, 'groups', currentChatId), {
 members: group.members.filter(m => m.userId !== memberId),
 memberCount: increment(-1)
 });
-showAdminCard('تم الحظر', 'تم حظر العضو وإخراجه من المجموعة', 'danger');
+showAdminCard('تم الحظر', 'تم حظرك من الغرفة', 'danger');
 toggleMembersModal();
 }
 
@@ -2310,8 +2370,10 @@ document.getElementById(tab + '-list').classList.add('active');
 
 window.closeChat = function() {
 document.getElementById('chat-screen').classList.remove('active');
+document.body.classList.remove('keyboard-open');
+isKeyboardOpen = false;
 currentChatId = null;
-// Clear history state if needed, but popstate handles UI
+chatInHistory = false;
 }
 
 window.closeModal = function(id) {
@@ -2349,19 +2411,19 @@ setTimeout(() => alert.remove(), 3000);
 }
 
 function showAdminCard(title, message, type) {
-    const card = document.createElement('div');
-    card.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);z-index:4000;display:flex;flex-direction:column;align-items:center;gap:10px;animation:slideUp 0.3s;border-top:4px solid ${type==='success'?'var(--success-color)':type==='danger'?'var(--danger-color)':'var(--warning-color)'};width:80%;max-width:400px;text-align:center;`;
-    card.innerHTML = `
-        <i class="fas fa-${type==='success'?'check-circle':type==='danger'?'ban':'microphone-slash'}" style="font-size:2rem;color:${type==='success'?'var(--success-color)':type==='danger'?'var(--danger-color)':'var(--warning-color)'}"></i>
-        <h4 style="color:var(--text-main)">${title}</h4>
-        <p style="color:var(--text-secondary);font-size:0.9rem">${message}</p>
-    `;
-    document.body.appendChild(card);
-    setTimeout(() => {
-        card.style.opacity = '0';
-        card.style.transition = 'opacity 0.5s';
-        setTimeout(() => card.remove(), 500);
-    }, 3000);
+const card = document.createElement('div');
+card.className = `admin-card-toast ${type}`;
+card.innerHTML = `
+<i class="fas fa-${type==='success'?'check-circle':type==='danger'?'ban':'microphone-slash'}"></i>
+<h4>${title}</h4>
+<p>${message}</p>
+`;
+document.body.appendChild(card);
+setTimeout(() => {
+card.style.opacity = '0';
+card.style.transition = 'opacity 0.5s';
+setTimeout(() => card.remove(), 500);
+}, 3000);
 }
 
 // === Profile Modal Logic ===
@@ -2384,11 +2446,8 @@ document.getElementById('modal-following').textContent = user.following?.length 
 // زر المراسلة
 const msgBtn = document.getElementById('modal-message-btn');
 msgBtn.onclick = () => {
-    profileModal.classList.remove('show');
-    // Check if chat exists or create new
-    // Simplified for now: open new chat modal or direct logic
-    openNewChatModal(); 
-    // Pre-fill search could be added here
+profileModal.classList.remove('show');
+openNewChatModal();
 };
 // زر المتابعة
 const followBtn = document.getElementById('modal-follow-btn');
@@ -2438,7 +2497,7 @@ isRead: false,
 timestamp: serverTimestamp()
 });
 myFollowing.push(userId);
-openProfile(userId); // Refresh
+openProfile(userId);
 showAlert('success', 'تمت المتابعة', 'أصبحت تتابع هذا المستخدم');
 } catch (error) {
 console.error('Error following user:', error);
@@ -2456,7 +2515,7 @@ await updateDoc(doc(db, "users", userId), {
 followers: arrayRemove(currentUser.uid)
 });
 myFollowing = myFollowing.filter(id => id !== userId);
-openProfile(userId); // Refresh
+openProfile(userId);
 showAlert('info', 'تم الإلغاء', 'تم إلغاء المتابعة');
 } catch (error) {
 console.error('Error unfollowing:', error);
@@ -2473,8 +2532,8 @@ startListeners();
 const urlParams = new URLSearchParams(window.location.search);
 const tabParam = urlParams.get('tab');
 if (tabParam) {
-    const tabEl = document.querySelector(`.chat-tab[onclick*="'${tabParam}'"]`);
-    if(tabEl) tabEl.click();
+const tabEl = document.querySelector(`.chat-tab[onclick*="'${tabParam}'"]`);
+if(tabEl) tabEl.click();
 }
 
 console.log('🚀 === CHAT PAGE READY ===');
