@@ -765,35 +765,27 @@ document.getElementById('support-count').textContent = count;
 document.getElementById('nav-support-count').textContent = count;
 document.getElementById('nav-support-count').style.display = count > 0 ? 'inline-block' : 'none';
 }
- function updateStats() {
-            document.getElementById('stat-users').textContent = allUsers.length;
-            document.getElementById('stat-messages').textContent = allChats.length;
-            document.getElementById('stat-wallet').textContent = allUsers.reduce((sum, u) => sum + (u.wallet?.points || 0), 0).toLocaleString();
-            document.getElementById('stat-banned').textContent = allUsers.filter(u => u.banned).length;
-        }
-        
-        function populateWalletSelect() {
-            const select = document.getElementById('wallet-user-select');
-            select.innerHTML = '<option value="">-- اختر مستخدم --</option>';
-            allUsers.forEach(u => {
-                select.innerHTML += `<option value="${u.id}">${u.fullName} (${u.wallet?.points?.toLocaleString() || 0} نقطة)</option>`;
-            });
-        }
-        
-        function populateUserSelect() {
-            const select = document.getElementById('target-user');
-            if (!select) return;
-            select.innerHTML = '<option value="">-- اختر مستخدم --</option>';
-            allUsers.forEach(u => {
-                select.innerHTML += `<option value="${u.id}">${u.fullName} (@${u.username || 'N/A'})</option>`;
-            });
-        }
-        
-        window.toggleUserSelect = function() {
-            const type = document.getElementById('notif-type').value;
-            document.getElementById('user-select-group').style.display = type === 'specific' ? 'block' : 'none';
-            if (type === 'specific') populateUserSelect();
-        }
+function updateStats() {
+document.getElementById('stat-users').textContent = allUsers.length;
+document.getElementById('stat-messages').textContent = allChats.length;
+document.getElementById('stat-posts').textContent = allPosts.length;
+document.getElementById('stat-banned').textContent = allUsers.filter(u => u.banned).length;
+}
+function populateWalletSelect() {
+const select = document.getElementById('wallet-user-select');
+select.innerHTML = '<option value="">-- اختر مستخدم --</option>';
+allUsers.forEach(u => {
+select.innerHTML += `<option value="${u.id}">${u.fullName} (${u.wallet?.points?.toLocaleString() || 0} نقطة)</option>`;
+});
+}
+function populateUserSelect() {
+const select = document.getElementById('target-user');
+if (!select) return;
+select.innerHTML = '<option value="">-- اختر مستخدم --</option>';
+allUsers.forEach(u => {
+select.innerHTML += `<option value="${u.id}">${u.fullName} (@${u.username || 'N/A'})</option>`;
+});
+}
 // === View Functions ===
 window.viewChat = async function(chatId) {
 const chat = allChats.find(c => c.id === chatId);
