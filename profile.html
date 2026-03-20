@@ -113,7 +113,6 @@ grid-template-columns: 1fr;
 text-align: center; 
 } 
 }
-/* الجانب الأيمن - الصورة */
 .profile-right { 
 display: flex; 
 flex-direction: column; 
@@ -157,7 +156,6 @@ transition: transform 0.3s;
 .edit-avatar-btn:hover { 
 transform: scale(1.1); 
 }
-/* الجانب الأيسر - المعلومات */
 .profile-left { 
 display: flex; 
 flex-direction: column; 
@@ -190,7 +188,6 @@ color: var(--text-secondary);
 font-style: italic; 
 opacity: 0.6; 
 }
-/* الإحصائيات */
 .stats-row { 
 display: flex; 
 justify-content: center; 
@@ -250,7 +247,6 @@ transform: scale(0.98);
 .edit-profile-btn:hover { 
 transform: translateY(-2px); 
 }
-/* المحفظة */
 .wallet-card { 
 margin: 0 20px 20px; 
 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
@@ -306,7 +302,6 @@ justify-content: center;
 font-size: 1.5rem; 
 color: var(--wallet-gold); 
 }
-/* الإعدادات */
 .settings-list { 
 padding: 0 20px; 
 }
@@ -410,7 +405,6 @@ background-color: var(--primary-color);
 input:checked + .slider:before { 
 transform: translateX(24px); 
 }
-/* المودال */
 .modal-overlay { 
 position: fixed; 
 top: 0; 
@@ -581,7 +575,6 @@ color: var(--success-color);
 .t-amount.minus { 
 color: var(--danger-color); 
 }
-/* الفوتر */
 .bottom-nav { 
 position: fixed; 
 bottom: 0; 
@@ -619,7 +612,6 @@ color: var(--primary-color);
 .nav-item.active i { 
 transform: translateY(-3px); 
 }
-/* عناصر إضافية */
 .theme-float { 
 position: absolute; 
 top: 20px; 
@@ -732,7 +724,6 @@ display: flex;
 from { transform: translateX(-50%) translateY(-20px); opacity: 0; } 
 to { transform: translateX(-50%) translateY(0); opacity: 1; } 
 }
-/* مودال عرض المنشورات والمتابعين */
 .stats-modal-list { 
 max-height: 400px; 
 overflow-y: auto; 
@@ -830,7 +821,6 @@ gap: 8px;
 <!-- البروفايل - تصميم الهوية البصرية -->
 <section class="profile-section">
 <div class="profile-layout">
-<!-- الجانب الأيمن - الصورة -->
 <div class="profile-right">
 <div class="avatar-wrapper">
 <img src="" alt="Profile" class="profile-avatar" id="profile-img-display">
@@ -843,7 +833,6 @@ gap: 8px;
 <input type="file" id="profile-img-input" hidden accept="image/*" onchange="uploadImage(event)">
 </div>
 </div>
-<!-- الجانب الأيسر - المعلومات -->
 <div class="profile-left">
 <div>
 <h2 class="profile-name" id="display-name">جاري التحميل...</h2>
@@ -854,7 +843,6 @@ gap: 8px;
 </div>
 </div>
 </div>
-<!-- الإحصائيات -->
 <div class="stats-row">
 <div class="stat-item" onclick="showUserPosts()">
 <b id="stat-posts">0</b>
@@ -1165,12 +1153,13 @@ let pageInitialized = false;
 let myPosts = [];
 let myFollowers = [];
 let myFollowing = [];
+
 // === حفظ حالة الصفحة محلياً ===
 function savePageState() {
 if (currentUserData) {
 localStorage.setItem('profilePageState', JSON.stringify({
 uid: currentUser.uid,
-data: currentUserData,
+currentUserData,
 timestamp: Date.now()
 }));
 }
@@ -1181,7 +1170,6 @@ if (saved) {
 try {
 const state = JSON.parse(saved);
 if (state.uid === currentUser.uid) {
-// تحقق من مرور أكثر من 5 دقائق
 if (Date.now() - state.timestamp < 300000) {
 return state.data;
 }
@@ -1192,13 +1180,13 @@ console.error('Error loading state:', e);
 }
 return null;
 }
+
 // === تحميل بيانات المستخدم ===
 async function loadUserData() {
 showRefreshIndicator();
 try {
 console.log('📥 Loading user data...');
 const userRef = doc(db, "users", currentUser.uid);
-// تحميل أولي
 const userSnap = await getDoc(userRef);
 if (userSnap.exists()) {
 currentUserData = userSnap.data();
@@ -1206,12 +1194,10 @@ console.log('✅ User data loaded:', currentUserData);
 renderProfile(currentUserData);
 savePageState();
 }
-// تحديث حي للبيانات (Real-time)
 if (walletUnsubscribe) walletUnsubscribe();
 walletUnsubscribe = onSnapshot(userRef, (snap) => {
 if (snap.exists()) {
 const newData = snap.data();
-// فقط إذا كانت هناك تغييرات
 if (JSON.stringify(newData) !== JSON.stringify(currentUserData)) {
 currentUserData = newData;
 renderProfile(currentUserData);
@@ -1223,7 +1209,6 @@ console.log('🔄 Profile data updated');
 console.log('✅ User data listener active');
 } catch (error) {
 console.error('❌ Error loading user:', error);
-// محاولة تحميل من الذاكرة المحلية
 const cached = loadPageState();
 if (cached) {
 currentUserData = cached;
@@ -1232,7 +1217,7 @@ renderProfile(currentUserData);
 }
 hideRefreshIndicator();
 }
-// عرض بيانات البروفايل
+
 function renderProfile(data) {
 const nameEl = document.getElementById('display-name');
 const usernameEl = document.getElementById('display-username');
@@ -1259,47 +1244,41 @@ if (followersEl) followersEl.textContent = (data.followers || []).length;
 if (followingEl) followingEl.textContent = (data.following || []).length;
 if (avatarEl) avatarEl.src = data.profileImage || 'https://i.pravatar.cc/150';
 if (privateToggle) privateToggle.checked = data.isPrivate || false;
-// تحديث المحفظة
 updateWalletDisplay(data.wallet?.points || 0);
-// تعبئة فورم التعديل
 document.getElementById('edit-name').value = data.fullName || '';
 document.getElementById('edit-username').value = data.username || '';
 document.getElementById('edit-country').value = data.country || 'SA';
 document.getElementById('edit-phone').value = data.phone || '';
 document.getElementById('edit-bio').value = data.bio || '';
-// حقول كلمة المرور فارغة دائماً
 document.getElementById('edit-old-password').value = '';
 document.getElementById('edit-new-password').value = '';
 document.getElementById('edit-confirm-password').value = '';
-// حفظ القوائم
 myFollowers = data.followers || [];
 myFollowing = data.following || [];
-// علامة تحميل الصفحة
 if (!pageInitialized) {
 document.body.classList.add('page-loaded');
 pageInitialized = true;
 }
 }
-// تحديث عرض المحفظة (100 نقطة = $2)
+
 function updateWalletDisplay(points) {
 const walletEl = document.getElementById('wallet-points');
 const usdEl = document.getElementById('wallet-usd');
 if (walletEl) walletEl.innerHTML = points.toLocaleString() + ' <i class="fas fa-coins"></i>';
 if (usdEl) {
-const usd = (points / 100) * 2; // 100 نقطة = $2
+const usd = (points / 100) * 2;
 usdEl.textContent = `≈ $${usd.toFixed(2)}`;
 }
 }
-// === رفع صورة البروفايل مع الضغط ===
+
+// === رفع صورة البروفايل ===
 window.uploadImage = async function(event) {
 const file = event.target.files[0];
 if (!file) return;
-// التحقق من نوع الملف
 if (!file.type.startsWith('image/')) {
 showStatus('⚠️ الرجاء اختيار ملف صورة صحيح', 'error');
 return;
 }
-// التحقق من حجم الملف الأولي
 if (file.size > 5 * 1024 * 1024) {
 showStatus('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)', 'error');
 return;
@@ -1308,16 +1287,13 @@ try {
 console.log('📷 Compressing and uploading image...');
 const overlay = document.getElementById('avatar-preview-overlay');
 overlay.classList.add('show');
-// ضغط الصورة
 const base64 = await compressImage(file);
-// التحقق من حجم الصورة بعد الضغط
 if (base64.length > 900000) {
 showStatus('⚠️ حجم الصورة كبير جداً بعد الضغط', 'error');
 overlay.classList.remove('show');
 return;
 }
 showStatus('🔄 جاري حفظ الصورة...', 'loading');
-// حفظ الصورة في Firebase
 await updateDoc(doc(db, "users", currentUser.uid), {
 profileImage: base64,
 updatedAt: serverTimestamp()
@@ -1332,7 +1308,7 @@ showStatus('❌ حدث خطأ: ' + error.message, 'error');
 document.getElementById('avatar-preview-overlay').classList.remove('show');
 }
 }
-// === دالة ضغط الصورة ===
+
 function compressImage(file) {
 return new Promise((resolve) => {
 const reader = new FileReader();
@@ -1354,7 +1330,7 @@ resolve(base64);
 };
 });
 }
-// === عرض حالة الرفع ===
+
 function showStatus(message, type) {
 const statusEl = document.getElementById('avatar-upload-status');
 const textEl = document.getElementById('avatar-upload-text');
@@ -1376,6 +1352,7 @@ setTimeout(() => {
 statusEl.classList.remove('show');
 }, 3000);
 }
+
 // === إظهار/إخفاء كلمة المرور ===
 window.togglePassword = function(inputId) {
 const input = document.getElementById(inputId);
@@ -1391,6 +1368,7 @@ icon.classList.remove('fa-eye-slash');
 icon.classList.add('fa-eye');
 }
 }
+
 // === حفظ تعديل البروفايل ===
 window.saveProfile = async function(e) {
 e.preventDefault();
@@ -1407,7 +1385,6 @@ phone: document.getElementById('edit-phone').value,
 bio: document.getElementById('edit-bio').value,
 updatedAt: serverTimestamp()
 };
-// التحقق من كلمة المرور إذا تم إدخالها
 if (oldPassword || newPassword || confirmPassword) {
 if (!oldPassword) {
 alert('⚠️ يرجى إدخال كلمة المرور القديمة');
@@ -1425,7 +1402,6 @@ if (newPassword.length < 6) {
 alert('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
 return;
 }
-// التحقق من كلمة المرور القديمة
 if (oldPassword !== currentUserData.password) {
 alert('⚠️ كلمة المرور القديمة غير صحيحة');
 return;
@@ -1441,12 +1417,14 @@ console.error('❌ Error saving profile:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 // === المحفظة ===
 window.openWalletModal = function() {
 document.getElementById('wallet-modal').classList.add('show');
 document.body.classList.add('scroll-locked');
 loadWalletHistory();
 }
+
 window.switchWalletTab = function(tab, element) {
 document.querySelectorAll('.w-tab').forEach(t => t.classList.remove('active'));
 element.classList.add('active');
@@ -1504,6 +1482,7 @@ content.innerHTML = `
 `;
 }
 }
+
 function calculateSendUSD() {
 const points = parseInt(document.getElementById('send-amount')?.value) || 0;
 const usd = (points / 100) * 2;
@@ -1512,6 +1491,7 @@ if (display) {
 display.textContent = `$${usd.toFixed(2)}`;
 }
 }
+
 function calculateTopupFromModal() {
 const points = parseInt(document.getElementById('topup-amount-points')?.value) || 0;
 const usd = (points / 100) * 2;
@@ -1520,6 +1500,7 @@ if (display) {
 display.textContent = `$${usd.toFixed(2)}`;
 }
 }
+
 function loadWalletHistory() {
 const content = document.getElementById('wallet-content');
 content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجل...</div>';
@@ -1559,6 +1540,7 @@ console.error('❌ Error loading transactions:', error);
 content.innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ: ${error.message}<br><button onclick="loadWalletHistory()" style="margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button></div>`;
 });
 }
+
 function loadFriendsForSend() {
 const select = document.getElementById('send-to-friend');
 if (!select) return;
@@ -1586,6 +1568,7 @@ select.appendChild(option);
 }
 });
 }
+
 window.sendPoints = async function() {
 const friendId = document.getElementById('send-to-friend')?.value;
 const amount = parseInt(document.getElementById('send-amount')?.value);
@@ -1650,6 +1633,7 @@ console.error('❌ Error sending points:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 // === طلب شحن الرصيد ===
 window.requestTopup = async function() {
 const points = parseInt(document.getElementById('topup-amount-points')?.value);
@@ -1663,7 +1647,11 @@ userPhone: currentUserData?.phone || '',
 userCountry: currentUserData?.country || '',
 type: 'topup',
 subject: '💵 طلب شحن رصيد',
-message: `طلب شحن رصيد\nعدد النقاط: ${points}\nالمبلغ: $${usd.toFixed(2)}\nرقم الهاتف: ${currentUserData?.phone || 'غير متوفر'}\nالبلد: ${currentUserData?.country || 'غير متوفر'}`,
+message: `طلب شحن رصيد
+عدد النقاط: ${points}
+المبلغ: $${usd.toFixed(2)}
+رقم الهاتف: ${currentUserData?.phone || 'غير متوفر'}
+البلد: ${currentUserData?.country || 'غير متوفر'}`,
 status: 'open',
 replied: false,
 createdAt: serverTimestamp(),
@@ -1689,6 +1677,7 @@ console.error('❌ Error requesting topup:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 window.calculateTopup = function() {
 const points = parseInt(document.getElementById('topup-points')?.value) || 0;
 const usd = (points / 100) * 2;
@@ -1697,6 +1686,7 @@ if (display) {
 display.textContent = `$${usd.toFixed(2)}`;
 }
 }
+
 window.togglePrivateProfile = async function() {
 const isPrivate = document.getElementById('private-profile-toggle').checked;
 try {
@@ -1706,6 +1696,7 @@ showAlert(isPrivate ? 'success' : 'info', 'تم التحديث', isPrivate ? 'ت
 console.error('❌ Error:', error);
 }
 }
+
 // === الدعم الفني ===
 window.openSupportModal = function() {
 const modal = document.getElementById('support-modal');
@@ -1717,12 +1708,14 @@ document.getElementById('support-type').value = 'technical';
 document.getElementById('support-message').value = '';
 document.getElementById('topup-section').style.display = 'none';
 }
+
 document.getElementById('support-type')?.addEventListener('change', function() {
 const topupSection = document.getElementById('topup-section');
 if (topupSection) {
 topupSection.style.display = this.value === 'topup' ? 'block' : 'none';
 }
 });
+
 window.sendSupportTicket = async function() {
 const type = document.getElementById('support-type').value;
 const message = document.getElementById('support-message').value.trim();
@@ -1750,7 +1743,13 @@ let fullMessage = message;
 if (type === 'topup') {
 const points = document.getElementById('topup-points')?.value || 0;
 const usd = (points / 100) * 2;
-fullMessage = `${message}\n\nتفاصيل الشحن:\nعدد النقاط: ${points}\nالمبلغ: $${usd.toFixed(2)}\nرقم الهاتف: ${currentUserData?.phone || 'غير متوفر'}\nالبلد: ${currentUserData?.country || 'غير متوفر'}`;
+fullMessage = `${message}
+
+تفاصيل الشحن:
+عدد النقاط: ${points}
+المبلغ: $${usd.toFixed(2)}
+رقم الهاتف: ${currentUserData?.phone || 'غير متوفر'}
+البلد: ${currentUserData?.country || 'غير متوفر'}`;
 }
 try {
 console.log('📝 Sending support ticket...');
@@ -1800,30 +1799,52 @@ console.error('❌ Error sending support ticket:', error);
 alert('حدث خطأ أثناء الإرسال: ' + error.message);
 }
 }
-// === المحظورين ===
+
+// === المحظورين - مصحح ===
 async function loadBlockedUsers() {
 const container = document.getElementById('blocked-list');
+container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
 try {
 const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+if (!userSnap.exists()) {
+container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">خطأ في تحميل البيانات</div>';
+return;
+}
 const blocked = userSnap.data()?.blockedUsers || [];
 if (blocked.length === 0) {
 container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);"><i class="fas fa-check-circle" style="font-size:3rem; margin-bottom:15px; opacity:0.3; color: var(--success-color);"></i><br>لا يوجد مستخدمين محظورين</div>';
 return;
 }
-container.innerHTML = blocked.map(uid => `
+const blockedUsersData = [];
+for (const uid of blocked.slice(0, 50)) {
+try {
+const userSnap = await getDoc(doc(db, "users", uid));
+if (userSnap.exists()) {
+blockedUsersData.push({ id: uid, ...userSnap.data() });
+}
+} catch (e) {
+console.error('Error loading blocked user:', uid, e);
+}
+}
+if (blockedUsersData.length === 0) {
+container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا يمكن عرض المستخدمين المحظورين</div>';
+return;
+}
+container.innerHTML = blockedUsersData.map(user => `
 <div class="transaction-item">
 <div class="t-info">
-<img src="https://i.pravatar.cc/150?u=${uid}" style="width:40px; height:40px; border-radius:50%;">
-<span>مستخدم محظور</span>
+<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" style="width:40px; height:40px; border-radius:50%;">
+<span>${user.fullName || user.username || 'مستخدم'}</span>
 </div>
-<button onclick="unblockUser('${uid}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">إلغاء الحظر</button>
+<button onclick="unblockUser('${user.id}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">إلغاء الحظر</button>
 </div>
 `).join('');
 } catch (error) {
 console.error('❌ Error loading blocked users:', error);
-container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ في التحميل</div>';
+container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ: ${error.message}<br><button onclick="loadBlockedUsers()" style="margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button></div>`;
 }
 }
+
 window.unblockUser = async function(userId) {
 if (!confirm('هل تريد إلغاء حظر هذا المستخدم؟')) return;
 try {
@@ -1832,9 +1853,11 @@ showAlert('success', 'تم الإلغاء', 'تم إلغاء الحظر');
 loadBlockedUsers();
 } catch (error) {
 console.error('❌ Error:', error);
+alert('حدث خطأ: ' + error.message);
 }
 }
-// === عرض الإحصائيات ===
+
+// === عرض الإحصائيات - مصحح لمشكلة الفهرس ===
 window.showUserPosts = async function() {
 document.getElementById('stats-modal-title').textContent = 'منشوراتي';
 const container = document.getElementById('stats-modal-list');
@@ -1842,11 +1865,22 @@ container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></
 document.getElementById('stats-modal').classList.add('show');
 document.body.classList.add('scroll-locked');
 try {
-const postsQuery = query(collection(db, "posts"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(50));
+// استخدام استعلام بديل لا يتطلب فهرس مركب
+const postsQuery = query(
+collection(db, "posts"), 
+where("userId", "==", currentUser.uid)
+// إزالة orderBy لتجنب مشكلة الفهرس
+);
 const snapshot = await getDocs(postsQuery);
 myPosts = [];
 snapshot.forEach(doc => {
 myPosts.push({ id: doc.id, ...doc.data() });
+});
+// ترتيب محلي بدلاً من ترتيب من السيرفر
+myPosts.sort((a, b) => {
+const timeA = a.timestamp?.toDate?.() || a.timestamp || 0;
+const timeB = b.timestamp?.toDate?.() || b.timestamp || 0;
+return new Date(timeB) - new Date(timeA);
 });
 if (myPosts.length === 0) {
 container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>لا توجد منشورات</div>';
@@ -1868,9 +1902,20 @@ ${hasImage ? `<img src="${post.image}" alt="صورة المنشور" style="widt
 }
 } catch (error) {
 console.error('Error loading posts:', error);
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل</div>';
+if (error.code === 'failed-precondition' && error.message.includes('index')) {
+container.innerHTML = `
+<div style="text-align:center; padding:20px; color:var(--danger-color);">
+<i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i>
+<p style="font-size:0.9rem;">يتطلب هذا القسم إنشاء فهرس في Firebase</p>
+<a href="https://console.firebase.google.com/v1/r/project/cat11-547eb/firestore/indexes?create_composite=Cklwcm9qZWN0cy9jYXQxMS01NDdlYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvcG9zdHMvaW5kZXhlcy9fEAEaCgoGdXNlcklkEAEaDQoJdGltZXN0YW1wEAIaDAoIX19uYW1lX18QAg" target="_blank" style="display:inline-block; margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; text-decoration:none; border-radius:8px; font-size:0.85rem;">🔗 إنشاء الفهرس الآن</a>
+</div>
+`;
+} else {
+container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل: ' + error.message + '</div>';
 }
 }
+}
+
 window.showFollowers = async function() {
 document.getElementById('stats-modal-title').textContent = 'المتابعون';
 const container = document.getElementById('stats-modal-list');
@@ -1903,6 +1948,7 @@ console.error('Error loading followers:', error);
 container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل</div>';
 }
 }
+
 window.showFollowing = async function() {
 document.getElementById('stats-modal-title').textContent = 'الذين أتابعهم';
 const container = document.getElementById('stats-modal-list');
@@ -1935,22 +1981,27 @@ console.error('Error loading following:', error);
 container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل</div>';
 }
 }
+
 window.openProfileModal = function(userId) {
 window.location.href = `profile.html?view=${userId}`;
 }
+
 window.openPostInFeed = function(postId) {
 window.location.href = `feed.html?post=${postId}`;
 }
+
 // === مودال عام ===
 window.openModal = function(modalId) {
 document.getElementById(modalId).classList.add('show');
 document.body.classList.add('scroll-locked');
 if (modalId === 'blocked-users-modal') loadBlockedUsers();
 }
+
 window.closeModal = function(modalId) {
 document.getElementById(modalId).classList.remove('show');
 document.body.classList.remove('scroll-locked');
 }
+
 document.querySelectorAll('.modal-overlay').forEach(modal => {
 modal.addEventListener('click', (e) => {
 if (e.target === modal) {
@@ -1959,6 +2010,7 @@ document.body.classList.remove('scroll-locked');
 }
 });
 });
+
 window.logout = function() {
 if (confirm('هل تريد تسجيل الخروج؟')) {
 if (walletUnsubscribe) walletUnsubscribe();
@@ -1967,6 +2019,7 @@ localStorage.removeItem('profilePageState');
 window.location.href = 'index.html';
 }
 }
+
 window.deleteAccount = async function() {
 if (!confirm('⚠️ هل أنت متأكد من حذف الحساب نهائياً؟ لا يمكن التراجع!')) return;
 if (!confirm('⚠️ تأكيد نهائي: سيتم حذف جميع بياناتك!')) return;
@@ -1982,6 +2035,7 @@ console.error('❌ Error deleting account:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
+
 function formatTime(timestamp) {
 if (!timestamp) return '';
 const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -1992,6 +2046,7 @@ if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
 if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
 return date.toLocaleDateString('ar-SA');
 }
+
 document.getElementById('theme-toggle').addEventListener('click', () => {
 document.body.classList.toggle('dark-mode');
 const icon = document.querySelector('#theme-toggle i');
@@ -1999,17 +2054,20 @@ icon.classList.toggle('fa-moon');
 icon.classList.toggle('fa-sun');
 localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
 });
+
 // === مؤشرات التحديث ===
 function showRefreshIndicator() {
 const indicator = document.getElementById('refresh-indicator');
 indicator.classList.add('show');
 }
+
 function hideRefreshIndicator() {
 const indicator = document.getElementById('refresh-indicator');
 setTimeout(() => {
 indicator.classList.remove('show');
 }, 1000);
 }
+
 function showAlert(type, title, message) {
 const alert = document.createElement('div');
 alert.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:15px 25px;box-shadow:0 10px 40px rgba(0,0,0,0.2);z-index:4000;display:flex;align-items:center;gap:10px;animation:slideDown 0.3s;border-right:4px solid ${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}`;
@@ -2017,9 +2075,9 @@ alert.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='er
 document.body.appendChild(alert);
 setTimeout(() => alert.remove(), 3000);
 }
+
 // === التهيئة ===
 console.log('🔧 Initializing profile page...');
-// تحميل من الذاكرة المحلية أولاً
 const cached = loadPageState();
 if (cached) {
 currentUserData = cached;
@@ -2027,7 +2085,6 @@ renderProfile(currentUserData);
 document.body.classList.add('page-loaded');
 pageInitialized = true;
 }
-// ثم التحديث من Firebase
 loadUserData();
 console.log('🚀 === PROFILE PAGE READY ===');
 </script>
