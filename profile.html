@@ -7,805 +7,263 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-:root { 
---primary-color: #6366f1; 
---primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); 
---bg-color: #f8fafc; 
---card-bg: #ffffff; 
---text-main: #1e293b; 
---text-secondary: #64748b; 
---border-color: #e2e8f0; 
---input-bg: #f1f5f9; 
---shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
---nav-height: 70px; 
---success-color: #10b981; 
---danger-color: #ef4444; 
---warning-color: #f59e0b; 
---wallet-gold: #fbbf24; 
-}
-body.dark-mode { 
---bg-color: #0f172a; 
---card-bg: #1e293b; 
---text-main: #f1f5f9; 
---text-secondary: #94a3b8; 
---border-color: #334155; 
---input-bg: #334155; 
---shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); 
-}
-* { 
-margin: 0; 
-padding: 0; 
-box-sizing: border-box; 
-font-family: 'Tajawal', sans-serif; 
--webkit-tap-highlight-color: transparent; 
-}
-body { 
-background-color: var(--bg-color); 
-color: var(--text-main); 
-padding-bottom: calc(var(--nav-height) + 20px); 
-transition: background-color 0.3s ease; 
-}
-body.scroll-locked { 
-overflow: hidden; 
-}
-body.page-loaded { 
-animation: fadeIn 0.3s ease; 
-}
-@keyframes fadeIn { 
-from { opacity: 0; } 
-to { opacity: 1; } 
-}
-header { 
-position: sticky; 
-top: 0; 
-z-index: 100; 
-background: rgba(255, 255, 255, 0.9); 
-backdrop-filter: blur(20px); 
-padding: 15px 20px; 
-display: flex; 
-justify-content: space-between; 
-align-items: center; 
-box-shadow: var(--shadow); 
-border-bottom: 1px solid var(--border-color); 
-}
-body.dark-mode header { 
-background: rgba(30, 41, 59, 0.9); 
-}
-.header-title { 
-font-size: 1.4rem; 
-font-weight: 800; 
-background: var(--primary-gradient); 
--webkit-background-clip: text; 
--webkit-text-fill-color: transparent; 
-}
-/* === تصميم الهوية البصرية الجديد === */
-.profile-section { 
-padding: 25px 20px; 
-background: var(--card-bg); 
-margin: 20px; 
-border-radius: 24px; 
-box-shadow: var(--shadow); 
-position: relative; 
-overflow: hidden; 
-border: 1px solid var(--border-color); 
-}
-.profile-section::before { 
-content: ''; 
-position: absolute; 
-top: 0; 
-left: 0; 
-right: 0; 
-height: 5px; 
-background: var(--primary-gradient); 
-z-index: 0; 
-}
-.profile-layout { 
-display: grid; 
-grid-template-columns: 140px 1fr; 
-gap: 25px; 
-align-items: start; 
-position: relative; 
-z-index: 1; 
-}
-@media (max-width: 480px) { 
-.profile-layout { 
-grid-template-columns: 1fr; 
-text-align: center; 
-} 
-}
-.profile-right { 
-display: flex; 
-flex-direction: column; 
-align-items: center; 
-}
-.avatar-wrapper { 
-position: relative; 
-width: 130px; 
-height: 130px; 
-margin-bottom: 15px; 
-}
-.profile-avatar { 
-width: 100%; 
-height: 100%; 
-border-radius: 50%; 
-object-fit: cover; 
-border: 4px solid var(--primary-color); 
-box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); 
-transition: transform 0.3s; 
-}
-.profile-avatar:hover { 
-transform: scale(1.05); 
-}
-.edit-avatar-btn { 
-position: absolute; 
-bottom: 5px; 
-right: 5px; 
-width: 38px; 
-height: 38px; 
-background: var(--primary-gradient); 
-color: white; 
-border-radius: 50%; 
-display: flex; 
-align-items: center; 
-justify-content: center; 
-cursor: pointer; 
-border: 3px solid var(--card-bg); 
-font-size: 0.9rem; 
-transition: transform 0.3s; 
-}
-.edit-avatar-btn:hover { 
-transform: scale(1.1); 
-}
-.profile-left { 
-display: flex; 
-flex-direction: column; 
-gap: 12px; 
-}
-.profile-name { 
-font-size: 1.5rem; 
-font-weight: 800; 
-color: var(--text-main); 
-margin-bottom: 5px; 
-}
-.profile-username { 
-color: var(--primary-color); 
-font-size: 0.95rem; 
-font-weight: 600; 
-direction: ltr; 
-text-align: right; 
-}
-.profile-bio-display { 
-color: var(--text-secondary); 
-font-size: 0.9rem; 
-line-height: 1.6; 
-background: var(--input-bg); 
-padding: 12px 15px; 
-border-radius: 12px; 
-min-height: 60px; 
-}
-.profile-bio-empty { 
-color: var(--text-secondary); 
-font-style: italic; 
-opacity: 0.6; 
-}
-.stats-row { 
-display: flex; 
-justify-content: center; 
-gap: 15px; 
-margin: 20px 0; 
-padding: 15px; 
-background: var(--input-bg); 
-border-radius: 16px; 
-}
-@media (max-width: 480px) { 
-.stats-row { 
-flex-wrap: wrap; 
-} 
-}
-.stat-item { 
-text-align: center; 
-background: var(--card-bg); 
-padding: 12px 20px; 
-border-radius: 16px; 
-min-width: 90px; 
-cursor: pointer; 
-transition: all 0.3s; 
-border: 1px solid var(--border-color); 
-}
-.stat-item:hover { 
-transform: translateY(-3px); 
-box-shadow: var(--shadow); 
-border-color: var(--primary-color); 
-}
-.stat-item b { 
-display: block; 
-font-size: 1.2rem; 
-color: var(--primary-color); 
-font-weight: 800; 
-}
-.stat-item span { 
-font-size: 0.75rem; 
-color: var(--text-secondary); 
-font-weight: 500; 
-}
-.edit-profile-btn { 
-background: var(--primary-gradient); 
-color: white; 
-border: none; 
-padding: 14px 30px; 
-border-radius: 14px; 
-font-weight: 700; 
-cursor: pointer; 
-width: 100%; 
-box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); 
-transition: transform 0.2s; 
-font-size: 1rem; 
-}
-.edit-profile-btn:active { 
-transform: scale(0.98); 
-}
-.edit-profile-btn:hover { 
-transform: translateY(-2px); 
-}
-.wallet-card { 
-margin: 0 20px 20px; 
-background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
-color: white; 
-padding: 20px; 
-border-radius: 20px; 
-display: flex; 
-justify-content: space-between; 
-align-items: center; 
-box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
-cursor: pointer; 
-position: relative; 
-overflow: hidden; 
-transition: transform 0.3s; 
-}
-.wallet-card:hover { 
-transform: translateY(-3px); 
-}
-.wallet-card::after { 
-content: '\f51e'; 
-font-family: "Font Awesome 6 Free"; 
-font-weight: 900; 
-position: absolute; 
-left: -20px; 
-bottom: -20px; 
-font-size: 8rem; 
-color: rgba(255,255,255,0.05); 
-transform: rotate(-15deg); 
-}
-.wallet-info h3 { 
-font-size: 0.9rem; 
-opacity: 0.8; 
-margin-bottom: 5px; 
-}
-.wallet-balance { 
-font-size: 1.8rem; 
-font-weight: 800; 
-color: var(--wallet-gold); 
-}
-.wallet-usd { 
-font-size: 0.85rem; 
-opacity: 0.7; 
-margin-top: 5px; 
-}
-.wallet-icon { 
-width: 55px; 
-height: 55px; 
-background: rgba(255,255,255,0.1); 
-border-radius: 14px; 
-display: flex; 
-align-items: center; 
-justify-content: center; 
-font-size: 1.5rem; 
-color: var(--wallet-gold); 
-}
-.settings-list { 
-padding: 0 20px; 
-}
-.settings-group { 
-background: var(--card-bg); 
-border-radius: 20px; 
-padding: 10px 0; 
-margin-bottom: 20px; 
-box-shadow: var(--shadow); 
-border: 1px solid var(--border-color); 
-}
-.setting-item { 
-padding: 15px 20px; 
-display: flex; 
-align-items: center; 
-justify-content: space-between; 
-cursor: pointer; 
-transition: background 0.2s; 
-border-bottom: 1px solid var(--border-color); 
-}
-.setting-item:last-child { 
-border-bottom: none; 
-}
-.setting-item:hover { 
-background: var(--input-bg); 
-}
-.setting-left { 
-display: flex; 
-align-items: center; 
-gap: 15px; 
-}
-.setting-icon { 
-width: 40px; 
-height: 40px; 
-border-radius: 12px; 
-display: flex; 
-align-items: center; 
-justify-content: center; 
-font-size: 1.1rem; 
-}
-.icon-blue { 
-background: rgba(99, 102, 241, 0.1); 
-color: var(--primary-color); 
-}
-.icon-green { 
-background: rgba(16, 185, 129, 0.1); 
-color: var(--success-color); 
-}
-.icon-red { 
-background: rgba(239, 68, 68, 0.1); 
-color: var(--danger-color); 
-}
-.icon-gold { 
-background: rgba(245, 158, 11, 0.1); 
-color: var(--warning-color); 
-}
-.setting-text { 
-font-weight: 600; 
-font-size: 0.95rem; 
-}
-.setting-arrow { 
-color: var(--text-secondary); 
-font-size: 0.8rem; 
-}
-.switch { 
-position: relative; 
-display: inline-block; 
-width: 50px; 
-height: 26px; 
-}
-.switch input { 
-opacity: 0; 
-width: 0; 
-height: 0; 
-}
-.slider { 
-position: absolute; 
-cursor: pointer; 
-top: 0; 
-left: 0; 
-right: 0; 
-bottom: 0; 
-background-color: var(--input-bg); 
-transition: .4s; 
-border-radius: 34px; 
-}
-.slider:before { 
-position: absolute; 
-content: ""; 
-height: 20px; 
-width: 20px; 
-left: 3px; 
-bottom: 3px; 
-background-color: white; 
-transition: .4s; 
-border-radius: 50%; 
-}
-input:checked + .slider { 
-background-color: var(--primary-color); 
-}
-input:checked + .slider:before { 
-transform: translateX(24px); 
-}
-.modal-overlay { 
-position: fixed; 
-top: 0; 
-left: 0; 
-width: 100%; 
-height: 100%; 
-background: rgba(0,0,0,0.6); 
-backdrop-filter: blur(5px); 
-z-index: 2000; 
-display: none; 
-justify-content: center; 
-align-items: flex-end; 
-}
-.modal-overlay.show { 
-display: flex; 
-}
-.modal-content { 
-background: var(--card-bg); 
-width: 100%; 
-max-width: 500px; 
-border-radius: 25px 25px 0 0; 
-padding: 25px; 
-animation: slideUp 0.3s; 
-max-height: 90vh; 
-overflow-y: auto; 
-}
-@keyframes slideUp { 
-from { transform: translateY(100%); } 
-to { transform: translateY(0); } 
-}
-.modal-header { 
-display: flex; 
-justify-content: space-between; 
-align-items: center; 
-margin-bottom: 20px; 
-padding-bottom: 15px; 
-border-bottom: 1px solid var(--border-color); 
-}
-.modal-title { 
-font-size: 1.2rem; 
-font-weight: 800; 
-}
-.close-modal { 
-background: var(--input-bg); 
-border: none; 
-width: 35px; 
-height: 35px; 
-border-radius: 50%; 
-color: var(--text-main); 
-cursor: pointer; 
-display: flex; 
-align-items: center; 
-justify-content: center; 
-font-size: 1.2rem; 
-transition: all 0.3s; 
-}
-.close-modal:hover { 
-background: var(--danger-color); 
-color: white; 
-}
-.form-group { 
-margin-bottom: 18px; 
-}
-.form-label { 
-display: block; 
-margin-bottom: 8px; 
-font-weight: 600; 
-font-size: 0.9rem; 
-color: var(--text-main); 
-}
-.form-input { 
-width: 100%; 
-padding: 13px 15px; 
-background: var(--input-bg); 
-border: 1px solid var(--border-color); 
-border-radius: 12px; 
-color: var(--text-main); 
-outline: none; 
-font-size: 0.95rem; 
-transition: all 0.3s; 
-}
-.form-input:focus { 
-border-color: var(--primary-color); 
-box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); 
-}
-.form-input:disabled { 
-opacity: 0.6; 
-cursor: not-allowed; 
-}
-.password-wrapper { 
-position: relative; 
-}
-.password-toggle { 
-position: absolute; 
-left: 12px; 
-top: 50%; 
-transform: translateY(-50%); 
-background: none; 
-border: none; 
-color: var(--text-secondary); 
-cursor: pointer; 
-padding: 5px; 
-font-size: 1rem; 
-transition: color 0.3s; 
-}
-.password-toggle:hover { 
-color: var(--primary-color); 
-}
-.wallet-tabs { 
-display: flex; 
-gap: 10px; 
-margin-bottom: 20px; 
-overflow-x: auto; 
-padding-bottom: 5px; 
-scrollbar-width: none; 
-}
-.wallet-tabs::-webkit-scrollbar { 
-display: none; 
-}
-.w-tab { 
-padding: 10px 20px; 
-background: var(--input-bg); 
-border-radius: 20px; 
-font-size: 0.85rem; 
-font-weight: 600; 
-cursor: pointer; 
-white-space: nowrap; 
-transition: all 0.3s; 
-border: 2px solid transparent; 
-}
-.w-tab.active { 
-background: var(--primary-gradient); 
-color: white; 
-border-color: var(--primary-color); 
-}
-.transaction-item { 
-display: flex; 
-justify-content: space-between; 
-align-items: center; 
-padding: 14px 0; 
-border-bottom: 1px solid var(--border-color); 
-}
-.transaction-item:last-child { 
-border-bottom: none; 
-}
-.t-info { 
-display: flex; 
-align-items: center; 
-gap: 12px; 
-}
-.t-icon { 
-width: 40px; 
-height: 40px; 
-border-radius: 12px; 
-background: var(--input-bg); 
-display: flex; 
-align-items: center; 
-justify-content: center; 
-font-size: 1rem; 
-}
-.t-amount { 
-font-weight: 700; 
-font-size: 1.05rem; 
-}
-.t-amount.plus { 
-color: var(--success-color); 
-}
-.t-amount.minus { 
-color: var(--danger-color); 
-}
-.bottom-nav { 
-position: fixed; 
-bottom: 0; 
-left: 0; 
-width: 100%; 
-height: var(--nav-height); 
-background: rgba(255, 255, 255, 0.95); 
-backdrop-filter: blur(20px); 
-display: flex; 
-justify-content: space-around; 
-align-items: center; 
-border-top: 1px solid var(--border-color); 
-box-shadow: 0 -4px 20px rgba(0,0,0,0.08); 
-z-index: 1000; 
-}
-body.dark-mode .bottom-nav { 
-background: rgba(30, 41, 59, 0.95); 
-}
-.nav-item { 
-display: flex; 
-flex-direction: column; 
-align-items: center; 
-text-decoration: none; 
-color: var(--text-secondary); 
-font-size: 0.7rem; 
-gap: 6px; 
-transition: all 0.3s; 
-}
-.nav-item i { 
-font-size: 1.3rem; 
-}
-.nav-item.active { 
-color: var(--primary-color); 
-}
-.nav-item.active i { 
-transform: translateY(-3px); 
-}
-.theme-float { 
-position: absolute; 
-top: 20px; 
-left: 20px; 
-width: 40px; 
-height: 40px; 
-border-radius: 12px; 
-background: var(--input-bg); 
-border: none; 
-color: var(--text-main); 
-display: flex; 
-align-items: center; 
-justify-content: center; 
-cursor: pointer; 
-z-index: 10; 
-transition: all 0.3s; 
-}
-.theme-float:hover { 
-background: var(--primary-color); 
-color: white; 
-}
-.loading { 
-text-align: center; 
-padding: 40px; 
-color: var(--text-secondary); 
-}
-.support-success { 
-text-align: center; 
-padding: 40px 20px; 
-display: none; 
-animation: fadeIn 0.3s; 
-}
-.support-success.show { 
-display: block; 
-}
-.support-success i { 
-font-size: 4rem; 
-color: var(--success-color); 
-margin-bottom: 20px; 
-animation: bounce 0.5s; 
-}
-@keyframes bounce { 
-0%, 100% { transform: translateY(0); } 
-50% { transform: translateY(-10px); } 
-}
-.success-card { 
-background: rgba(16, 185, 129, 0.1); 
-border: 2px solid var(--success-color); 
-border-radius: 16px; 
-padding: 20px; 
-text-align: center; 
-margin: 15px 0; 
-animation: slideIn 0.3s; 
-}
-@keyframes slideIn { 
-from { transform: translateY(-20px); opacity: 0; } 
-to { transform: translateY(0); opacity: 1; } 
-}
-.success-card i { 
-font-size: 2.5rem; 
-color: var(--success-color); 
-margin-bottom: 10px; 
-}
-.success-card h4 { 
-font-size: 1.1rem; 
-margin-bottom: 5px; 
-}
-.success-card p { 
-font-size: 0.9rem; 
-color: var(--text-secondary); 
-}
-.image-preview-overlay { 
-position: absolute; 
-top: 0; 
-left: 0; 
-width: 100%; 
-height: 100%; 
-border-radius: 50%; 
-background: rgba(0,0,0,0.5); 
-display: none; 
-align-items: center; 
-justify-content: center; 
-color: white; 
-font-size: 0.75rem; 
-text-align: center; 
-z-index: 2; 
-}
-.image-preview-overlay.show { 
-display: flex; 
-}
-.avatar-upload-status { 
-position: fixed; 
-top: 20px; 
-left: 50%; 
-transform: translateX(-50%); 
-background: var(--card-bg); 
-padding: 15px 25px; 
-border-radius: 16px; 
-box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
-z-index: 3000; 
-display: none; 
-align-items: center; 
-gap: 10px; 
-animation: slideDown 0.3s ease; 
-}
-.avatar-upload-status.show { 
-display: flex; 
-}
-@keyframes slideDown { 
-from { transform: translateX(-50%) translateY(-20px); opacity: 0; } 
-to { transform: translateX(-50%) translateY(0); opacity: 1; } 
-}
-.stats-modal-list { 
-max-height: 400px; 
-overflow-y: auto; 
-}
-.stat-item-card { 
-display: flex; 
-align-items: center; 
-gap: 12px; 
-padding: 12px; 
-background: var(--input-bg); 
-border-radius: 12px; 
-margin-bottom: 10px; 
-transition: transform 0.2s; 
-}
-.stat-item-card:hover { 
-transform: translateX(-5px); 
-}
-.stat-item-card img { 
-width: 45px; 
-height: 45px; 
-border-radius: 12px; 
-object-fit: cover; 
-}
-.stat-item-card-info { 
-flex: 1; 
-}
-.stat-item-card-name { 
-font-weight: 700; 
-font-size: 0.95rem; 
-}
-.stat-item-card-username { 
-font-size: 0.75rem; 
-color: var(--text-secondary); 
-direction: ltr; 
-text-align: right; 
-}
-.topup-calculation { 
-background: var(--input-bg); 
-padding: 15px; 
-border-radius: 12px; 
-margin: 15px 0; 
-text-align: center; 
-}
-.topup-calculation .calc-row { 
-display: flex; 
-justify-content: space-between; 
-align-items: center; 
-margin: 10px 0; 
-padding: 10px; 
-background: var(--card-bg); 
-border-radius: 8px; 
-}
-.calc-label { 
-font-weight: 600; 
-color: var(--text-secondary); 
-}
-.calc-value { 
-font-weight: 800; 
-color: var(--primary-color); 
-font-size: 1.1rem; 
-}
-.refresh-indicator { 
-position: fixed; 
-top: 80px; 
-left: 50%; 
-transform: translateX(-50%); 
-background: var(--success-color); 
-color: white; 
-padding: 8px 20px; 
-border-radius: 20px; 
-font-size: 0.85rem; 
-font-weight: 600; 
-z-index: 1500; 
-display: none; 
-animation: slideDown 0.3s ease; 
-box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); 
-}
-.refresh-indicator.show { 
-display: flex; 
-align-items: center; 
-gap: 8px; 
-}
+:root {
+--primary-color: #6366f1;
+--primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+--bg-color: #f8fafc;
+--card-bg: #ffffff;
+--text-main: #1e293b;
+--text-secondary: #64748b;
+--border-color: #e2e8f0;
+--input-bg: #f1f5f9;
+--shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+--nav-height: 70px;
+--success-color: #10b981;
+--danger-color: #ef4444;
+--warning-color: #f59e0b;
+--wallet-gold: #fbbf24;
+}
+@media (max-width: 360px) {
+:root { --nav-height: 60px; }
+.bottom-nav { height: var(--nav-height); padding: 5px 0; }
+.nav-item { font-size: 0.6rem; gap: 3px; }
+.nav-item i { font-size: 1.1rem; }
+header { padding: 10px 15px; }
+.header-title { font-size: 1.1rem; }
+}
+@media (min-width: 769px) {
+.mobile-container { max-width: 450px; margin: 20px auto; border-radius: 30px; min-height: 90vh; border: 1px solid var(--border-color); }
+.bottom-nav { border-radius: 0 0 30px 30px; max-width: 450px; left: 50%; transform: translateX(-50%); }
+}
+@supports (padding-top: env(safe-area-inset-top)) {
+header { padding-top: calc(15px + env(safe-area-inset-top)); }
+.bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--nav-height) + env(safe-area-inset-bottom)); }
+body { padding-bottom: calc(var(--nav-height) + 20px + env(safe-area-inset-bottom)); }
+}
+body.dark-mode {
+--bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9; --text-secondary: #94a3b8;
+--border-color: #334155; --input-bg: #334155;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; -webkit-tap-highlight-color: transparent; }
+body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: calc(var(--nav-height) + 20px); transition: background-color 0.3s ease; }
+body.scroll-locked { overflow: hidden; }
+body.page-loaded { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+header {
+position: sticky; top: 0; z-index: 100; background: rgba(255, 255, 255, 0.9);
+backdrop-filter: blur(20px); padding: 15px 20px; display: flex; justify-content: space-between;
+align-items: center; box-shadow: var(--shadow); border-bottom: 1px solid var(--border-color);
+}
+body.dark-mode header { background: rgba(30, 41, 59, 0.9); }
+.header-title {
+font-size: 1.4rem; font-weight: 800; background: var(--primary-gradient);
+-webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.profile-section {
+padding: 25px 20px; background: var(--card-bg); margin: 20px; border-radius: 24px;
+box-shadow: var(--shadow); position: relative; overflow: hidden; border: 1px solid var(--border-color);
+}
+.profile-section::before {
+content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+background: var(--primary-gradient); z-index: 0;
+}
+.profile-layout {
+display: grid; grid-template-columns: 140px 1fr; gap: 25px; align-items: start; position: relative; z-index: 1;
+}
+@media (max-width: 480px) { .profile-layout { grid-template-columns: 1fr; text-align: center; } }
+.profile-right { display: flex; flex-direction: column; align-items: center; }
+.avatar-wrapper { position: relative; width: 130px; height: 130px; margin-bottom: 15px; }
+.profile-avatar {
+width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+border: 4px solid var(--primary-color); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+.edit-avatar-btn {
+position: absolute; bottom: 5px; right: 5px; width: 38px; height: 38px;
+background: var(--primary-gradient); color: white; border-radius: 50%;
+display: flex; align-items: center; justify-content: center; cursor: pointer;
+border: 3px solid var(--card-bg); font-size: 0.9rem;
+}
+.profile-left { display: flex; flex-direction: column; gap: 12px; }
+.profile-name { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
+.profile-username { color: var(--primary-color); font-size: 0.95rem; font-weight: 600; direction: ltr; text-align: right; }
+.profile-bio-display {
+color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;
+background: var(--input-bg); padding: 12px 15px; border-radius: 12px; min-height: 60px;
+}
+.stats-row {
+display: flex; justify-content: center; gap: 15px; margin: 20px 0; padding: 15px;
+background: var(--input-bg); border-radius: 16px;
+}
+@media (max-width: 480px) { .stats-row { flex-wrap: wrap; } }
+.stat-item {
+text-align: center; background: var(--card-bg); padding: 12px 20px; border-radius: 16px;
+min-width: 90px; cursor: pointer; transition: all 0.3s; border: 1px solid var(--border-color);
+}
+.stat-item:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--primary-color); }
+.stat-item b { display: block; font-size: 1.2rem; color: var(--primary-color); font-weight: 800; }
+.stat-item span { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+.edit-profile-btn {
+background: var(--primary-gradient); color: white; border: none; padding: 14px 30px;
+border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%;
+box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+.wallet-card {
+margin: 0 20px 20px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+color: white; padding: 20px; border-radius: 20px; display: flex; justify-content: space-between;
+align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer;
+}
+.wallet-info h3 { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
+.wallet-balance { font-size: 1.8rem; font-weight: 800; color: var(--wallet-gold); }
+.wallet-usd { font-size: 0.85rem; opacity: 0.7; margin-top: 5px; }
+.wallet-icon {
+width: 55px; height: 55px; background: rgba(255,255,255,0.1); border-radius: 14px;
+display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--wallet-gold);
+}
+.settings-list { padding: 0 20px; }
+.settings-group {
+background: var(--card-bg); border-radius: 20px; padding: 10px 0;
+margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+}
+.setting-item {
+padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;
+cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color);
+}
+.setting-item:last-child { border-bottom: none; }
+.setting-item:hover { background: var(--input-bg); }
+.setting-left { display: flex; align-items: center; gap: 15px; }
+.setting-icon {
+width: 40px; height: 40px; border-radius: 12px; display: flex;
+align-items: center; justify-content: center; font-size: 1.1rem;
+}
+.icon-blue { background: rgba(99, 102, 241, 0.1); color: var(--primary-color); }
+.icon-green { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+.icon-red { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+.icon-gold { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+.icon-purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.setting-text { font-weight: 600; font-size: 0.95rem; }
+.setting-arrow { color: var(--text-secondary); font-size: 0.8rem; }
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+background-color: var(--input-bg); transition: .4s; border-radius: 34px;
+}
+.slider:before {
+position: absolute; content: ""; height: 20px; width: 20px; left: 3px;
+bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(24px); }
+.modal-overlay {
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000;
+display: none; justify-content: center; align-items: flex-end;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 25px 25px 0 0;
+padding: 25px; animation: slideUp 0.3s; max-height: 90vh; overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header {
+display: flex; justify-content: space-between; align-items: center;
+margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);
+}
+.modal-title { font-size: 1.2rem; font-weight: 800; }
+.close-modal {
+background: var(--input-bg); border: none; width: 35px; height: 35px;
+border-radius: 50%; color: var(--text-main); cursor: pointer;
+display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+.form-input {
+width: 100%; padding: 13px 15px; background: var(--input-bg); border: 1px solid var(--border-color);
+border-radius: 12px; color: var(--text-main); outline: none; font-size: 0.95rem;
+}
+.form-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+.password-wrapper { position: relative; }
+.password-toggle {
+position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+background: none; border: none; color: var(--text-secondary);
+cursor: pointer; padding: 5px; font-size: 1rem;
+}
+.wallet-tabs {
+display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;
+}
+.w-tab {
+padding: 10px 20px; background: var(--input-bg); border-radius: 20px;
+font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.w-tab.active { background: var(--primary-gradient); color: white; }
+.transaction-item {
+display: flex; justify-content: space-between; align-items: center;
+padding: 14px 0; border-bottom: 1px solid var(--border-color);
+}
+.t-info { display: flex; align-items: center; gap: 12px; }
+.t-icon {
+width: 40px; height: 40px; border-radius: 12px; background: var(--input-bg);
+display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.t-amount { font-weight: 700; font-size: 1.05rem; }
+.t-amount.plus { color: var(--success-color); }
+.t-amount.minus { color: var(--danger-color); }
+.bottom-nav {
+position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
+background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+display: flex; justify-content: space-around; align-items: center;
+border-top: 1px solid var(--border-color); box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 1000;
+}
+body.dark-mode .bottom-nav { background: rgba(30, 41, 59, 0.95); }
+.nav-item {
+display: flex; flex-direction: column; align-items: center; text-decoration: none;
+color: var(--text-secondary); font-size: 0.7rem; gap: 6px;
+}
+.nav-item i { font-size: 1.3rem; }
+.nav-item.active { color: var(--primary-color); }
+.theme-float {
+position: absolute; top: 20px; left: 20px; width: 40px; height: 40px;
+border-radius: 12px; background: var(--input-bg); border: none;
+color: var(--text-main); display: flex; align-items: center; justify-content: center;
+cursor: pointer; z-index: 10;
+}
+.loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+.success-card {
+background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success-color);
+border-radius: 16px; padding: 20px; text-align: center; margin: 15px 0;
+}
+.success-card i { font-size: 2.5rem; color: var(--success-color); margin-bottom: 10px; }
+.stats-modal-list { max-height: 400px; overflow-y: auto; }
+.stat-item-card {
+display: flex; align-items: center; gap: 12px; padding: 12px;
+background: var(--input-bg); border-radius: 12px; margin-bottom: 10px;
+}
+.stat-item-card img { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; }
+.stat-item-card-info { flex: 1; }
+.stat-item-card-name { font-weight: 700; font-size: 0.95rem; }
+.topup-calculation { background: var(--input-bg); padding: 15px; border-radius: 12px; margin: 15px 0; text-align: center; }
+.topup-calculation .calc-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; padding: 10px; background: var(--card-bg); border-radius: 8px; }
+.calc-label { font-weight: 600; color: var(--text-secondary); }
+.calc-value { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; }
+.refresh-indicator {
+position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+background: var(--success-color); color: white; padding: 8px 20px;
+border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 1500; display: none;
+}
+.refresh-indicator.show { display: flex; align-items: center; gap: 8px; }
+.image-preview-overlay {
+position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%;
+background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
+color: white; font-size: 0.75rem; text-align: center; z-index: 2;
+}
+.image-preview-overlay.show { display: flex; }
+.avatar-upload-status {
+position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+background: var(--card-bg); padding: 15px 25px; border-radius: 16px;
+box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 3000; display: none;
+align-items: center; gap: 10px;
+}
+.avatar-upload-status.show { display: flex; }
 </style>
 </head>
 <body>
@@ -813,12 +271,13 @@ gap: 8px;
 <i class="fas fa-sync-alt fa-spin"></i>
 <span>جاري تحديث البيانات...</span>
 </div>
+
 <header>
 <button class="theme-float" id="theme-toggle"><i class="fas fa-moon"></i></button>
 <div class="header-title">حسابي</div>
 <div style="width: 40px;"></div>
 </header>
-<!-- البروفايل - تصميم الهوية البصرية -->
+
 <section class="profile-section">
 <div class="profile-layout">
 <div class="profile-right">
@@ -827,10 +286,8 @@ gap: 8px;
 <div class="image-preview-overlay" id="avatar-preview-overlay">
 <i class="fas fa-spinner fa-spin"></i><br>جاري المعالجة...
 </div>
-<label for="profile-img-input" class="edit-avatar-btn" title="تغيير الصورة">
-<i class="fas fa-camera"></i>
-</label>
-<input type="file" id="profile-img-input" hidden accept="image/*" onchange="uploadImage(event)">
+<label for="profile-img-input" class="edit-avatar-btn"><i class="fas fa-camera"></i></label>
+<input type="file" id="profile-img-input" hidden accept="image/*">
 </div>
 </div>
 <div class="profile-left">
@@ -844,24 +301,15 @@ gap: 8px;
 </div>
 </div>
 <div class="stats-row">
-<div class="stat-item" onclick="showUserPosts()">
-<b id="stat-posts">0</b>
-<span>منشور</span>
-</div>
-<div class="stat-item" onclick="showFollowers()">
-<b id="stat-followers">0</b>
-<span>متابع</span>
-</div>
-<div class="stat-item" onclick="showFollowing()">
-<b id="stat-following">0</b>
-<span>يتابع</span>
-</div>
+<div class="stat-item" onclick="showUserPosts()"><b id="stat-posts">0</b><span>منشور</span></div>
+<div class="stat-item" onclick="showFollowers()"><b id="stat-followers">0</b><span>متابع</span></div>
+<div class="stat-item" onclick="showFollowing()"><b id="stat-following">0</b><span>يتابع</span></div>
 </div>
 <button class="edit-profile-btn" onclick="openModal('edit-profile-modal')">
 <i class="fas fa-pen"></i> تعديل المعلومات
 </button>
 </section>
-<!-- المحفظة -->
+
 <div class="wallet-card" id="wallet-card" onclick="openWalletModal()">
 <div class="wallet-info">
 <h3>رصيد المحفظة</h3>
@@ -870,7 +318,7 @@ gap: 8px;
 </div>
 <div class="wallet-icon"><i class="fas fa-wallet"></i></div>
 </div>
-<!-- الإعدادات -->
+
 <div class="settings-list">
 <div class="settings-group">
 <div class="setting-item">
@@ -879,7 +327,23 @@ gap: 8px;
 <span class="setting-text">الملف الشخصي خاص</span>
 </div>
 <label class="switch">
-<input type="checkbox" id="private-profile-toggle" onchange="togglePrivateProfile()">
+<input type="checkbox" id="private-profile-toggle">
+<span class="slider"></span>
+</label>
+</div>
+<!-- ✅ إعدادات البصمة -->
+<div class="setting-item" onclick="toggleBiometricSetting()">
+<div class="setting-left">
+<div class="setting-icon icon-purple" id="biometric-icon">
+<i class="fas fa-fingerprint"></i>
+</div>
+<div>
+<div class="setting-text">قفل البصمة</div>
+<div style="font-size: 0.75rem; color: var(--text-secondary);" id="biometric-status">غير مفعل</div>
+</div>
+</div>
+<label class="switch">
+<input type="checkbox" id="biometric-toggle">
 <span class="slider"></span>
 </label>
 </div>
@@ -891,6 +355,7 @@ gap: 8px;
 <i class="fas fa-chevron-left setting-arrow"></i>
 </div>
 </div>
+
 <div class="settings-group">
 <div class="setting-item" onclick="openSupportModal()">
 <div class="setting-left">
@@ -906,14 +371,8 @@ gap: 8px;
 </div>
 <i class="fas fa-chevron-left setting-arrow"></i>
 </div>
-<div class="setting-item" onclick="alert('سياسة الخصوصية...')">
-<div class="setting-left">
-<div class="setting-icon icon-blue"><i class="fas fa-lock"></i></div>
-<span class="setting-text">الخصوصية</span>
 </div>
-<i class="fas fa-chevron-left setting-arrow"></i>
-</div>
-</div>
+
 <div class="settings-group">
 <div class="setting-item" style="color: var(--warning-color);" onclick="logout()">
 <div class="setting-left">
@@ -923,47 +382,23 @@ gap: 8px;
 <span class="setting-text">تسجيل الخروج</span>
 </div>
 </div>
-<div class="setting-item" style="color: var(--danger-color);" onclick="deleteAccount()">
-<div class="setting-left">
-<div class="setting-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger-color);">
-<i class="fas fa-trash-alt"></i>
-</div>
-<span class="setting-text">حذف الحساب</span>
 </div>
 </div>
-</div>
-</div>
-<!-- الفوتر -->
+
 <nav class="bottom-nav">
-<a href="home.html" class="nav-item">
-<i class="fas fa-home"></i>
-<span>الرئيسية</span>
-</a>
-<a href="feed.html" class="nav-item">
-<i class="fas fa-newspaper"></i>
-<span>المنشورات</span>
-</a>
-<a href="chat.html" class="nav-item">
-<i class="fas fa-comment-dots"></i>
-<span>الدردشة</span>
-</a>
-<a href="friends.html" class="nav-item">
-<i class="fas fa-user-friends"></i>
-<span>المتابعون</span>
-</a>
-<a href="profile.html" class="nav-item active">
-<i class="fas fa-user"></i>
-<span>حسابي</span>
-</a>
+<a href="home.html" class="nav-item"><i class="fas fa-home"></i><span>الرئيسية</span></a>
+<a href="feed.html" class="nav-item"><i class="fas fa-newspaper"></i><span>المنشورات</span></a>
+<a href="chat.html" class="nav-item"><i class="fas fa-comment-dots"></i><span>الدردشة</span></a>
+<a href="friends.html" class="nav-item"><i class="fas fa-user-friends"></i><span>المتابعون</span></a>
+<a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>حسابي</span></a>
 </nav>
+
 <!-- مودال التعديل -->
 <div class="modal-overlay" id="edit-profile-modal">
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title">تعديل المعلومات</h3>
-<button class="close-modal" onclick="closeModal('edit-profile-modal')">
-<i class="fas fa-times"></i>
-</button>
+<button class="close-modal" onclick="closeModal('edit-profile-modal')"><i class="fas fa-times"></i></button>
 </div>
 <form id="edit-form" onsubmit="saveProfile(event)">
 <div class="form-group">
@@ -977,7 +412,7 @@ gap: 8px;
 <div class="form-group">
 <label class="form-label">البلد</label>
 <select class="form-input" id="edit-country">
-<option value="SA">🇸🇦 المملكة العربية السعودية</option>
+<option value="SA">🇸🇦 السعودية</option>
 <option value="EG">🇪🇬 مصر</option>
 <option value="AE">🇦🇪 الإمارات</option>
 <option value="KW">🇰🇼 الكويت</option>
@@ -988,85 +423,50 @@ gap: 8px;
 <input type="tel" class="form-input" id="edit-phone" required>
 </div>
 <div class="form-group">
-<label class="form-label">النبذة الشخصية</label>
-<textarea class="form-input" id="edit-bio" rows="3" placeholder="اكتب نبذة عنك..."></textarea>
+<label class="form-label">النبذة</label>
+<textarea class="form-input" id="edit-bio" rows="3"></textarea>
 </div>
-<div class="form-group">
-<label class="form-label">تغيير كلمة المرور</label>
-<div class="password-wrapper">
-<input type="password" class="form-input" id="edit-old-password" placeholder="كلمة المرور القديمة">
-<button type="button" class="password-toggle" onclick="togglePassword('edit-old-password')">
-<i class="fas fa-eye"></i>
-</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">كلمة المرور الجديدة</label>
-<div class="password-wrapper">
-<input type="password" class="form-input" id="edit-new-password" placeholder="كلمة المرور الجديدة">
-<button type="button" class="password-toggle" onclick="togglePassword('edit-new-password')">
-<i class="fas fa-eye"></i>
-</button>
-</div>
-</div>
-<div class="form-group">
-<label class="form-label">تأكيد كلمة المرور الجديدة</label>
-<div class="password-wrapper">
-<input type="password" class="form-input" id="edit-confirm-password" placeholder="تأكيد كلمة المرور">
-<button type="button" class="password-toggle" onclick="togglePassword('edit-confirm-password')">
-<i class="fas fa-eye"></i>
-</button>
-</div>
-</div>
-<button type="submit" class="edit-profile-btn">
-<i class="fas fa-save"></i> حفظ التعديلات
-</button>
+<button type="submit" class="edit-profile-btn"><i class="fas fa-save"></i> حفظ</button>
 </form>
 </div>
 </div>
+
 <!-- مودال المحفظة -->
 <div class="modal-overlay" id="wallet-modal">
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title">المحفظة والنقاط</h3>
-<button class="close-modal" onclick="closeModal('wallet-modal')">
-<i class="fas fa-times"></i>
-</button>
+<button class="close-modal" onclick="closeModal('wallet-modal')"><i class="fas fa-times"></i></button>
 </div>
 <div class="wallet-tabs">
 <div class="w-tab active" onclick="switchWalletTab('history', this)">السجل</div>
 <div class="w-tab" onclick="switchWalletTab('send', this)">إرسال نقاط</div>
 <div class="w-tab" onclick="switchWalletTab('topup', this)">شحن رصيد</div>
 </div>
-<div id="wallet-content">
-<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+<div id="wallet-content"><div class="loading">جاري التحميل...</div></div>
 </div>
 </div>
-</div>
-<!-- مودال الدعم الفني -->
+
+<!-- مودال الدعم -->
 <div class="modal-overlay" id="support-modal">
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title"><i class="fas fa-headset"></i> الدعم الفني</h3>
-<button class="close-modal" onclick="closeModal('support-modal')">
-<i class="fas fa-times"></i>
-</button>
+<button class="close-modal" onclick="closeModal('support-modal')"><i class="fas fa-times"></i></button>
 </div>
 <div id="support-form">
 <div class="form-group">
 <label class="form-label">نوع المشكلة</label>
 <select class="form-input" id="support-type">
-<option value="technical">🔧 مشكلة تقنية</option>
-<option value="wallet">💰 مشكلة في المحفظة</option>
+<option value="technical">🔧 تقنية</option>
+<option value="wallet">💰 محفظة</option>
 <option value="topup">💵 شحن رصيد</option>
-<option value="account">👤 مشكلة في الحساب</option>
-<option value="bug">🐛 إبلاغ عن خطأ</option>
-<option value="other">❓ استفسار آخر</option>
+<option value="other">❓ أخرى</option>
 </select>
 </div>
 <div class="form-group">
-<label class="form-label">توضيح المشكلة</label>
-<textarea class="form-input" id="support-message" rows="5" placeholder="صف المشكلة بالتفصيل..."></textarea>
+<label class="form-label">التفاصيل</label>
+<textarea class="form-input" id="support-message" rows="5"></textarea>
 </div>
 <div id="topup-section" style="display: none;">
 <div class="topup-calculation">
@@ -1075,345 +475,229 @@ gap: 8px;
 <input type="number" class="form-input" id="topup-points" placeholder="أدخل النقاط" style="width: 120px; text-align: center;" oninput="calculateTopup()">
 </div>
 <div class="calc-row">
-<span class="calc-label">المبلغ بالدولار:</span>
+<span class="calc-label">المبلغ:</span>
 <span class="calc-value" id="topup-usd-display">$0.00</span>
 </div>
-<p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;">
-💡 كل 100 نقطة = $2.00
-</p>
+<p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;">💡 كل 100 نقطة = $2.00</p>
 </div>
 </div>
 <div style="display: flex; gap: 10px;">
-<button class="edit-profile-btn" style="flex:1;" onclick="sendSupportTicket()">
-إرسال <i class="fas fa-paper-plane"></i>
-</button>
-<button class="edit-profile-btn" style="flex:1; background: var(--input-bg); color: var(--text-main);" onclick="closeModal('support-modal')">
-إلغاء
-</button>
-</div>
-</div>
-<div class="support-success" id="support-success">
-<i class="fas fa-check-circle"></i>
-<h3>تم إرسال طلبك بنجاح</h3>
-<p>سيرد عليك فريق الدعم خلال 24 ساعة 📱</p>
-<button class="edit-profile-btn" style="margin-top: 20px;" onclick="closeModal('support-modal')">حسناً</button>
+<button class="edit-profile-btn" style="flex:1;" onclick="sendSupportTicket()">إرسال</button>
+<button class="edit-profile-btn" style="flex:1; background: var(--input-bg);" onclick="closeModal('support-modal')">إلغاء</button>
 </div>
 </div>
 </div>
+</div>
+
 <!-- مودال المحظورين -->
 <div class="modal-overlay" id="blocked-users-modal">
 <div class="modal-content">
 <div class="modal-header">
-<h3 class="modal-title">قائمة المحظورين</h3>
-<button class="close-modal" onclick="closeModal('blocked-users-modal')">
-<i class="fas fa-times"></i>
-</button>
+<h3 class="modal-title">المحظورين</h3>
+<button class="close-modal" onclick="closeModal('blocked-users-modal')"><i class="fas fa-times"></i></button>
 </div>
-<div id="blocked-list">
-<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+<div id="blocked-list"><div class="loading">جاري التحميل...</div></div>
 </div>
 </div>
-</div>
-<!-- مودال عرض الإحصائيات -->
+
+<!-- مودال الإحصائيات -->
 <div class="modal-overlay" id="stats-modal">
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title" id="stats-modal-title">الإحصائيات</h3>
-<button class="close-modal" onclick="closeModal('stats-modal')">
-<i class="fas fa-times"></i>
-</button>
+<button class="close-modal" onclick="closeModal('stats-modal')"><i class="fas fa-times"></i></button>
 </div>
-<div class="stats-modal-list" id="stats-modal-list">
-<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>
+<div class="stats-modal-list" id="stats-modal-list"><div class="loading">جاري التحميل...</div></div>
 </div>
 </div>
-</div>
-<!-- حالة رفع الصورة -->
+
 <div class="avatar-upload-status" id="avatar-upload-status">
-<i class="fas fa-spinner fa-spin" style="color: var(--primary-color);"></i>
+<i class="fas fa-spinner fa-spin"></i>
 <span id="avatar-upload-text">جاري رفع الصورة...</span>
 </div>
+
 <script type="module">
-console.log('🚀 === PROFILE PAGE STARTING ===');
 import {
-db, doc, getDoc, setDoc, updateDoc, addDoc, collection,
-serverTimestamp, onSnapshot, increment, arrayUnion, arrayRemove, deleteDoc,
-query, where, orderBy, limit, getDocs
+db, doc, getDoc, updateDoc, addDoc, collection,
+serverTimestamp, increment, arrayUnion, arrayRemove,
+query, where, orderBy, limit, getDocs, onSnapshot
 } from './firebase-config.js';
-console.log('✅ Firebase imported');
+
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-console.log('👤 Current User:', currentUser);
 if (!currentUser || !currentUser.isLoggedIn) {
-console.warn('⚠️ No user logged in, redirecting...');
-setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+window.location.href = 'index.html';
 }
+
 let currentUserData = null;
 let walletUnsubscribe = null;
-let pageInitialized = false;
-let myPosts = [];
 let myFollowers = [];
 let myFollowing = [];
 
-// === حفظ حالة الصفحة محلياً ===
-function savePageState() {
-if (currentUserData) {
-localStorage.setItem('profilePageState', JSON.stringify({
-uid: currentUser.uid,
-currentUserData,
-timestamp: Date.now()
-}));
-}
-}
-function loadPageState() {
-const saved = localStorage.getItem('profilePageState');
-if (saved) {
-try {
-const state = JSON.parse(saved);
-if (state.uid === currentUser.uid) {
-if (Date.now() - state.timestamp < 300000) {
-return state.data;
-}
-}
-} catch (e) {
-console.error('Error loading state:', e);
-}
-}
-return null;
-}
-
-// === تحميل بيانات المستخدم ===
+// === تحميل البيانات ===
 async function loadUserData() {
 showRefreshIndicator();
 try {
-console.log('📥 Loading user data...');
 const userRef = doc(db, "users", currentUser.uid);
 const userSnap = await getDoc(userRef);
 if (userSnap.exists()) {
 currentUserData = userSnap.data();
-console.log('✅ User data loaded:', currentUserData);
 renderProfile(currentUserData);
-savePageState();
 }
 if (walletUnsubscribe) walletUnsubscribe();
 walletUnsubscribe = onSnapshot(userRef, (snap) => {
 if (snap.exists()) {
 const newData = snap.data();
-if (JSON.stringify(newData) !== JSON.stringify(currentUserData)) {
 currentUserData = newData;
 renderProfile(currentUserData);
-savePageState();
-console.log('🔄 Profile data updated');
-}
 }
 });
-console.log('✅ User data listener active');
 } catch (error) {
-console.error('❌ Error loading user:', error);
-const cached = loadPageState();
-if (cached) {
-currentUserData = cached;
-renderProfile(currentUserData);
-}
+console.error('Error:', error);
 }
 hideRefreshIndicator();
 }
 
 function renderProfile(data) {
-const nameEl = document.getElementById('display-name');
-const usernameEl = document.getElementById('display-username');
-const bioEl = document.getElementById('display-bio');
-const bioContainer = document.getElementById('display-bio-container');
-const postEl = document.getElementById('stat-posts');
-const followersEl = document.getElementById('stat-followers');
-const followingEl = document.getElementById('stat-following');
-const avatarEl = document.getElementById('profile-img-display');
-const privateToggle = document.getElementById('private-profile-toggle');
-if (nameEl) nameEl.textContent = data.fullName || currentUser.username;
-if (usernameEl) usernameEl.textContent = '@' + (data.username || 'user');
-if (bioEl) {
-if (data.bio && data.bio.trim()) {
-bioEl.textContent = data.bio;
-bioContainer.classList.remove('profile-bio-empty');
-} else {
-bioEl.textContent = 'لا توجد نبذة';
-bioContainer.classList.add('profile-bio-empty');
-}
-}
-if (postEl) postEl.textContent = data.stats?.postsCount || 0;
-if (followersEl) followersEl.textContent = (data.followers || []).length;
-if (followingEl) followingEl.textContent = (data.following || []).length;
-if (avatarEl) avatarEl.src = data.profileImage || 'https://i.pravatar.cc/150';
-if (privateToggle) privateToggle.checked = data.isPrivate || false;
+document.getElementById('display-name').textContent = data.fullName || currentUser.username;
+document.getElementById('display-username').textContent = '@' + (data.username || 'user');
+document.getElementById('display-bio').textContent = data.bio || 'لا توجد نبذة';
+document.getElementById('stat-posts').textContent = data.stats?.postsCount || 0;
+document.getElementById('stat-followers').textContent = (data.followers || []).length;
+document.getElementById('stat-following').textContent = (data.following || []).length;
+document.getElementById('profile-img-display').src = data.profileImage || 'https://i.pravatar.cc/150';
+document.getElementById('private-profile-toggle').checked = data.isPrivate || false;
 updateWalletDisplay(data.wallet?.points || 0);
+
 document.getElementById('edit-name').value = data.fullName || '';
 document.getElementById('edit-username').value = data.username || '';
 document.getElementById('edit-country').value = data.country || 'SA';
 document.getElementById('edit-phone').value = data.phone || '';
 document.getElementById('edit-bio').value = data.bio || '';
-document.getElementById('edit-old-password').value = '';
-document.getElementById('edit-new-password').value = '';
-document.getElementById('edit-confirm-password').value = '';
+
 myFollowers = data.followers || [];
 myFollowing = data.following || [];
-if (!pageInitialized) {
-document.body.classList.add('page-loaded');
-pageInitialized = true;
-}
 }
 
 function updateWalletDisplay(points) {
-const walletEl = document.getElementById('wallet-points');
-const usdEl = document.getElementById('wallet-usd');
-if (walletEl) walletEl.innerHTML = points.toLocaleString() + ' <i class="fas fa-coins"></i>';
-if (usdEl) {
+document.getElementById('wallet-points').innerHTML = points.toLocaleString() + ' <i class="fas fa-coins"></i>';
 const usd = (points / 100) * 2;
-usdEl.textContent = `≈ $${usd.toFixed(2)}`;
+document.getElementById('wallet-usd').textContent = `≈ $${usd.toFixed(2)}`;
+}
+
+// ========================================
+// 🔐 نظام البصمة - Dynamic Import
+// ========================================
+let biometricEnabled = localStorage.getItem('biometricEnabled') === 'true';
+
+function updateBiometricUI() {
+const toggle = document.getElementById('biometric-toggle');
+const status = document.getElementById('biometric-status');
+const icon = document.getElementById('biometric-icon');
+if (toggle) toggle.checked = biometricEnabled;
+if (status) {
+status.textContent = biometricEnabled ? 'مفعل ✅' : 'غير مفعل';
+status.style.color = biometricEnabled ? 'var(--success-color)' : 'var(--text-secondary)';
+}
+if (icon) {
+icon.style.background = biometricEnabled ? 'rgba(16, 185, 129, 0.1)' : 'rgba(139, 92, 246, 0.1)';
+icon.style.color = biometricEnabled ? 'var(--success-color)' : '#8b5cf6';
 }
 }
 
-// === رفع صورة البروفايل ===
-window.uploadImage = async function(event) {
-const file = event.target.files[0];
-if (!file) return;
-if (!file.type.startsWith('image/')) {
-showStatus('⚠️ الرجاء اختيار ملف صورة صحيح', 'error');
-return;
-}
-if (file.size > 5 * 1024 * 1024) {
-showStatus('⚠️ حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)', 'error');
+window.toggleBiometricSetting = async function() {
+if (typeof Capacitor === 'undefined') {
+showAlert('warning', 'غير متاح', 'البصمة تعمل فقط في التطبيق المثبت');
 return;
 }
 try {
-console.log('📷 Compressing and uploading image...');
-const overlay = document.getElementById('avatar-preview-overlay');
-overlay.classList.add('show');
-const base64 = await compressImage(file);
-if (base64.length > 900000) {
-showStatus('⚠️ حجم الصورة كبير جداً بعد الضغط', 'error');
-overlay.classList.remove('show');
+// Dynamic import للبصمة
+const { NativeBiometric } = await import('capacitor-native-biometric');
+const result = await NativeBiometric.isAvailable();
+if (!result.isAvailable) {
+showAlert('warning', 'غير مدعوم', 'جهازك لا يدعم البصمة');
 return;
 }
-showStatus('🔄 جاري حفظ الصورة...', 'loading');
-await updateDoc(doc(db, "users", currentUser.uid), {
-profileImage: base64,
-updatedAt: serverTimestamp()
+if (!biometricEnabled) {
+try {
+await NativeBiometric.verifyIdentity({
+reason: 'لتفعيل قفل البصمة',
+title: 'تفعيل قفل البصمة',
+subtitle: 'استخدم بصمتك'
 });
-showStatus('✅ تم تحديث الصورة بنجاح', 'success');
-overlay.classList.remove('show');
-loadUserData();
-event.target.value = '';
+biometricEnabled = true;
+localStorage.setItem('biometricEnabled', 'true');
+updateBiometricUI();
+showAlert('success', 'تم التفعيل', 'تم تفعيل البصمة');
 } catch (error) {
-console.error('❌ Error uploading image:', error);
-showStatus('❌ حدث خطأ: ' + error.message, 'error');
-document.getElementById('avatar-preview-overlay').classList.remove('show');
+showAlert('warning', 'تم الإلغاء', 'لم يتم التفعيل');
+}
+} else {
+biometricEnabled = false;
+localStorage.setItem('biometricEnabled', 'false');
+updateBiometricUI();
+showAlert('info', 'تم التعطيل', 'تم تعطيل البصمة');
+}
+} catch (error) {
+console.error('Biometric error:', error);
+showAlert('error', 'خطأ', error.message);
 }
 }
 
-function compressImage(file) {
-return new Promise((resolve) => {
+// === رفع الصورة ===
+document.getElementById('profile-img-input').addEventListener('change', async function(e) {
+const file = e.target.files[0];
+if (!file || !file.type.startsWith('image/')) return;
+if (file.size > 5 * 1024 * 1024) {
+showStatus('حجم الصورة كبير', 'error');
+return;
+}
+try {
+const overlay = document.getElementById('avatar-preview-overlay');
+overlay.classList.add('show');
 const reader = new FileReader();
 reader.readAsDataURL(file);
-reader.onload = (event) => {
+reader.onload = async (event) => {
 const img = new Image();
 img.src = event.target.result;
 img.onload = () => {
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 const maxWidth = 400;
-const scaleSize = maxWidth / img.width;
+const scale = maxWidth / img.width;
 canvas.width = maxWidth;
-canvas.height = img.height * scaleSize;
+canvas.height = img.height * scale;
 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 const base64 = canvas.toDataURL('image/jpeg', 0.7);
-resolve(base64);
-};
-};
+updateDoc(doc(db, "users", currentUser.uid), {
+profileImage: base64,
+updatedAt: serverTimestamp()
 });
+showStatus('تم تحديث الصورة', 'success');
+overlay.classList.remove('show');
+loadUserData();
+};
+};
+} catch (error) {
+showStatus('حدث خطأ', 'error');
 }
+});
 
-function showStatus(message, type) {
-const statusEl = document.getElementById('avatar-upload-status');
-const textEl = document.getElementById('avatar-upload-text');
-const iconEl = statusEl.querySelector('i');
-textEl.textContent = message;
-statusEl.classList.add('show');
-iconEl.className = '';
-if (type === 'success') {
-iconEl.classList.add('fas', 'fa-check-circle');
-iconEl.style.color = 'var(--success-color)';
-} else if (type === 'error') {
-iconEl.classList.add('fas', 'fa-exclamation-circle');
-iconEl.style.color = 'var(--danger-color)';
-} else {
-iconEl.classList.add('fas', 'fa-spinner', 'fa-spin');
-iconEl.style.color = 'var(--primary-color)';
-}
-setTimeout(() => {
-statusEl.classList.remove('show');
-}, 3000);
-}
-
-// === إظهار/إخفاء كلمة المرور ===
-window.togglePassword = function(inputId) {
-const input = document.getElementById(inputId);
-const toggle = input.nextElementSibling;
-const icon = toggle.querySelector('i');
-if (input.type === 'password') {
-input.type = 'text';
-icon.classList.remove('fa-eye');
-icon.classList.add('fa-eye-slash');
-} else {
-input.type = 'password';
-icon.classList.remove('fa-eye-slash');
-icon.classList.add('fa-eye');
-}
-}
-
-// === حفظ تعديل البروفايل ===
+// === حفظ التعديلات ===
 window.saveProfile = async function(e) {
 e.preventDefault();
 try {
-console.log('💾 Saving profile changes...');
-const oldPassword = document.getElementById('edit-old-password').value;
-const newPassword = document.getElementById('edit-new-password').value;
-const confirmPassword = document.getElementById('edit-confirm-password').value;
-const updateData = {
+await updateDoc(doc(db, "users", currentUser.uid), {
 fullName: document.getElementById('edit-name').value,
 username: document.getElementById('edit-username').value,
 country: document.getElementById('edit-country').value,
 phone: document.getElementById('edit-phone').value,
 bio: document.getElementById('edit-bio').value,
 updatedAt: serverTimestamp()
-};
-if (oldPassword || newPassword || confirmPassword) {
-if (!oldPassword) {
-alert('⚠️ يرجى إدخال كلمة المرور القديمة');
-return;
-}
-if (!newPassword) {
-alert('⚠️ يرجى إدخال كلمة المرور الجديدة');
-return;
-}
-if (newPassword !== confirmPassword) {
-alert('⚠️ كلمة المرور الجديدة غير متطابقة');
-return;
-}
-if (newPassword.length < 6) {
-alert('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-return;
-}
-if (oldPassword !== currentUserData.password) {
-alert('⚠️ كلمة المرور القديمة غير صحيحة');
-return;
-}
-updateData.password = newPassword;
-}
-await updateDoc(doc(db, "users", currentUser.uid), updateData);
+});
 closeModal('edit-profile-modal');
-showAlert('success', 'تم الحفظ', 'تم حفظ التعديلات بنجاح');
+showAlert('success', 'تم الحفظ', 'تم حفظ التعديلات');
 loadUserData();
 } catch (error) {
-console.error('❌ Error saving profile:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
@@ -1446,40 +730,31 @@ content.innerHTML = `
 </div>
 <div class="topup-calculation">
 <div class="calc-row">
-<span class="calc-label">المبلغ بالدولار:</span>
+<span class="calc-label">المبلغ:</span>
 <span class="calc-value" id="send-usd-display">$0.00</span>
 </div>
 </div>
 <button class="edit-profile-btn" onclick="sendPoints()">إرسال النقاط</button>
-</div>
-`;
+</div>`;
 loadFriendsForSend();
 } else if (tab === 'topup') {
 content.innerHTML = `
 <div style="padding:20px; text-align:center;">
 <i class="fas fa-credit-card" style="font-size:3rem; color:var(--primary-color); margin-bottom:20px;"></i>
-<p style="margin-bottom:15px; color:var(--text-secondary);">شحن رصيد محفظتك</p>
+<p style="margin-bottom:15px;">شحن رصيد محفظتك</p>
 <div class="topup-calculation">
 <div class="calc-row">
 <span class="calc-label">عدد النقاط:</span>
 <input type="number" class="form-input" id="topup-amount-points" placeholder="أدخل النقاط" style="width: 120px; text-align: center;" oninput="calculateTopupFromModal()">
 </div>
 <div class="calc-row">
-<span class="calc-label">المبلغ بالدولار:</span>
+<span class="calc-label">المبلغ:</span>
 <span class="calc-value" id="topup-amount-usd">$0.00</span>
 </div>
-<p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;">
-💡 كل 100 نقطة = $2.00
-</p>
+<p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 10px;">💡 كل 100 نقطة = $2.00</p>
 </div>
-<button class="edit-profile-btn" style="background:var(--success-color); margin-top: 15px;" onclick="requestTopup()">
-طلب شحن الرصيد <i class="fas fa-paper-plane"></i>
-</button>
-<p style="font-size:0.8rem; color:var(--text-secondary); margin-top:15px;">
-سيتم مراجعة طلبك من قبل الإدارة
-</p>
-</div>
-`;
+<button class="edit-profile-btn" style="background:var(--success-color); margin-top: 15px;" onclick="requestTopup()">طلب شحن الرصيد</button>
+</div>`;
 }
 }
 
@@ -1487,57 +762,41 @@ function calculateSendUSD() {
 const points = parseInt(document.getElementById('send-amount')?.value) || 0;
 const usd = (points / 100) * 2;
 const display = document.getElementById('send-usd-display');
-if (display) {
-display.textContent = `$${usd.toFixed(2)}`;
-}
+if (display) display.textContent = `$${usd.toFixed(2)}`;
 }
 
 function calculateTopupFromModal() {
 const points = parseInt(document.getElementById('topup-amount-points')?.value) || 0;
 const usd = (points / 100) * 2;
 const display = document.getElementById('topup-amount-usd');
-if (display) {
-display.textContent = `$${usd.toFixed(2)}`;
-}
+if (display) display.textContent = `$${usd.toFixed(2)}`;
 }
 
 function loadWalletHistory() {
 const content = document.getElementById('wallet-content');
-content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل السجل...</div>';
-const txnQuery = query(collection(db, "transactions"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(100));
-getDocs(txnQuery).then(snapshot => {
+content.innerHTML = '<div class="loading">جاري التحميل...</div>';
+getDocs(query(collection(db, "transactions"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(100)))
+.then(snapshot => {
 if (snapshot.empty) {
-content.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);"><i class="fas fa-receipt" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>لا توجد عمليات سابقة</div>';
+content.innerHTML = '<div style="text-align:center; padding:30px;">لا توجد عمليات</div>';
 return;
 }
 content.innerHTML = snapshot.docs.map(doc => {
 const t = doc.data();
-const icon = t.amount > 0 ? 'fa-plus' : 'fa-minus';
-const color = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
 const sign = t.amount > 0 ? '+' : '';
-const iconBg = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
-const usd = (t.amount / 100) * 2;
+const color = t.amount > 0 ? 'var(--success-color)' : 'var(--danger-color)';
 return `
 <div class="transaction-item">
 <div class="t-info">
-<div class="t-icon" style="background:${iconBg}; color:white;"><i class="fas ${icon}"></i></div>
-<div>
-<div style="font-weight:600;">${t.description || t.type}</div>
-<div style="font-size:0.75rem; color:var(--text-secondary);">${formatTime(t.timestamp)}</div>
-${t.toUserId ? `<div style="font-size:0.7rem; color:var(--primary-color);">↔️ ${t.toUserId === currentUser.uid ? 'مستلم' : 'مرسل'}</div>` : ''}
+<div class="t-icon"><i class="fas fa-${t.amount > 0 ? 'plus' : 'minus'}"></i></div>
+<div>${t.description || t.type}</div>
 </div>
-</div>
-<div style="text-align: left;">
-<div class="t-amount ${t.amount > 0 ? 'plus' : 'minus'}">${sign}${t.amount.toLocaleString()}</div>
-<div style="font-size:0.7rem; color:var(--text-secondary);">≈ $${usd.toFixed(2)}</div>
-</div>
-</div>
-`;
+<div class="t-amount" style="color:${color}">${sign}${t.amount.toLocaleString()}</div>
+</div>`;
 }).join('');
-console.log('✅ Loaded', snapshot.size, 'transactions');
-}).catch(error => {
-console.error('❌ Error loading transactions:', error);
-content.innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ: ${error.message}<br><button onclick="loadWalletHistory()" style="margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button></div>`;
+})
+.catch(error => {
+content.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ</div>';
 });
 }
 
@@ -1545,8 +804,7 @@ function loadFriendsForSend() {
 const select = document.getElementById('send-to-friend');
 if (!select) return;
 select.innerHTML = '<option value="">-- جاري التحميل --</option>';
-const userRef = doc(db, "users", currentUser.uid);
-getDoc(userRef).then(snap => {
+getDoc(doc(db, "users", currentUser.uid)).then(snap => {
 if (snap.exists()) {
 const followers = snap.data().followers || [];
 if (followers.length === 0) {
@@ -1576,65 +834,40 @@ if (!friendId) return alert('⚠️ اختر متابعاً أولاً');
 if (!amount || amount <= 0) return alert('⚠️ أدخل عدد النقاط');
 if (amount > (currentUserData.wallet?.points || 0)) return alert('⚠️ رصيدك غير كافٍ');
 try {
-console.log('💸 Sending points:', amount, 'to', friendId);
 await updateDoc(doc(db, "users", currentUser.uid), { 'wallet.points': increment(-amount) });
 await updateDoc(doc(db, "users", friendId), { 'wallet.points': increment(amount) });
-await addDoc(collection(db, "transactions"), { 
-userId: currentUser.uid, 
-type: 'send', 
-amount: -amount, 
-toUserId: friendId, 
-description: `إرسال نقاط إلى متابع`, 
-timestamp: serverTimestamp() 
+await addDoc(collection(db, "transactions"), {
+userId: currentUser.uid, type: 'send', amount: -amount, toUserId: friendId,
+description: 'إرسال نقاط', timestamp: serverTimestamp()
 });
-await addDoc(collection(db, "transactions"), { 
-userId: friendId, 
-type: 'receive', 
-amount: amount, 
-fromUserId: currentUser.uid, 
-description: `استلام نقاط من ${currentUserData?.fullName || currentUser.username}`, 
-timestamp: serverTimestamp() 
+await addDoc(collection(db, "transactions"), {
+userId: friendId, type: 'receive', amount: amount, fromUserId: currentUser.uid,
+description: `استلام من ${currentUserData?.fullName}`, timestamp: serverTimestamp()
 });
-await addDoc(collection(db, "notifications"), { 
-type: 'wallet', 
-targetUserId: currentUser.uid, 
-senderName: 'نظام المحفظة', 
-senderId: 'system', 
-title: '📤 تم إرسال النقاط', 
-body: `أرسلت ${amount} نقطة لمتابعك`, 
-isRead: false, 
-timestamp: serverTimestamp() 
+await addDoc(collection(db, "notifications"), {
+type: 'wallet', targetUserId: currentUser.uid, senderName: 'نظام المحفظة',
+title: '📤 تم الإرسال', body: `أرسلت ${amount} نقطة`, isRead: false, timestamp: serverTimestamp()
 });
-await addDoc(collection(db, "notifications"), { 
-type: 'wallet', 
-targetUserId: friendId, 
-senderName: currentUserData?.fullName || currentUser.username, 
-senderId: currentUser.uid, 
-title: '📥 وصلتكَ نقاط', 
-body: `${currentUserData?.fullName || currentUser.username} أرسل لك ${amount} نقطة`, 
-isRead: false, 
-timestamp: serverTimestamp() 
+await addDoc(collection(db, "notifications"), {
+type: 'wallet', targetUserId: friendId,
+senderName: currentUserData?.fullName, senderId: currentUser.uid,
+title: '📥 وصلتكَ نقاط', body: `${amount} نقطة`, isRead: false, timestamp: serverTimestamp()
 });
 const content = document.getElementById('wallet-content');
 const usd = (amount / 100) * 2;
 content.innerHTML = `
 <div class="success-card">
 <i class="fas fa-check-circle"></i>
-<h4>✅ تم الإرسال بنجاح</h4>
-<p>تم إرسال <strong>${amount.toLocaleString()} نقطة</strong> ($${usd.toFixed(2)}) لمتابعك</p>
-<p style="margin-top:10px; font-size:0.85rem;">رصيدك المتبقي: ${(currentUserData.wallet?.points - amount).toLocaleString()} نقطة</p>
+<h4>✅ تم الإرسال</h4>
+<p>تم إرسال ${amount.toLocaleString()} نقطة ($${usd.toFixed(2)})</p>
 </div>
-<button class="edit-profile-btn" onclick="switchWalletTab('history', document.querySelector('.w-tab'))">عرض السجل</button>
-`;
-console.log('✅ Points sent successfully');
+<button class="edit-profile-btn" onclick="switchWalletTab('history', document.querySelector('.w-tab'))">عرض السجل</button>`;
 loadUserData();
 } catch (error) {
-console.error('❌ Error sending points:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
 
-// === طلب شحن الرصيد ===
 window.requestTopup = async function() {
 const points = parseInt(document.getElementById('topup-amount-points')?.value);
 if (!points || points <= 0) return alert('⚠️ أدخل عدد نقاط صحيح');
@@ -1643,37 +876,14 @@ try {
 await addDoc(collection(db, "support_tickets"), {
 userId: currentUser.uid,
 userName: currentUserData?.fullName || currentUser.username,
-userPhone: currentUserData?.phone || '',
-userCountry: currentUserData?.country || '',
 type: 'topup',
-subject: '💵 طلب شحن رصيد',
-message: `طلب شحن رصيد
-عدد النقاط: ${points}
-المبلغ: $${usd.toFixed(2)}
-رقم الهاتف: ${currentUserData?.phone || 'غير متوفر'}
-البلد: ${currentUserData?.country || 'غير متوفر'}`,
+message: `طلب شحن ${points} نقطة ($${usd.toFixed(2)})`,
 status: 'open',
-replied: false,
-createdAt: serverTimestamp(),
-updatedAt: serverTimestamp()
+createdAt: serverTimestamp()
 });
-await addDoc(collection(db, "notifications"), {
-type: 'support_ticket',
-targetUserId: '',
-senderName: currentUserData?.fullName || currentUser.username,
-senderId: currentUser.uid,
-title: '📞 طلب شحن رصيد جديد',
-body: `${currentUserData?.fullName} طلب شحن ${points} نقطة ($${usd.toFixed(2)})`,
-isRead: false,
-timestamp: serverTimestamp(),
-priority: 'high',
-ticketType: 'topup',
-isSupportTicket: true
-});
-showAlert('success', 'تم الإرسال', `تم إرسال طلب شحن ${points.toLocaleString()} نقطة ($${usd.toFixed(2)}) للدعم الفني`);
+showAlert('success', 'تم الإرسال', `طلب شحن ${points} نقطة`);
 closeModal('wallet-modal');
 } catch (error) {
-console.error('❌ Error requesting topup:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
@@ -1682,315 +892,137 @@ window.calculateTopup = function() {
 const points = parseInt(document.getElementById('topup-points')?.value) || 0;
 const usd = (points / 100) * 2;
 const display = document.getElementById('topup-usd-display');
-if (display) {
-display.textContent = `$${usd.toFixed(2)}`;
-}
+if (display) display.textContent = `$${usd.toFixed(2)}`;
 }
 
 window.togglePrivateProfile = async function() {
 const isPrivate = document.getElementById('private-profile-toggle').checked;
 try {
 await updateDoc(doc(db, "users", currentUser.uid), { isPrivate });
-showAlert(isPrivate ? 'success' : 'info', 'تم التحديث', isPrivate ? 'تم جعل الملف خاص' : 'تم جعل الملف عام');
+showAlert(isPrivate ? 'success' : 'info', 'تم', isPrivate ? 'الملف خاص' : 'الملف عام');
 } catch (error) {
-console.error('❌ Error:', error);
+console.error('Error:', error);
 }
 }
 
-// === الدعم الفني ===
+// === الدعم ===
 window.openSupportModal = function() {
-const modal = document.getElementById('support-modal');
-modal.classList.add('show');
+document.getElementById('support-modal').classList.add('show');
 document.body.classList.add('scroll-locked');
-document.getElementById('support-form').style.display = 'block';
-document.getElementById('support-success').classList.remove('show');
-document.getElementById('support-type').value = 'technical';
-document.getElementById('support-message').value = '';
-document.getElementById('topup-section').style.display = 'none';
 }
-
-document.getElementById('support-type')?.addEventListener('change', function() {
-const topupSection = document.getElementById('topup-section');
-if (topupSection) {
-topupSection.style.display = this.value === 'topup' ? 'block' : 'none';
-}
-});
 
 window.sendSupportTicket = async function() {
 const type = document.getElementById('support-type').value;
 const message = document.getElementById('support-message').value.trim();
 if (!message) return alert('يرجى توضيح المشكلة');
-if (!currentUserData) {
 try {
-const userSnap = await getDoc(doc(db, "users", currentUser.uid));
-if (userSnap.exists()) {
-currentUserData = userSnap.data();
-}
-} catch (e) {
-console.error('Error loading user data:', e);
-}
-}
-const typeLabels = {
-'technical': '🔧 مشكلة تقنية',
-'wallet': '💰 مشكلة في المحفظة',
-'topup': '💵 شحن رصيد',
-'account': '👤 مشكلة في الحساب',
-'bug': '🐛 إبلاغ عن خطأ',
-'other': '❓ استفسار آخر'
-};
-const userName = currentUserData?.fullName || currentUser.username || 'مستخدم';
-let fullMessage = message;
-if (type === 'topup') {
-const points = document.getElementById('topup-points')?.value || 0;
-const usd = (points / 100) * 2;
-fullMessage = `${message}
-
-تفاصيل الشحن:
-عدد النقاط: ${points}
-المبلغ: $${usd.toFixed(2)}
-رقم الهاتف: ${currentUserData?.phone || 'غير متوفر'}
-البلد: ${currentUserData?.country || 'غير متوفر'}`;
-}
-try {
-console.log('📝 Sending support ticket...');
-const ticketRef = await addDoc(collection(db, "support_tickets"), {
+await addDoc(collection(db, "support_tickets"), {
 userId: currentUser.uid,
-userName: userName,
-userEmail: currentUserData?.email || '',
-userPhone: currentUserData?.phone || '',
-userCountry: currentUserData?.country || '',
+userName: currentUserData?.fullName || currentUser.username,
 type: type,
-subject: typeLabels[type],
-message: fullMessage,
+message: message,
 status: 'open',
-replied: false,
-adminResponse: '',
-createdAt: serverTimestamp(),
-updatedAt: serverTimestamp()
-});
-console.log('✅ Ticket saved:', ticketRef.id);
-await addDoc(collection(db, "notifications"), {
-type: 'support_ticket',
-targetUserId: '',
-senderName: userName,
-senderId: currentUser.uid,
-title: '📞 تذكرة دعم جديدة',
-body: `${typeLabels[type]}: ${message.substring(0, 100)}...`,
-isRead: false,
-timestamp: serverTimestamp(),
-priority: 'high',
-ticketType: type,
-isSupportTicket: true
-});
-console.log('✅ Notification sent to super admin');
-await addDoc(collection(db, "notifications"), {
-type: 'support',
-targetUserId: currentUser.uid,
-senderName: 'فريق الدعم الفني',
-title: '✅ تم استلام طلبك',
-body: 'تم استلام تذكرة الدعم وسيتم الرد عليك قريباً',
-isRead: false,
-timestamp: serverTimestamp()
+createdAt: serverTimestamp()
 });
 document.getElementById('support-form').style.display = 'none';
-document.getElementById('support-success').classList.add('show');
+showAlert('success', 'تم الإرسال', 'سيتم الرد قريباً');
 } catch (error) {
-console.error('❌ Error sending support ticket:', error);
-alert('حدث خطأ أثناء الإرسال: ' + error.message);
-}
-}
-
-// === المحظورين - مصحح ===
-async function loadBlockedUsers() {
-const container = document.getElementById('blocked-list');
-container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
-try {
-const userSnap = await getDoc(doc(db, "users", currentUser.uid));
-if (!userSnap.exists()) {
-container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">خطأ في تحميل البيانات</div>';
-return;
-}
-const blocked = userSnap.data()?.blockedUsers || [];
-if (blocked.length === 0) {
-container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);"><i class="fas fa-check-circle" style="font-size:3rem; margin-bottom:15px; opacity:0.3; color: var(--success-color);"></i><br>لا يوجد مستخدمين محظورين</div>';
-return;
-}
-const blockedUsersData = [];
-for (const uid of blocked.slice(0, 50)) {
-try {
-const userSnap = await getDoc(doc(db, "users", uid));
-if (userSnap.exists()) {
-blockedUsersData.push({ id: uid, ...userSnap.data() });
-}
-} catch (e) {
-console.error('Error loading blocked user:', uid, e);
-}
-}
-if (blockedUsersData.length === 0) {
-container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-secondary);">لا يمكن عرض المستخدمين المحظورين</div>';
-return;
-}
-container.innerHTML = blockedUsersData.map(user => `
-<div class="transaction-item">
-<div class="t-info">
-<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" style="width:40px; height:40px; border-radius:50%;">
-<span>${user.fullName || user.username || 'مستخدم'}</span>
-</div>
-<button onclick="unblockUser('${user.id}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">إلغاء الحظر</button>
-</div>
-`).join('');
-} catch (error) {
-console.error('❌ Error loading blocked users:', error);
-container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ: ${error.message}<br><button onclick="loadBlockedUsers()" style="margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; border:none; border-radius:8px; cursor:pointer;">إعادة المحاولة</button></div>`;
-}
-}
-
-window.unblockUser = async function(userId) {
-if (!confirm('هل تريد إلغاء حظر هذا المستخدم؟')) return;
-try {
-await updateDoc(doc(db, "users", currentUser.uid), { blockedUsers: arrayRemove(userId) });
-showAlert('success', 'تم الإلغاء', 'تم إلغاء الحظر');
-loadBlockedUsers();
-} catch (error) {
-console.error('❌ Error:', error);
 alert('حدث خطأ: ' + error.message);
 }
 }
 
-// === عرض الإحصائيات - مصحح لمشكلة الفهرس ===
+// === المحظورين ===
+async function loadBlockedUsers() {
+const container = document.getElementById('blocked-list');
+container.innerHTML = '<div class="loading">جاري التحميل...</div>';
+try {
+const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+const blocked = userSnap.data()?.blockedUsers || [];
+if (blocked.length === 0) {
+container.innerHTML = '<div style="text-align:center; padding:30px;">لا يوجد محظورين</div>';
+return;
+}
+container.innerHTML = blocked.map(uid => `
+<div class="transaction-item">
+<span>${uid}</span>
+<button onclick="unblockUser('${uid}')" style="background:var(--success-color); color:white; border:none; padding:8px 12px; border-radius:8px;">إلغاء</button>
+</div>`).join('');
+} catch (error) {
+container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger-color);">خطأ</div>';
+}
+}
+
+window.unblockUser = async function(userId) {
+try {
+await updateDoc(doc(db, "users", currentUser.uid), { blockedUsers: arrayRemove(userId) });
+showAlert('success', 'تم', 'تم إلغاء الحظر');
+loadBlockedUsers();
+} catch (error) {
+alert('حدث خطأ');
+}
+}
+
+// === الإحصائيات ===
 window.showUserPosts = async function() {
 document.getElementById('stats-modal-title').textContent = 'منشوراتي';
-const container = document.getElementById('stats-modal-list');
-container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
+document.getElementById('stats-modal-list').innerHTML = '<div class="loading">جاري التحميل...</div>';
 document.getElementById('stats-modal').classList.add('show');
 document.body.classList.add('scroll-locked');
 try {
-// استخدام استعلام بديل لا يتطلب فهرس مركب
-const postsQuery = query(
-collection(db, "posts"), 
-where("userId", "==", currentUser.uid)
-// إزالة orderBy لتجنب مشكلة الفهرس
-);
-const snapshot = await getDocs(postsQuery);
-myPosts = [];
-snapshot.forEach(doc => {
-myPosts.push({ id: doc.id, ...doc.data() });
-});
-// ترتيب محلي بدلاً من ترتيب من السيرفر
-myPosts.sort((a, b) => {
-const timeA = a.timestamp?.toDate?.() || a.timestamp || 0;
-const timeB = b.timestamp?.toDate?.() || b.timestamp || 0;
-return new Date(timeB) - new Date(timeA);
-});
-if (myPosts.length === 0) {
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>لا توجد منشورات</div>';
+const snapshot = await getDocs(query(collection(db, "posts"), where("userId", "==", currentUser.uid)));
+const posts = [];
+snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+if (posts.length === 0) {
+document.getElementById('stats-modal-list').innerHTML = '<div style="text-align:center; padding:40px;">لا توجد منشورات</div>';
 } else {
-container.innerHTML = myPosts.map(post => {
-const hasImage = post.image ? true : false;
-return `
-<div class="stat-item-card" onclick="openPostInFeed('${post.id}')">
-${hasImage ? `<img src="${post.image}" alt="صورة المنشور" style="width: 60px; height: 60px;">` : '<div style="width: 60px; height: 60px; background: var(--input-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-file-alt" style="color: var(--text-secondary);"></i></div>'}
+document.getElementById('stats-modal-list').innerHTML = posts.slice(0, 20).map(post => `
+<div class="stat-item-card">
 <div class="stat-item-card-info">
-<div class="stat-item-card-name">${post.content?.substring(0, 50) || ''}${post.content?.length > 50 ? '...' : ''}</div>
-<div class="stat-item-card-username">
-❤️ ${post.likesCount || 0} • 💬 ${post.commentsCount || 0}
+<div class="stat-item-card-name">${post.content?.substring(0, 50) || ''}</div>
+<div style="font-size:0.75rem;">❤️ ${post.likesCount || 0}</div>
 </div>
-</div>
-</div>
-`;
-}).join('');
+</div>`).join('');
 }
 } catch (error) {
-console.error('Error loading posts:', error);
-if (error.code === 'failed-precondition' && error.message.includes('index')) {
-container.innerHTML = `
-<div style="text-align:center; padding:20px; color:var(--danger-color);">
-<i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i>
-<p style="font-size:0.9rem;">يتطلب هذا القسم إنشاء فهرس في Firebase</p>
-<a href="https://console.firebase.google.com/v1/r/project/cat11-547eb/firestore/indexes?create_composite=Cklwcm9qZWN0cy9jYXQxMS01NDdlYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvcG9zdHMvaW5kZXhlcy9fEAEaCgoGdXNlcklkEAEaDQoJdGltZXN0YW1wEAIaDAoIX19uYW1lX18QAg" target="_blank" style="display:inline-block; margin-top:10px; padding:8px 16px; background:var(--primary-color); color:white; text-decoration:none; border-radius:8px; font-size:0.85rem;">🔗 إنشاء الفهرس الآن</a>
-</div>
-`;
-} else {
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل: ' + error.message + '</div>';
-}
+document.getElementById('stats-modal-list').innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ</div>';
 }
 }
 
 window.showFollowers = async function() {
 document.getElementById('stats-modal-title').textContent = 'المتابعون';
-const container = document.getElementById('stats-modal-list');
-container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
+document.getElementById('stats-modal-list').innerHTML = '<div class="loading">جاري التحميل...</div>';
 document.getElementById('stats-modal').classList.add('show');
 document.body.classList.add('scroll-locked');
-try {
 if (myFollowers.length === 0) {
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-user-slash" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>لا يوجد متابعين بعد</div>';
+document.getElementById('stats-modal-list').innerHTML = '<div style="text-align:center; padding:40px;">لا يوجد متابعين</div>';
 } else {
-const followersData = [];
-for (const followerId of myFollowers.slice(0, 50)) {
-const userSnap = await getDoc(doc(db, "users", followerId));
-if (userSnap.exists()) {
-followersData.push({ id: followerId, ...userSnap.data() });
-}
-}
-container.innerHTML = followersData.map(user => `
-<div class="stat-item-card" onclick="openProfileModal('${user.id}')">
-<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" alt="${user.fullName}">
+document.getElementById('stats-modal-list').innerHTML = myFollowers.slice(0, 50).map(id => `
+<div class="stat-item-card">
 <div class="stat-item-card-info">
-<div class="stat-item-card-name">${user.fullName || user.username}</div>
-<div class="stat-item-card-username">@${user.username || 'user'}</div>
+<div class="stat-item-card-name">${id}</div>
 </div>
-</div>
-`).join('');
-}
-} catch (error) {
-console.error('Error loading followers:', error);
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل</div>';
+</div>`).join('');
 }
 }
 
 window.showFollowing = async function() {
 document.getElementById('stats-modal-title').textContent = 'الذين أتابعهم';
-const container = document.getElementById('stats-modal-list');
-container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</div>';
+document.getElementById('stats-modal-list').innerHTML = '<div class="loading">جاري التحميل...</div>';
 document.getElementById('stats-modal').classList.add('show');
 document.body.classList.add('scroll-locked');
-try {
 if (myFollowing.length === 0) {
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-user-slash" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>لا تتابع أحداً بعد</div>';
+document.getElementById('stats-modal-list').innerHTML = '<div style="text-align:center; padding:40px;">لا تتابع أحداً</div>';
 } else {
-const followingData = [];
-for (const followingId of myFollowing.slice(0, 50)) {
-const userSnap = await getDoc(doc(db, "users", followingId));
-if (userSnap.exists()) {
-followingData.push({ id: followingId, ...userSnap.data() });
-}
-}
-container.innerHTML = followingData.map(user => `
-<div class="stat-item-card" onclick="openProfileModal('${user.id}')">
-<img src="${user.profileImage || 'https://i.pravatar.cc/150?u=' + user.username}" alt="${user.fullName}">
+document.getElementById('stats-modal-list').innerHTML = myFollowing.slice(0, 50).map(id => `
+<div class="stat-item-card">
 <div class="stat-item-card-info">
-<div class="stat-item-card-name">${user.fullName || user.username}</div>
-<div class="stat-item-card-username">@${user.username || 'user'}</div>
+<div class="stat-item-card-name">${id}</div>
 </div>
-</div>
-`).join('');
-}
-} catch (error) {
-console.error('Error loading following:', error);
-container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--danger-color);">خطأ في التحميل</div>';
+</div>`).join('');
 }
 }
 
-window.openProfileModal = function(userId) {
-window.location.href = `profile.html?view=${userId}`;
-}
-
-window.openPostInFeed = function(postId) {
-window.location.href = `feed.html?post=${postId}`;
-}
-
-// === مودال عام ===
+// === عام ===
 window.openModal = function(modalId) {
 document.getElementById(modalId).classList.add('show');
 document.body.classList.add('scroll-locked');
@@ -2015,38 +1047,11 @@ window.logout = function() {
 if (confirm('هل تريد تسجيل الخروج؟')) {
 if (walletUnsubscribe) walletUnsubscribe();
 localStorage.removeItem('currentUser');
-localStorage.removeItem('profilePageState');
 window.location.href = 'index.html';
 }
 }
 
-window.deleteAccount = async function() {
-if (!confirm('⚠️ هل أنت متأكد من حذف الحساب نهائياً؟ لا يمكن التراجع!')) return;
-if (!confirm('⚠️ تأكيد نهائي: سيتم حذف جميع بياناتك!')) return;
-try {
-await updateDoc(doc(db, "users", currentUser.uid), { banned: true, isDeleted: true, deletedAt: serverTimestamp() });
-if (walletUnsubscribe) walletUnsubscribe();
-localStorage.removeItem('currentUser');
-localStorage.removeItem('profilePageState');
-showAlert('success', 'تم الحذف', 'تم حذف الحساب بنجاح');
-window.location.href = 'index.html';
-} catch (error) {
-console.error('❌ Error deleting account:', error);
-alert('حدث خطأ: ' + error.message);
-}
-}
-
-function formatTime(timestamp) {
-if (!timestamp) return '';
-const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-const now = new Date();
-const diff = now - date;
-if (diff < 60000) return 'الآن';
-if (diff < 3600000) return Math.floor(diff / 60000) + ' دقيقة';
-if (diff < 86400000) return Math.floor(diff / 3600000) + ' ساعة';
-return date.toLocaleDateString('ar-SA');
-}
-
+// === الوضع الليلي ===
 document.getElementById('theme-toggle').addEventListener('click', () => {
 document.body.classList.toggle('dark-mode');
 const icon = document.querySelector('#theme-toggle i');
@@ -2055,38 +1060,35 @@ icon.classList.toggle('fa-sun');
 localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
 });
 
-// === مؤشرات التحديث ===
+// === مؤشرات ===
 function showRefreshIndicator() {
-const indicator = document.getElementById('refresh-indicator');
-indicator.classList.add('show');
+document.getElementById('refresh-indicator').classList.add('show');
 }
-
 function hideRefreshIndicator() {
-const indicator = document.getElementById('refresh-indicator');
 setTimeout(() => {
-indicator.classList.remove('show');
+document.getElementById('refresh-indicator').classList.remove('show');
 }, 1000);
 }
 
 function showAlert(type, title, message) {
 const alert = document.createElement('div');
-alert.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:15px 25px;box-shadow:0 10px 40px rgba(0,0,0,0.2);z-index:4000;display:flex;align-items:center;gap:10px;animation:slideDown 0.3s;border-right:4px solid ${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}`;
-alert.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle'}" style="color:${type==='success'?'var(--success-color)':type==='error'?'var(--danger-color)':'var(--warning-color)'}"></i><div><b>${title}</b><br><small style="color:var(--text-secondary)">${message}</small></div>`;
+alert.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card-bg);border-radius:16px;padding:15px 25px;box-shadow:0 10px 40px rgba(0,0,0,0.2);z-index:4000;display:flex;align-items:center;gap:10px;border-right:4px solid ${type==='success'?'var(--success-color)':'var(--danger-color)'}`;
+alert.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}" style="color:${type==='success'?'var(--success-color)':'var(--danger-color)'}"></i><div><b>${title}</b><br><small>${message}</small></div>`;
 document.body.appendChild(alert);
 setTimeout(() => alert.remove(), 3000);
 }
 
-// === التهيئة ===
-console.log('🔧 Initializing profile page...');
-const cached = loadPageState();
-if (cached) {
-currentUserData = cached;
-renderProfile(currentUserData);
-document.body.classList.add('page-loaded');
-pageInitialized = true;
+function showStatus(message, type) {
+const statusEl = document.getElementById('avatar-upload-status');
+const textEl = document.getElementById('avatar-upload-text');
+textEl.textContent = message;
+statusEl.classList.add('show');
+setTimeout(() => statusEl.classList.remove('show'), 3000);
 }
+
+// === التهيئة ===
+updateBiometricUI();
 loadUserData();
-console.log('🚀 === PROFILE PAGE READY ===');
 </script>
 </body>
 </html>

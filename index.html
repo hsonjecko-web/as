@@ -19,6 +19,157 @@
             --error-color: #ef4444;
             --success-color: #10b981;
         }
+        /* ========================================
+   📱 تحسينات التصميم المتجاوب لكل الشاشات
+   ======================================== */
+
+/* === للهواتف الصغيرة جداً (320px - 360px) === */
+@media (max-width: 360px) {
+    :root {
+        --nav-height: 60px; /* تصغير الفوتر */
+    }
+    
+    .bottom-nav {
+        height: var(--nav-height);
+        padding: 5px 0;
+    }
+    
+    .nav-item {
+        font-size: 0.6rem;
+        gap: 3px;
+    }
+    
+    .nav-item i {
+        font-size: 1.1rem;
+    }
+    
+    header {
+        padding: 10px 15px;
+    }
+    
+    .header-title {
+        font-size: 1.1rem;
+    }
+    
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    .user-avatar-small {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .username {
+        font-size: 0.9rem;
+    }
+    
+    .notification-badge {
+        min-width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+        top: 6px;
+        right: 6px;
+    }
+}
+
+/* === للهواتف المتوسطة (361px - 414px) === */
+@media (min-width: 361px) and (max-width: 414px) {
+    :root {
+        --nav-height: 65px;
+    }
+    
+    .nav-item {
+        font-size: 0.65rem;
+    }
+    
+    header {
+        padding: 12px 18px;
+    }
+}
+
+/* === للهواتف الكبيرة والتابلت الصغير (415px - 768px) === */
+@media (min-width: 415px) and (max-width: 768px) {
+    .mobile-container {
+        max-width: 100%;
+        border-radius: 0;
+        margin: 0;
+    }
+}
+
+/* === للشاشات الكبيرة (تابلت +) === */
+@media (min-width: 769px) {
+    .mobile-container {
+        max-width: 450px;
+        margin: 20px auto;
+        border-radius: 30px;
+        min-height: 90vh;
+        border: 1px solid var(--border-color);
+    }
+    
+    .bottom-nav {
+        border-radius: 0 0 30px 30px;
+        max-width: 450px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+/* === دعم الشاشات ذات الحواف (نوتش، ثقب الكاميرا) === */
+@supports (padding-top: env(safe-area-inset-top)) {
+    header {
+        padding-top: calc(15px + env(safe-area-inset-top));
+    }
+    
+    .bottom-nav {
+        padding-bottom: env(safe-area-inset-bottom);
+        height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+    }
+    
+    body {
+        padding-bottom: calc(var(--nav-height) + 20px + env(safe-area-inset-bottom));
+    }
+}
+
+/* === تحسين اللمس للأزرار (للموبايل) === */
+@media (hover: none) and (pointer: coarse) {
+    .icon-btn,
+    .nav-item,
+    .action-btn,
+    .btn-profile,
+    .btn-submit,
+    .filter-chip,
+    .join-btn,
+    .add-friend-btn {
+        min-height: 44px; /* حد أدنى لمنطقة اللمس */
+        min-width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nav-item {
+        padding: 8px 4px;
+    }
+}
+
+/* === منع التكبير باللمس المزدوج (لتجربة أفضل) === */
+* {
+    touch-action: manipulation;
+}
+
+/* === تحسين التمرير للموبايل === */
+body {
+    overscroll-behavior-y: contain; /* منع السحب للتحديث في التطبيق */
+}
+
+/* === تحسين ظهور لوحة المفاتيح === */
+body.keyboard-open .bottom-nav {
+    transform: translateY(100%); /* إخفاء الفوتر عند ظهور الكيبورد */
+    transition: transform 0.2s ease;
+}
         body.dark-mode {
             --bg-color: #0f172a;
             --card-bg: #1e293b;
@@ -225,6 +376,9 @@
         </div>
     </div>
 
+    <!-- ✅ تم إصلاح الرابط: إزالة المسافات الزائدة -->
+    <script src="https://unpkg.com/@capacitor/core@latest/dist/capacitor.js"></script>
+    
     <script type="module">
     console.log('🚀 === INDEX PAGE STARTING ===');
     
@@ -425,6 +579,60 @@
         switchTab('login');
     }
 
+    // ========================================
+    // 🔔 كود الصلاحيات والإشعارات - مُصَحَّح ✅
+    // ========================================
+    
+    // دالة طلب الصلاحيات - مع تحسين التوقيت والتحقق
+    async function setupPermissions() {
+        // انتظار بسيط لضمان جاهزية Capacitor
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // نتأكد أننا داخل تطبيق أصلي (وليس متصفح)
+        if (typeof Capacitor === 'undefined' || !Capacitor.isNativePlatform?.()) {
+            console.log('🌐 يعمل في المتصفح - لا حاجة للصلاحيات');
+            return;
+        }
+        
+        console.log('📱 تطبيق أصلي - نطلب الصلاحيات...');
+        
+        try {
+            // التحقق من وجود إضافة الإشعارات قبل الاستخدام
+            if (!Capacitor.Plugins?.LocalNotifications) {
+                console.warn('⚠️ إضافة LocalNotifications غير مثبتة - تأكد من تنفيذ: npm install @capacitor/local-notifications');
+                return;
+            }
+            
+            // 1. نطلب إذن الإشعارات أولاً
+            const { status } = await Capacitor.Plugins.LocalNotifications.requestPermissions();
+            console.log('🔐 حالة إذن الإشعارات:', status);
+            
+            // 2. ننشئ قناة الإشعارات (مهمة للأندرويد 8+)
+            await Capacitor.Plugins.LocalNotifications.createChannel({
+                id: 'my_channel',
+                name: 'تنبيهات التطبيق',
+                importance: 4, // عالي: صوت + ظهور من فوق
+                vibration: true,
+                sound: 'default',
+                visibility: 1
+            });
+            
+            console.log('✅ تم إعداد الصلاحيات والقنوات بنجاح');
+            
+        } catch (error) {
+            console.log('⚠️ خطأ في إعداد الصلاحيات:', error);
+        }
+    }
+    
+    // تشغيل إعداد الصلاحيات بعد جاهزية الصفحة
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(setupPermissions, 300);
+        });
+    } else {
+        setTimeout(setupPermissions, 300);
+    }
+
     // الوضع الليلي
     document.getElementById('theme-toggle').addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
@@ -434,6 +642,145 @@
     });
 
     console.log('🚀 === INDEX PAGE READY ===');
-</script>
+    // ========================================
+// 🔙 نظام زر الرجوع المزدوج (مثل أندرويد)
+// ========================================
+
+let exitConfirmTimeout = null;
+let exitConfirmShown = false;
+
+async function handleBackButton() {
+    // إذا كان أي مودال مفتوح، أغلقه أولاً
+    const openModals = document.querySelectorAll('.modal-overlay.show, .profile-modal-overlay.show');
+    if (openModals.length > 0) {
+        openModals.forEach(modal => {
+            modal.classList.remove('show');
+            document.body.classList.remove('scroll-locked', 'keyboard-open');
+        });
+        return true; // تم التعامل مع الحدث
+    }
+    
+    // إذا كانت لوحة الإشعارات مفتوحة، أغلقها
+    const notificationPanel = document.getElementById('notification-panel');
+    if (notificationPanel?.classList.contains('show')) {
+        closeNotificationPanel?.();
+        return true;
+    }
+    
+    // إذا كنا في الصفحة الرئيسية للتطبيق
+    if (window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/')) {
+        if (!exitConfirmShown) {
+            // أول ضغطة: اعرض رسالة التأكيد
+            exitConfirmShown = true;
+            showToast('اضغط مرة أخرى للخروج', 'warning');
+            
+            // أعد العداد بعد 2 ثانية
+            exitConfirmTimeout = setTimeout(() => {
+                exitConfirmShown = false;
+            }, 2000);
+            return false; // لا تخرج بعد
+        } else {
+            // ثاني ضغطة: اخرج من التطبيق
+            clearTimeout(exitConfirmTimeout);
+            await exitApp();
+            return true;
+        }
+    }
+    
+    // في الصفحات الأخرى: ارجع للصفحة السابقة
+    if (window.history.length > 1) {
+        window.history.back();
+        return true;
+    }
+    
+    return false;
+}
+
+// دالة الخروج من التطبيق (Capacitor)
+async function exitApp() {
+    if (typeof Capacitor !== 'undefined' && Capacitor.Plugins?.App) {
+        await Capacitor.Plugins.App.exitApp();
+    } else {
+        // للمتصفح: حاول إغلاق النافذة
+        window.close();
+        // أو ارجع للرئيسية
+        window.location.href = 'index.html';
+    }
+}
+
+// دالة عرض رسالة سريعة (Toast)
+function showToast(message, type = 'info') {
+    // إزالة أي Toast موجود
+    const existing = document.getElementById('back-toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.id = 'back-toast';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'warning' ? 'var(--warning-color)' : 'var(--text-main)'};
+        color: ${type === 'warning' ? '#000' : '#fff'};
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: slideUpToast 0.3s ease;
+        max-width: 80%;
+        text-align: center;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // إضافة أنيميشن
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideUpToast {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // إزالة الـ Toast بعد 2 ثانية
+    setTimeout(() => {
+        toast.style.animation = 'slideUpToast 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+// الاستماع لزر الرجوع (أندرويد + متصفح)
+document.addEventListener('DOMContentLoaded', () => {
+    // لأندرويد عبر Capacitor
+    if (typeof Capacitor !== 'undefined' && Capacitor.Plugins?.App) {
+        Capacitor.Plugins.App.addListener('backButton', async ({ canGoBack }) => {
+            const handled = await handleBackButton();
+            if (!handled && !canGoBack) {
+                await exitApp();
+            }
+        });
+    }
+    
+    // للمتصفح (للتجربة على الكمبيوتر)
+    window.addEventListener('popstate', (e) => {
+        if (window.location.pathname.includes('home.html') || window.location.pathname.endsWith('/')) {
+            e.preventDefault();
+            handleBackButton();
+        }
+    });
+});
+
+// تنظيف عند إغلاق الصفحة
+window.addEventListener('beforeunload', () => {
+    clearTimeout(exitConfirmTimeout);
+    if (typeof Capacitor !== 'undefined' && Capacitor.Plugins?.App) {
+        Capacitor.Plugins.App.removeAllListeners();
+    }
+});
+    </script>
 </body>
 </html>
